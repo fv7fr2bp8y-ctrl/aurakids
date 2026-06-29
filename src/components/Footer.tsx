@@ -2,17 +2,19 @@ import AuraLogo from "./AuraLogo";
 
 export default function Footer() {
   return (
-    <footer className="py-14 px-6 text-center" style={{ background: "#1A0533" }}>
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <AuraLogo size={28} />
-        <span className="text-lg font-bold text-white">AuraKids</span>
+    <footer className="py-16 px-6" style={{ background: "#0F0520", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
+        <div className="flex items-center gap-3 mb-4">
+          <AuraLogo size={32} />
+          <span className="text-xl font-bold text-white tracking-tight">AuraKids</span>
+        </div>
+        <p className="text-sm mb-2 max-w-xs" style={{ color: "rgba(255,255,255,0.35)", lineHeight: 1.7 }}>
+          Персонализирани приказки с изкуствен интелект — твоето дете е героят.
+        </p>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
+          © 2025 AuraKids · aurakids.fun · Всички права запазени
+        </p>
       </div>
-      <p className="text-sm mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>
-        Магически приказки, специално за твоето дете
-      </p>
-      <p className="text-xs" style={{ color: "rgba(255,255,255,0.18)" }}>
-        © 2025 AuraKids · aurakids.fun
-      </p>
     </footer>
   );
 }
