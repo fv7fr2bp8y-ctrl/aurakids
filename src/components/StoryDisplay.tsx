@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StoryData } from "./StoryGenerator";
 import { useTTS } from "@/hooks/useTTS";
+import AuraLogo from "./AuraLogo";
 
 interface StoryDisplayProps {
   story: StoryData;
@@ -63,42 +64,71 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #faf7f2 0%, #f0e6ff 30%, #faf7f2 100%)" }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 glass border-b border-purple-100 px-4 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <button onClick={onBack} className="text-sm transition-opacity hover:opacity-70" style={{ color: "#7c3aed" }}>
-            ← Нова приказка
+      <div className="sticky top-0 z-10 glass border-b border-purple-100 px-4 py-3">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+
+          {/* Back */}
+          <button onClick={onBack}
+            className="flex items-center gap-1.5 text-sm font-medium shrink-0 transition-opacity hover:opacity-70"
+            style={{ color: "#7c3aed" }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Назад
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🌟</span>
-            <span className="font-bold text-sm" style={{ color: "#7c3aed" }}>AuraKids</span>
+
+          {/* Logo */}
+          <div className="flex items-center gap-1.5 font-bold text-sm" style={{ color: "#7c3aed" }}>
+            <AuraLogo size={22} />
+            AuraKids
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => speak(fullStoryText)}
-              disabled={ttsStatus === "loading"}
-              className="text-sm px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5"
-              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
-            >
+
+          {/* Actions — icons only */}
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={() => speak(fullStoryText)} disabled={ttsStatus === "loading"}
+              title="Чуй" aria-label="Чуй"
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}>
               {ttsStatus === "loading" ? (
-                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
-              ) : ttsStatus === "playing" ? "⏹ Спри" : "🔊 Чуй"}
+              ) : ttsStatus === "playing" ? (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="3" y="2" width="4" height="12" rx="1.5"/>
+                  <rect x="9" y="2" width="4" height="12" rx="1.5"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M3 5h2l4-3v12l-4-3H3a1 1 0 01-1-1V6a1 1 0 011-1zm8.5 1a3.5 3.5 0 010 4"/>
+                </svg>
+              )}
             </button>
-            <button
-              onClick={handleCopy}
-              className="text-sm px-3 py-1.5 rounded-full transition-all"
-              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
-            >
-              {copied ? "✓ Копирано" : "📋 Копирай"}
+
+            <button onClick={handleCopy} title="Копирай" aria-label="Копирай"
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+              style={{ background: copied ? "rgba(34,197,94,0.15)" : "rgba(124,58,237,0.1)", color: copied ? "#16a34a" : "#7c3aed" }}>
+              {copied ? (
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
+                  <path d="M12 3L6 10 3 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="5" y="1" width="9" height="11" rx="1.5"/>
+                  <path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/>
+                </svg>
+              )}
             </button>
-            <button
-              onClick={() => window.print()}
-              className="text-sm px-3 py-1.5 rounded-full transition-all"
-              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
-            >
-              🖨️ Печат
+
+            <button onClick={() => window.print()} title="Печат" aria-label="Печат"
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 5V2h7v3"/>
+                <rect x="1" y="5" width="13" height="7" rx="1"/>
+                <path d="M4 9h7M4 12h4"/>
+              </svg>
             </button>
           </div>
         </div>
