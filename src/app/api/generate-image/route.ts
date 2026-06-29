@@ -26,16 +26,17 @@ export async function POST(req: NextRequest) {
     const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
 
     const response = await client.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-1",
       prompt: styledPrompt,
       n: 1,
       size: "1024x1024",
     });
 
-    const url = response.data?.[0]?.url;
-    if (!url) throw new Error("No image URL from DALL-E");
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) throw new Error("No image from OpenAI");
+    const arrayBuffer = Buffer.from(b64, "base64").buffer;
 
-    const publicUrl = await saveImageToStorage(fileName, url);
+    const publicUrl = await saveImageToStorage(fileName, arrayBuffer);
     if (!publicUrl) throw new Error("Supabase upload failed");
 
     return NextResponse.json({ url: publicUrl, fromCache: false });

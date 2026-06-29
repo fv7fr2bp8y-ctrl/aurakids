@@ -18,17 +18,18 @@ export async function GET() {
   try {
     const client = new OpenAI({ apiKey: key });
     const response = await client.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-1",
       prompt: HERO_PROMPT,
       n: 1,
-      size: "1792x1024",
+      size: "1536x1024",
     });
 
-    const dalleUrl = response.data?.[0]?.url;
-    if (!dalleUrl) return NextResponse.json({ url: null });
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) return NextResponse.json({ url: null });
 
-    const publicUrl = await saveImageToStorage(HERO_FILE, dalleUrl);
-    return NextResponse.json({ url: publicUrl ?? dalleUrl });
+    const arrayBuffer = Buffer.from(b64, "base64").buffer;
+    const publicUrl = await saveImageToStorage(HERO_FILE, arrayBuffer);
+    return NextResponse.json({ url: publicUrl });
   } catch (error) {
     console.error("Hero image error:", error);
     return NextResponse.json({ url: null });
