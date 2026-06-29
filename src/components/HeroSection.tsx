@@ -2,26 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-
-function AuraLogo({ size = 32 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FF6B6B" />
-          <stop offset="100%" stopColor="#FFD93D" />
-        </linearGradient>
-      </defs>
-      {/* Open book */}
-      <path d="M24 36 C24 36 10 30 6 18 L6 14 C6 14 10 12 24 18 C38 12 42 14 42 14 L42 18 C38 30 24 36 24 36Z"
-        fill="url(#logoGrad)" opacity="0.9" />
-      <path d="M24 36 L24 18" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" />
-      {/* Star above */}
-      <path d="M24 6 L25.5 10 L30 10 L26.5 12.5 L28 16.5 L24 14 L20 16.5 L21.5 12.5 L18 10 L22.5 10Z"
-        fill="white" opacity="0.95" />
-    </svg>
-  );
-}
+import AuraLogo from "./AuraLogo";
 
 interface HeroSectionProps {
   onStart: () => void;

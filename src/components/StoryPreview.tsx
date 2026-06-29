@@ -3,52 +3,57 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-interface PreviewCard {
+interface Card {
   title: string;
   child: string;
   age: string;
   theme: string;
-  color: string;
   excerpt: string;
   prompt: string;
+  gradient: string;
+  accentColor: string;
+  icon: string;
 }
 
-const PREVIEWS: PreviewCard[] = [
+const CARDS: Card[] = [
   {
     title: "Александър и Огненият Дракон",
-    child: "Александър",
-    age: "6 години",
+    child: "Александър", age: "6 год.",
     theme: "Дракони",
-    color: "#FF6B6B",
-    excerpt: "Тази нощ луната светеше по-ярко от всякога над Пурпурните планини. И само Александър знаеше защо — огненият дракон беше събуден...",
-    prompt: "A brave little Bulgarian boy named Alexander with big brown eyes wearing a small golden crown, riding a magnificent friendly purple dragon with iridescent scales over a magical fantasy kingdom at sunset, 3D Pixar animation style, ultra-detailed, cinematic lighting, rich jewel-tone colors, no text",
+    excerpt: "Тази нощ луната светеше по-ярко от всякога. И само Александър знаеше защо — огненият дракон беше събуден...",
+    prompt: "A brave 6-year-old Bulgarian boy with big brown eyes wearing a small golden crown, riding a magnificent friendly purple dragon with iridescent scales over a glowing fantasy kingdom at golden hour, 3D Pixar animation style, ultra-detailed, cinematic, jewel-tone colors, no text",
+    gradient: "linear-gradient(145deg, #1a0533 0%, #6B35B8 60%, #FF6B6B 100%)",
+    accentColor: "#FF6B6B",
+    icon: "🐉",
   },
   {
     title: "Ева и Говорещата Гора",
-    child: "Ева",
-    age: "5 години",
+    child: "Ева", age: "5 год.",
     theme: "Вълшебна гора",
-    color: "#4ADE80",
-    excerpt: "Гората зад дома на Ева пазеше тайна — такава, която само едно дете на петте й години можеше да открие. И точно тя я откри...",
-    prompt: "An adorable little Bulgarian girl named Eva with curly hair and rosy cheeks, talking to wise friendly woodland animals including an owl, a fox, and a deer in an enchanted glowing forest with giant mushrooms and fireflies, 3D Pixar animation style, soft magical lighting, pastel greens and pinks, no text",
+    excerpt: "Гората зад дома на Ева пазеше тайна — такава, която само тя можеше да открие. И точно тя я откри...",
+    prompt: "An adorable 5-year-old girl with curly hair and rosy cheeks, sitting in a magical enchanted forest talking to a wise owl and friendly fox, giant glowing mushrooms, fireflies, soft magical light, 3D Pixar quality, pastel greens and golds, ultra-detailed, no text",
+    gradient: "linear-gradient(145deg, #052015 0%, #166534 60%, #4ADE80 100%)",
+    accentColor: "#4ADE80",
+    icon: "🌿",
   },
   {
     title: "Никола — Пазителят на Звездите",
-    child: "Никола",
-    age: "7 години",
+    child: "Никола", age: "7 год.",
     theme: "Космос",
-    color: "#9B6FE8",
-    excerpt: "Когато всички звезди угаснаха в една нощ, единственият, когото Вселената извика на помощ, беше Никола. Седемгодишен. Неустрашим...",
-    prompt: "A cute little Bulgarian boy astronaut named Nikola floating weightlessly in vibrant colorful space, surrounded by friendly smiling planets Saturn and Jupiter, glowing nebulas, and a trail of golden stars, 3D Pixar animation quality, ultra-detailed, deep purple and gold color palette, no text",
+    excerpt: "Когато всички звезди угаснаха, единственият, когото Вселената извика на помощ, беше Никола. Неустрашим...",
+    prompt: "A cute 7-year-old boy astronaut floating in vibrant colorful space, surrounded by friendly smiling planets and glowing nebulas in pink and purple, golden star trail, 3D Pixar quality, deep space atmosphere, ultra-detailed, no text",
+    gradient: "linear-gradient(145deg, #020617 0%, #1e1b4b 60%, #7C3AED 100%)",
+    accentColor: "#A78BFA",
+    icon: "🚀",
   },
 ];
 
-function StoryCard({ card, index }: { card: PreviewCard; index: number }) {
+function StoryCard({ card, index }: { card: Card; index: number }) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const t = setTimeout(() => {
       fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,61 +63,69 @@ function StoryCard({ card, index }: { card: PreviewCard; index: number }) {
         .then((d) => d.url && setImgUrl(d.url))
         .catch(() => {})
         .finally(() => setLoading(false));
-    }, index * 200);
-    return () => clearTimeout(timer);
+    }, index * 800);
+    return () => clearTimeout(t);
   }, [card.prompt, index]);
 
   return (
-    <div className="rounded-3xl overflow-hidden card-hover flex flex-col"
-      style={{
-        background: "#fff",
-        boxShadow: "0 8px 40px rgba(59,26,107,0.10)",
-        border: "1px solid rgba(59,26,107,0.06)",
-      }}>
+    <div className="group rounded-3xl overflow-hidden card-hover flex flex-col"
+      style={{ boxShadow: `0 8px 48px ${card.accentColor}22, 0 2px 8px rgba(0,0,0,0.08)` }}>
 
-      {/* Illustration */}
-      <div className="relative h-52 w-full flex-shrink-0">
+      {/* Image area */}
+      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
         {imgUrl ? (
-          <Image src={imgUrl} alt={card.title} fill className="object-cover" unoptimized />
+          <Image src={imgUrl} alt={card.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" unoptimized />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center gap-3"
-            style={{ background: `linear-gradient(135deg, ${card.color}22, ${card.color}44)` }}>
-            {loading ? (
-              <>
-                <svg className="animate-spin w-8 h-8" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-20" cx="12" cy="12" r="10" stroke={card.color} strokeWidth="3" />
-                  <path className="opacity-80" fill={card.color} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-xs font-medium" style={{ color: card.color }}>Зарежда илюстрация...</span>
-              </>
-            ) : (
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                style={{ background: `${card.color}33` }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill={card.color} />
-                </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: card.gradient }}>
+            {/* Decorative stars */}
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="absolute rounded-full animate-twinkle"
+                style={{
+                  width: Math.random() > 0.5 ? 2 : 3,
+                  height: Math.random() > 0.5 ? 2 : 3,
+                  background: "white",
+                  opacity: 0.4 + Math.random() * 0.4,
+                  top: `${10 + Math.random() * 80}%`,
+                  left: `${5 + Math.random() * 90}%`,
+                  animationDelay: `${Math.random() * 2}s`,
+                }} />
+            ))}
+            <div className="relative z-10 text-center flex flex-col items-center gap-3">
+              <div className="text-6xl mb-1" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))" }}>
+                {card.icon}
               </div>
-            )}
+              {loading && (
+                <div className="flex gap-1.5">
+                  {[0, 0.25, 0.5].map((d) => (
+                    <div key={d} className="w-1.5 h-1.5 rounded-full animate-twinkle"
+                      style={{ background: card.accentColor, animationDelay: `${d}s` }} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Theme badge */}
-        <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-semibold text-white"
-          style={{ background: card.color, boxShadow: `0 2px 8px ${card.color}66` }}>
+        {/* Overlay gradient at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }} />
+
+        {/* Theme chip */}
+        <div className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold text-white"
+          style={{ background: card.accentColor, boxShadow: `0 2px 10px ${card.accentColor}88` }}>
           {card.theme}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-bold text-base leading-snug mb-1.5" style={{ color: "#1A0533" }}>
+      {/* Text */}
+      <div className="p-5 flex flex-col flex-1 bg-white">
+        <div className="text-xs font-semibold mb-2" style={{ color: card.accentColor }}>
+          Приказка за {card.child}, {card.age}
+        </div>
+        <h3 className="font-bold text-base leading-snug mb-3" style={{ color: "#1A0533" }}>
           {card.title}
         </h3>
-        <p className="text-xs mb-3" style={{ color: "#9B8FC0" }}>
-          Създадена за {card.child}, {card.age}
-        </p>
-        <p className="text-sm leading-relaxed flex-1" style={{ color: "#5B4F7A", fontStyle: "italic" }}>
+        <p className="text-sm leading-relaxed" style={{ color: "#6B5A8A", fontStyle: "italic", flexGrow: 1 }}>
           &ldquo;{card.excerpt}&rdquo;
         </p>
       </div>
@@ -120,11 +133,7 @@ function StoryCard({ card, index }: { card: PreviewCard; index: number }) {
   );
 }
 
-interface StoryPreviewProps {
-  onStart: () => void;
-}
-
-export default function StoryPreview({ onStart }: StoryPreviewProps) {
+export default function StoryPreview({ onStart }: { onStart: () => void }) {
   return (
     <section className="py-28 px-6" style={{ background: "linear-gradient(180deg, #F5EEFF 0%, #EDE0FF 100%)" }}>
       <div className="max-w-5xl mx-auto">
@@ -139,25 +148,18 @@ export default function StoryPreview({ onStart }: StoryPreviewProps) {
             <span style={{ color: "#6B35B8" }}>не е получавало тази история</span>
           </h2>
           <p className="text-lg max-w-lg mx-auto" style={{ color: "#6B5A8A", lineHeight: 1.7 }}>
-            Не шаблон. Не предварително написана приказка. Нова история, създадена в момента — само за вашето дете, само с неговото име.
+            Не шаблон. Не готова приказка. Нова история, написана в момента — само за вашето дете.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
-          {PREVIEWS.map((card, i) => (
-            <StoryCard key={card.title} card={card} index={i} />
-          ))}
+          {CARDS.map((card, i) => <StoryCard key={card.title} card={card} index={i} />)}
         </div>
 
         <div className="text-center">
-          <button
-            onClick={onStart}
+          <button onClick={onStart}
             className="px-12 py-5 rounded-2xl text-lg font-bold text-white transition-all hover:scale-105 inline-flex items-center gap-3"
-            style={{
-              background: "linear-gradient(135deg, #6B35B8, #FF6B6B)",
-              boxShadow: "0 16px 48px rgba(107,53,184,0.40)",
-            }}
-          >
+            style={{ background: "linear-gradient(135deg, #6B35B8, #FF6B6B)", boxShadow: "0 16px 48px rgba(107,53,184,0.4)" }}>
             Напиши приказката на моето дете
           </button>
           <p className="text-sm mt-4" style={{ color: "#9B8FC0" }}>

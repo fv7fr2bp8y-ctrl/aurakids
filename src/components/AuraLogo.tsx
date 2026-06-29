@@ -1,19 +1,28 @@
-export default function AuraLogo({ size = 32 }: { size?: number }) {
+export default function AuraLogo({ size = 36 }: { size?: number }) {
+  const id = "al";
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="auraLogoGrad" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={`${id}-g1`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#FF6B6B" />
           <stop offset="100%" stopColor="#FFD93D" />
         </linearGradient>
+        <linearGradient id={`${id}-g2`} x1="0" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor="#9B6FE8" />
+          <stop offset="100%" stopColor="#5B21B6" />
+        </linearGradient>
       </defs>
-      {/* Open book */}
-      <path d="M24 36 C24 36 10 30 6 18 L6 14 C6 14 10 12 24 18 C38 12 42 14 42 14 L42 18 C38 30 24 36 24 36Z"
-        fill="url(#auraLogoGrad)" opacity="0.95" />
-      <path d="M24 36 L24 18" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Star above */}
-      <path d="M24 5 L25.7 10.2 L31.2 10.2 L26.8 13.3 L28.5 18.5 L24 15.4 L19.5 18.5 L21.2 13.3 L16.8 10.2 L22.3 10.2Z"
-        fill="white" opacity="0.97" />
+      {/* Left book page */}
+      <path d="M7 37 L7 17 C7 15.5 8.5 14.5 10 15.2 C14.5 17.2 21 19.5 28 20.5 L28 40.5 C21 39.5 14.5 37 10 35 C8.5 34.3 7 35 7 37Z"
+        fill={`url(#${id}-g2)`} />
+      {/* Right book page */}
+      <path d="M49 37 L49 17 C49 15.5 47.5 14.5 46 15.2 C41.5 17.2 35 19.5 28 20.5 L28 40.5 C35 39.5 41.5 37 46 35 C47.5 34.3 49 35 49 37Z"
+        fill={`url(#${id}-g2)`} opacity="0.65" />
+      {/* Spine line */}
+      <line x1="28" y1="20" x2="28" y2="41" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" />
+      {/* Star */}
+      <path d="M28 3 L30.2 9.8 L37.4 9.8 L31.6 13.9 L33.8 20.7 L28 16.6 L22.2 20.7 L24.4 13.9 L18.6 9.8 L25.8 9.8Z"
+        fill={`url(#${id}-g1)`} />
     </svg>
   );
 }
