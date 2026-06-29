@@ -31,46 +31,53 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const prompt = `Ти си изключително талантлив детски писател с усет за магия, ритъм и емоция. Пишеш на богат, красив, съвременен български език.
+    const storyPrompt = `Ти си изключително талантлив детски писател с усет за магия, ритъм и емоция. Пишеш на богат, красив, съвременен български език.
 
-Напиши вълшебна детска приказка по следните параметри:
+Напиши вълшебна детска приказка:
 - Главен герой: ${childName}, дете на ${age}
 - Свят и тема: ${theme}
 - Език: ИЗКЛЮЧИТЕЛНО на български — богат, топъл, образен
 - Дължина: 7–9 параграфа (550–700 думи)
 - ${childName} е активен герой — взима решения, проявява смелост, решава проблеми
-- Структура: интригуващо начало → среща с приятел или загадка → изпитание → кулминация → топъл, надъхващ край с послание
-- Тон: вълшебен и топъл, с хумор на места, без да е поучителен по клиширан начин
-- Включи конкретни сетивни детайли — звуци, миризми, цветове — за да оживее светът
-- Моралът трябва да произтича естествено от историята, не да е изречен директно
-- Заглавието да е поетично и да съдържа името ${childName}
+- Структура: интригуващо начало → среща с приятел или загадка → изпитание → кулминация → топъл край с послание
+- Тон: вълшебен и топъл, с лек хумор, без клиширан морал
+- Конкретни сетивни детайли — звуци, миризми, цветове
+- Заглавие: поетично, съдържа ${childName}
 
-За илюстрациите — три сцени за AI image generator, описани на английски с богати визуални детайли, Pixar 3D animation style.
-
-Отговори САМО с валиден JSON:
-{
-  "title": "Поетично заглавие с ${childName}",
-  "story": "Пълният текст на приказката, параграфите разделени с \\n\\n",
-  "imagePrompts": [
-    "Scene 1: [opening scene, ultra-detailed, 3D Pixar style, rich colors, ${childName} as protagonist, no text]",
-    "Scene 2: [climax scene, ultra-detailed, 3D Pixar style, dramatic lighting, no text]",
-    "Scene 3: [happy ending scene, ultra-detailed, 3D Pixar style, warm golden light, no text]"
-  ]
-}`;
+За image_prompts: три сцени на английски за DALL-E 3, Pixar 3D style, ultra-detailed, no text.`;
 
     const message = await client.messages.create({
       model: "claude-opus-4-8",
       max_tokens: 3000,
-      messages: [{ role: "user", content: prompt }],
+      tools: [
+        {
+          name: "save_story",
+          description: "Save the generated story with its title, text and image prompts",
+          input_schema: {
+            type: "object" as const,
+            properties: {
+              title: { type: "string", description: "Поетично заглавие на приказката, съдържащо името на детето" },
+              story: { type: "string", description: "Пълният текст на приказката, параграфите разделени с двоен нов ред" },
+              imagePrompts: {
+                type: "array",
+                items: { type: "string" },
+                description: "Три описания на сцени за DALL-E 3 на английски",
+                minItems: 3,
+                maxItems: 3,
+              },
+            },
+            required: ["title", "story", "imagePrompts"],
+          },
+        },
+      ],
+      tool_choice: { type: "tool", name: "save_story" },
+      messages: [{ role: "user", content: storyPrompt }],
     });
 
-    const content = message.content[0];
-    if (content.type !== "text") throw new Error("Невалиден отговор");
+    const toolUse = message.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
 
-    const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Невалиден JSON");
-
-    const parsed = JSON.parse(jsonMatch[0]);
+    const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
 
     // Save to cache BEFORE returning (critical on Vercel serverless)
     await saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []);
