@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
+
 function AuraLogo({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
@@ -24,14 +27,16 @@ interface HeroSectionProps {
   onStart: () => void;
 }
 
-const STORY_LINES = [
-  "Имало едно време храбро момче",
-  "на име Александър, което живеело...",
-  "в магическо кралство, пълно с дракони",
-  "и вълшебни съкровища...",
-];
-
 export default function HeroSection({ onStart }: HeroSectionProps) {
+  const [heroUrl, setHeroUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/hero-image")
+      .then((r) => r.json())
+      .then((d) => d.url && setHeroUrl(d.url))
+      .catch(() => {});
+  }, []);
+
   return (
     <>
       {/* Nav */}
@@ -116,104 +121,41 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
             </div>
           </div>
 
-          {/* Right: animated story card */}
+          {/* Right: hero illustration */}
           <div className="relative flex items-center justify-center animate-scale-in">
-            <div className="relative w-full max-w-md"
-              style={{ filter: "drop-shadow(0 32px 64px rgba(0,0,0,0.5))" }}>
+            <div className="relative w-full max-w-lg"
+              style={{ filter: "drop-shadow(0 40px 80px rgba(0,0,0,0.6))" }}>
 
-              {/* Main card */}
-              <div className="rounded-3xl overflow-hidden"
+              <div className="relative w-full rounded-3xl overflow-hidden"
                 style={{
-                  background: "linear-gradient(145deg, rgba(59,26,107,0.95), rgba(26,5,51,0.98))",
+                  aspectRatio: "16/10",
                   border: "1px solid rgba(255,255,255,0.12)",
-                  backdropFilter: "blur(20px)",
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.05), inset 0 0 80px rgba(107,53,184,0.3)",
                 }}>
-
-                {/* Card header */}
-                <div className="px-6 pt-6 pb-4 flex items-center justify-between"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div className="flex items-center gap-2">
-                    <AuraLogo size={22} />
-                    <span className="text-sm font-semibold text-white/80">AuraKids</span>
+                {heroUrl ? (
+                  <Image src={heroUrl} alt="AuraKids магическа илюстрация" fill className="object-cover" unoptimized />
+                ) : (
+                  /* Beautiful placeholder while DALL-E generates */
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-4"
+                    style={{ background: "linear-gradient(145deg, #2D0F55, #6B35B8, #9B6FE8)" }}>
+                    <div className="absolute inset-0 stars-bg opacity-70" />
+                    {/* Animated glow orb */}
+                    <div className="absolute w-40 h-40 rounded-full blur-3xl animate-float-slow"
+                      style={{ background: "radial-gradient(circle, rgba(255,217,61,0.3), rgba(255,107,107,0.2), transparent)" }} />
+                    <AuraLogo size={64} />
+                    <div className="text-center relative z-10">
+                      <div className="text-white font-semibold text-base mb-1">Зарежда илюстрация...</div>
+                      <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Първото зареждане отнема ~20 сек</div>
+                    </div>
+                    {/* Progress dots */}
+                    <div className="flex gap-2 relative z-10">
+                      {[0, 0.3, 0.6].map((d) => (
+                        <div key={d} className="w-2 h-2 rounded-full animate-twinkle"
+                          style={{ background: "#FFD93D", animationDelay: `${d}s` }} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex gap-1.5">
-                    {["#FF6B6B", "#FFD93D", "#4ADE80"].map((c) => (
-                      <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c, opacity: 0.7 }} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Story illustration area */}
-                <div className="relative mx-5 mt-5 rounded-2xl overflow-hidden"
-                  style={{ background: "linear-gradient(135deg, #2D0F55, #6B35B8)", height: 160 }}>
-                  {/* Stars */}
-                  {[[15, 20], [70, 15], [85, 50], [30, 70], [60, 80], [45, 35]].map(([x, y], i) => (
-                    <div key={i} className="absolute animate-twinkle rounded-full bg-white"
-                      style={{ left: `${x}%`, top: `${y}%`, width: i % 2 === 0 ? 3 : 2, height: i % 2 === 0 ? 3 : 2, animationDelay: `${i * 0.4}s` }} />
-                  ))}
-                  {/* Moon */}
-                  <div className="absolute top-4 right-6 w-10 h-10 rounded-full animate-float-slow"
-                    style={{ background: "radial-gradient(circle at 35% 35%, #FFD93D, #FF8C00)", opacity: 0.9 }} />
-                  {/* Child silhouette */}
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                    {/* Head */}
-                    <div className="w-8 h-8 rounded-full mb-0"
-                      style={{ background: "linear-gradient(135deg, #FFD093, #FFA07A)" }} />
-                    {/* Body / cape */}
-                    <div className="w-12 h-10 rounded-t-2xl"
-                      style={{ background: "linear-gradient(180deg, #9B6FE8, #6B35B8)" }} />
-                  </div>
-                  {/* Dragon silhouette */}
-                  <svg className="absolute left-4 bottom-2 animate-float" style={{ animationDelay: "1s" }}
-                    width="48" height="40" viewBox="0 0 48 40" fill="none">
-                    <path d="M8 32 C4 28 4 20 10 18 C8 14 12 10 16 12 C18 8 24 6 28 10 C32 6 38 8 40 14 C44 16 46 22 42 26 C40 30 36 32 30 30 L24 38 L18 30 C12 34 10 34 8 32Z"
-                      fill="#4ADE80" opacity="0.7" />
-                    <circle cx="32" cy="14" r="2" fill="#FFD93D" />
-                  </svg>
-                  {/* Sparkles */}
-                  <svg className="absolute right-8 top-8 animate-twinkle" style={{ animationDelay: "0.8s" }}
-                    width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" fill="#FFD93D" opacity="0.8" />
-                  </svg>
-                </div>
-
-                {/* Story text lines */}
-                <div className="px-6 py-5 space-y-2.5">
-                  <div className="text-xs font-semibold mb-3" style={{ color: "#FFD93D" }}>
-                    Приказката на Александър
-                  </div>
-                  {STORY_LINES.map((line, i) => (
-                    <div key={i} className="h-3 rounded-full"
-                      style={{
-                        background: i < 2 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)",
-                        width: i === 0 ? "90%" : i === 1 ? "75%" : i === 2 ? "85%" : "55%",
-                      }} />
-                  ))}
-                </div>
-
-                {/* Controls */}
-                <div className="px-6 pb-6 flex items-center gap-3">
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
-                    style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)", color: "#3B1A6B" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Чуй историята
-                  </button>
-                  <div className="flex gap-2 ml-auto">
-                    {[
-                      <path key="copy" d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6l1 3H8z" />,
-                      <path key="share" d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" />,
-                    ].map((p, i) => (
-                      <div key={i} className="w-8 h-8 rounded-lg flex items-center justify-center"
-                        style={{ background: "rgba(255,255,255,0.07)" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2">
-                          {p}
-                        </svg>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Floating badges */}

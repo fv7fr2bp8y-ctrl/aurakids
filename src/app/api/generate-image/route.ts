@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import { createHash } from "crypto";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
+export const maxDuration = 60;
+
 function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const client = new OpenAI({ apiKey: key });
-    const styledPrompt = `Children's book illustration, watercolor and pastel style, soft and magical, warm lighting, age 3-8: ${prompt}`;
+    const styledPrompt = `3D Pixar animation style children's book illustration, ultra-detailed, cinematic lighting, rich jewel-tone colors, adorable expressive characters with big eyes, magical and whimsical atmosphere, ultra high quality render: ${prompt}. No text, no letters, no watermarks.`;
 
     const response = await client.images.generate({
       model: "dall-e-3",

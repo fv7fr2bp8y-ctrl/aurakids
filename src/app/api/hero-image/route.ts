@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
+export const maxDuration = 60;
+
 const HERO_FILE = "hero-main.png";
 const HERO_PROMPT =
-  "A magical children's book hero illustration: a cute 5-year-old child with big bright eyes sitting on a giant open book floating in a dreamy night sky filled with glowing stars, golden sparkles, tiny fairies, and a friendly smiling moon. Warm purple and cream color palette. 3D Pixar-style render, ultra-detailed, soft lighting, whimsical and enchanting. Wide landscape format.";
+  "A breathtaking 3D Pixar-style children's book illustration: an adorable 5-year-old child hero with big expressive eyes and rosy cheeks, wearing a tiny golden crown, riding a friendly glowing purple dragon through a magical night sky. The dragon has soft iridescent scales, big kind eyes, and tiny wings with golden tips. Below them: a dreamy fantasy kingdom with glowing castle towers, floating islands, and thousands of twinkling stars. Warm magical light emanates from the child. Rich jewel-tone colors — deep purple, coral pink, golden yellow. Ultra-detailed 3D render, Pixar animation quality, cinematic lighting, wide landscape format, no text.";
 
 export async function GET() {
   const key = process.env.OPENAI_API_KEY;
