@@ -35,30 +35,35 @@ export interface StoryData {
 export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
   const [childName, setChildName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
+  const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
   const [error, setError] = useState("");
 
+  const activeTheme = selectedTheme === "custom"
+    ? { label: customTheme.trim(), description: customTheme.trim() }
+    : THEMES.find((t) => t.id === selectedTheme);
+
   const handleGenerate = async () => {
     if (!childName.trim() || !selectedTheme || !selectedAge) return;
+    if (selectedTheme === "custom" && !customTheme.trim()) return;
     setIsLoading(true);
     setError("");
     try {
-      const theme = THEMES.find((t) => t.id === selectedTheme);
       const res = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           childName: childName.trim(),
-          theme: theme?.description || selectedTheme,
-          themeName: theme?.label || selectedTheme,
+          theme: activeTheme?.description || selectedTheme,
+          themeName: activeTheme?.label || selectedTheme,
           age: selectedAge,
         }),
       });
       if (!res.ok) throw new Error("Грешка при генериране");
       const data = await res.json();
-      setStoryData({ childName: childName.trim(), theme: theme?.label || selectedTheme, ...data });
+      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, ...data });
     } catch {
       setError("Нещо се обърка. Опитай отново.");
     } finally {
@@ -70,7 +75,8 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
     return <StoryDisplay story={storyData} onBack={() => setStoryData(null)} onHome={onBack} />;
   }
 
-  const canGenerate = childName.trim() && selectedTheme && selectedAge;
+  const canGenerate = childName.trim() && selectedTheme && selectedAge &&
+    (selectedTheme !== "custom" || customTheme.trim());
 
   return (
     <div className="min-h-screen px-4 py-12"
@@ -156,7 +162,35 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
                   </button>
                 );
               })}
+              {/* Custom theme */}
+              <button onClick={() => setSelectedTheme("custom")}
+                className="flex flex-col items-start p-4 rounded-2xl text-left transition-all"
+                style={{
+                  background: selectedTheme === "custom" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
+                  border: `2px solid ${selectedTheme === "custom" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.10)"}`,
+                }}>
+                <div className="w-2 h-2 rounded-full mb-2" style={{ background: "rgba(255,255,255,0.5)" }} />
+                <div className="font-semibold text-sm text-white">Друго</div>
+                <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>Напиши свой свят</div>
+              </button>
             </div>
+
+            {selectedTheme === "custom" && (
+              <input
+                type="text"
+                value={customTheme}
+                onChange={(e) => setCustomTheme(e.target.value)}
+                placeholder="Напр. Динозаври, Пирати, Средновековие..."
+                maxLength={60}
+                autoFocus
+                className="mt-3 w-full px-5 py-4 rounded-2xl text-base outline-none transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: `2px solid ${customTheme.trim() ? "#fff" : "rgba(255,255,255,0.2)"}`,
+                  color: "white",
+                }}
+              />
+            )}
           </div>
 
           {error && (
