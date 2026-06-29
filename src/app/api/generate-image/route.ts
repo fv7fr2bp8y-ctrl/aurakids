@@ -1,12 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
 export const maxDuration = 60;
 
 function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
+}
+
+async function generateImage(prompt: string): Promise<Buffer> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY not set");
+
+  const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: styledPrompt }] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini error: ${res.status} ${err}`);
+  }
+
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  const imgPart = parts.find((p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.mimeType?.startsWith("image/"));
+  if (!imgPart?.inlineData?.data) throw new Error("No image returned from Gemini");
+
+  return Buffer.from(imgPart.inlineData.data, "base64");
 }
 
 export async function POST(req: NextRequest) {
@@ -21,24 +51,10 @@ export async function POST(req: NextRequest) {
   if (cached) return NextResponse.json({ url: cached, fromCache: true });
 
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
-
-    const response = await client.images.generate({
-      model: "gpt-image-1",
-      prompt: styledPrompt,
-      n: 1,
-      size: "1024x1024",
-    });
-
-    const b64 = response.data?.[0]?.b64_json;
-    if (!b64) throw new Error("No image from OpenAI");
-    const arrayBuffer = Buffer.from(b64, "base64").buffer;
-
+    const imgBuffer = await generateImage(prompt);
+    const arrayBuffer = imgBuffer.buffer.slice(imgBuffer.byteOffset, imgBuffer.byteOffset + imgBuffer.byteLength) as ArrayBuffer;
     const publicUrl = await saveImageToStorage(fileName, arrayBuffer);
     if (!publicUrl) throw new Error("Supabase upload failed");
-
     return NextResponse.json({ url: publicUrl, fromCache: false });
   } catch (error) {
     console.error("Image generation error:", error);
