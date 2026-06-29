@@ -85,8 +85,8 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           <div className="mx-auto mb-5 flex items-center justify-center">
             <AuraLogo size={56} />
           </div>
-          <h1 className="text-3xl font-bold mb-2 text-white">Създай вълшебна приказка</h1>
-          <p style={{ color: "rgba(255,255,255,0.5)" }}>Три стъпки до нещо магическо</p>
+          <h1 className="text-3xl font-bold mb-2 text-white">Кажи ни за героя</h1>
+          <p style={{ color: "rgba(255,255,255,0.5)" }}>Три въпроса и приказката е готова</p>
         </div>
 
         <div className="rounded-3xl p-8 space-y-8"
@@ -95,7 +95,7 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           {/* Step 1 */}
           <div>
             <label className="block text-sm font-semibold mb-3 text-white">
-              1. Как се казва детето?
+              1. Как се казва нашият герой?
             </label>
             <input
               type="text"
@@ -116,7 +116,7 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           {/* Step 2 */}
           <div>
             <label className="block text-sm font-semibold mb-3 text-white">
-              2. На колко години е?
+              2. На колко години е героят?
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {AGES.map((age) => (
@@ -137,7 +137,7 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           {/* Step 3 */}
           <div>
             <label className="block text-sm font-semibold mb-3 text-white">
-              3. Избери тема
+              3. В какъв свят ще се впусне?
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {THEMES.map((theme) => {
@@ -181,10 +181,10 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Вълшебството се ражда...
+                Приказката се ражда...
               </span>
             ) : (
-              `Създай приказката на ${childName || "детето"}`
+              `Напиши приказката на ${childName || "героя"}`
             )}
           </button>
         </div>

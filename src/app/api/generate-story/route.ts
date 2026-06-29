@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getCachedStory, saveCachedStory } from "@/lib/supabase";
 
+export const maxDuration = 60;
+
 const client = new Anthropic();
 
 function makeCacheKey(childName: string, theme: string, age: string) {
@@ -29,32 +31,36 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const prompt = `Ти си талантлив детски писател, който пише на красив български език.
+    const prompt = `Ти си изключително талантлив детски писател с усет за магия, ритъм и емоция. Пишеш на богат, красив, съвременен български език.
 
-Напиши вълшебна детска приказка с ТЕЗИ изисквания:
-- Главен герой: ${childName} (дете на ${age})
-- Тема: ${theme}
-- Приказката трябва да е на БЪЛГАРСКИ ЕЗИК
-- Дължина: 6-8 параграфа (около 400-500 думи)
-- Стил: топъл, вълшебен, с морал накрая
-- ${childName} трябва да е активен герой, не пасивен наблюдател
-- Приказката трябва да е оригинална и завладяваща
-- Включи магически елементи, приятели и предизвикателство, което ${childName} преодолява
+Напиши вълшебна детска приказка по следните параметри:
+- Главен герой: ${childName}, дете на ${age}
+- Свят и тема: ${theme}
+- Език: ИЗКЛЮЧИТЕЛНО на български — богат, топъл, образен
+- Дължина: 7–9 параграфа (550–700 думи)
+- ${childName} е активен герой — взима решения, проявява смелост, решава проблеми
+- Структура: интригуващо начало → среща с приятел или загадка → изпитание → кулминация → топъл, надъхващ край с послание
+- Тон: вълшебен и топъл, с хумор на места, без да е поучителен по клиширан начин
+- Включи конкретни сетивни детайли — звуци, миризми, цветове — за да оживее светът
+- Моралът трябва да произтича естествено от историята, не да е изречен директно
+- Заглавието да е поетично и да съдържа името ${childName}
 
-ВАЖНО: Отговори САМО с JSON в точно този формат:
+За илюстрациите — три сцени за AI image generator, описани на английски с богати визуални детайли, Pixar 3D animation style.
+
+Отговори САМО с валиден JSON:
 {
-  "title": "Заглавие на приказката (включи ${childName})",
-  "story": "Целият текст на приказката, параграфите разделени с \\n\\n",
+  "title": "Поетично заглавие с ${childName}",
+  "story": "Пълният текст на приказката, параграфите разделени с \\n\\n",
   "imagePrompts": [
-    "Описание на илюстрация 1 за началото на историята (на английски, за AI image generator)",
-    "Описание на илюстрация 2 за кулминацията (на английски)",
-    "Описание на илюстрация 3 за щастливия край (на английски)"
+    "Scene 1: [opening scene, ultra-detailed, 3D Pixar style, rich colors, ${childName} as protagonist, no text]",
+    "Scene 2: [climax scene, ultra-detailed, 3D Pixar style, dramatic lighting, no text]",
+    "Scene 3: [happy ending scene, ultra-detailed, 3D Pixar style, warm golden light, no text]"
   ]
 }`;
 
     const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
+      model: "claude-opus-4-8",
+      max_tokens: 3000,
       messages: [{ role: "user", content: prompt }],
     });
 

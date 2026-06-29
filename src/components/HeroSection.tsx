@@ -70,52 +70,43 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
         <div className="relative z-10 max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-16">
           {/* Left */}
           <div className="animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
-              style={{ background: "rgba(255,217,61,0.15)", color: "#FFD93D", border: "1px solid rgba(255,217,61,0.3)" }}>
-              Магически персонализирани приказки
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-sm font-semibold tracking-wide"
+              style={{ background: "rgba(255,217,61,0.12)", color: "#FFD93D", border: "1px solid rgba(255,217,61,0.25)" }}>
+              Персонализирани приказки с изкуствен интелект
             </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6">
-              Приказка само
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] mb-7">
+              Само едно дете
               <br />
-              <span className="shimmer-text">за твоето дете</span>
+              е героят.
+              <br />
+              <span className="shimmer-text">Твоето.</span>
             </h1>
 
-            <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Въведи името му и за секунди се ражда вълшебна история — с него като герой, уникални илюстрации и глас.
+            <p className="text-xl mb-10 leading-relaxed" style={{ color: "rgba(255,255,255,0.65)", maxWidth: 480 }}>
+              Въведи името му — и за минута се ражда приказка, написана само за него. С него като главен герой. С илюстрации. С глас.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
+            <div className="flex flex-col sm:flex-row gap-4 items-start mb-10">
               <button
                 onClick={onStart}
-                className="px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105"
+                className="px-9 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #FF6B6B, #FFD93D)",
                   color: "#3B1A6B",
-                  boxShadow: "0 8px 32px rgba(255,107,107,0.35)",
+                  boxShadow: "0 12px 40px rgba(255,107,107,0.40)",
+                  letterSpacing: "-0.01em",
                 }}
               >
-                Създай безплатно
+                Създай приказката — безплатно
               </button>
-              <div className="flex items-center gap-3 py-2">
-                <div className="flex -space-x-2">
-                  {["#FF6B6B", "#9B6FE8", "#4FC3F7"].map((c) => (
-                    <div key={c} className="w-9 h-9 rounded-full border-2 border-purple-900"
-                      style={{ background: c, opacity: 0.85 }} />
-                  ))}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">1,200+ приказки</div>
-                  <div className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>създадени тази седмица</div>
-                </div>
-              </div>
             </div>
 
-            <div className="flex items-center gap-8 mt-8">
-              {[["Безплатно", "#FF6B6B"], ["На български", "#FFD93D"], ["30 секунди", "#4FC3F7"]].map(([label, color]) => (
+            <div className="flex flex-wrap items-center gap-6">
+              {[["Напълно безплатно", "#FF6B6B"], ["На български", "#FFD93D"], ["Готово за 60 сек", "#4FC3F7"], ["Никога повторена", "#9B6FE8"]].map(([label, color]) => (
                 <div key={label} className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-                  <span style={{ color: "rgba(255,255,255,0.6)" }}>{label}</span>
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                  <span style={{ color: "rgba(255,255,255,0.55)" }}>{label}</span>
                 </div>
               ))}
             </div>

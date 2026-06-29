@@ -20,7 +20,7 @@ const PREVIEWS: PreviewCard[] = [
     age: "6 години",
     theme: "Дракони",
     color: "#FF6B6B",
-    excerpt: "Имало едно време храбро момче на име Александър, което живеело в подножието на огромна пурпурна планина...",
+    excerpt: "Тази нощ луната светеше по-ярко от всякога над Пурпурните планини. И само Александър знаеше защо — огненият дракон беше събуден...",
     prompt: "A brave little Bulgarian boy named Alexander with big brown eyes wearing a small golden crown, riding a magnificent friendly purple dragon with iridescent scales over a magical fantasy kingdom at sunset, 3D Pixar animation style, ultra-detailed, cinematic lighting, rich jewel-tone colors, no text",
   },
   {
@@ -29,7 +29,7 @@ const PREVIEWS: PreviewCard[] = [
     age: "5 години",
     theme: "Вълшебна гора",
     color: "#4ADE80",
-    excerpt: "Малката Ева обичала да се разхожда в гората зад дома си. Но тази сутрин горичката заговорила с нея...",
+    excerpt: "Гората зад дома на Ева пазеше тайна — такава, която само едно дете на петте й години можеше да открие. И точно тя я откри...",
     prompt: "An adorable little Bulgarian girl named Eva with curly hair and rosy cheeks, talking to wise friendly woodland animals including an owl, a fox, and a deer in an enchanted glowing forest with giant mushrooms and fireflies, 3D Pixar animation style, soft magical lighting, pastel greens and pinks, no text",
   },
   {
@@ -38,7 +38,7 @@ const PREVIEWS: PreviewCard[] = [
     age: "7 години",
     theme: "Космос",
     color: "#9B6FE8",
-    excerpt: "Никола беше единственото дете в целия космос, което умееше да разговаря с планетите...",
+    excerpt: "Когато всички звезди угаснаха в една нощ, единственият, когото Вселената извика на помощ, беше Никола. Седемгодишен. Неустрашим...",
     prompt: "A cute little Bulgarian boy astronaut named Nikola floating weightlessly in vibrant colorful space, surrounded by friendly smiling planets Saturn and Jupiter, glowing nebulas, and a trail of golden stars, 3D Pixar animation quality, ultra-detailed, deep purple and gold color palette, no text",
   },
 ];
@@ -134,12 +134,12 @@ export default function StoryPreview({ onStart }: StoryPreviewProps) {
             Примерни приказки
           </p>
           <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-5" style={{ color: "#1A0533" }}>
-            Всяка приказка е
+            Никое друго дете
             <br />
-            <span style={{ color: "#6B35B8" }}>единствена по рода си</span>
+            <span style={{ color: "#6B35B8" }}>не е получавало тази история</span>
           </h2>
-          <p className="text-lg max-w-xl mx-auto" style={{ color: "#6B5A8A" }}>
-            Никое друго дете в света няма да получи същата история. Само твоето.
+          <p className="text-lg max-w-lg mx-auto" style={{ color: "#6B5A8A", lineHeight: 1.7 }}>
+            Не шаблон. Не предварително написана приказка. Нова история, създадена в момента — само за вашето дете, само с неговото име.
           </p>
         </div>
 
@@ -158,10 +158,10 @@ export default function StoryPreview({ onStart }: StoryPreviewProps) {
               boxShadow: "0 16px 48px rgba(107,53,184,0.40)",
             }}
           >
-            Създай приказката на твоето дете
+            Напиши приказката на моето дете
           </button>
           <p className="text-sm mt-4" style={{ color: "#9B8FC0" }}>
-            Безплатно — готово за 30 секунди
+            Безплатно · Готово за около минута · Запазена завинаги
           </p>
         </div>
       </div>
