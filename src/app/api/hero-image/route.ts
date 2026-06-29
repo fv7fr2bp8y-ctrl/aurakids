@@ -16,25 +16,27 @@ export async function GET() {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-fast-generate-001:predict?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${key}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          instances: [{ prompt: HERO_PROMPT }],
-          parameters: { sampleCount: 1, aspectRatio: "16:9" },
+          contents: [{ parts: [{ text: HERO_PROMPT }] }],
+          generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
         }),
       }
     );
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Gemini Imagen error:", res.status, err);
+      console.error("Gemini error:", res.status, err);
       return NextResponse.json({ url: null }, { status: 500 });
     }
 
     const data = await res.json();
-    const b64 = data?.predictions?.[0]?.bytesBase64Encoded;
+    const parts = data?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = parts.find((p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.mimeType?.startsWith("image/"));
+    const b64 = imgPart?.inlineData?.data;
     if (!b64) return NextResponse.json({ url: null }, { status: 500 });
 
     const arrayBuffer = Buffer.from(b64, "base64").buffer;
