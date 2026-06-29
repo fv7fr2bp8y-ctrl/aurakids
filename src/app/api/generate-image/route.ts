@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
 import { createHash } from "crypto";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
@@ -9,12 +8,37 @@ function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
 
-export async function POST(req: NextRequest) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
-    return NextResponse.json({ error: "Image generation не е конфигуриран" }, { status: 503 });
+async function generateWithGemini(prompt: string): Promise<Buffer> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY not set");
+
+  const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-fast-generate-001:predict?key=${key}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        instances: [{ prompt: styledPrompt }],
+        parameters: { sampleCount: 1, aspectRatio: "1:1" },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini Imagen error: ${res.status} ${err}`);
   }
 
+  const data = await res.json();
+  const b64 = data?.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error("No image returned from Gemini");
+
+  return Buffer.from(b64, "base64");
+}
+
+export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
   if (!prompt?.trim()) {
     return NextResponse.json({ error: "Липсва prompt" }, { status: 400 });
@@ -22,31 +46,21 @@ export async function POST(req: NextRequest) {
 
   const fileName = promptToFileName(prompt);
 
-  // Check Supabase storage cache
   const cached = await getCachedImage(fileName);
-  if (cached) {
-    return NextResponse.json({ url: cached, fromCache: true });
-  }
+  if (cached) return NextResponse.json({ url: cached, fromCache: true });
 
   try {
-    const client = new OpenAI({ apiKey: key });
-    const trimmed = prompt.slice(0, 700);
-    const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant colors, magical atmosphere, adorable characters with big expressive eyes, cinematic lighting: ${trimmed}. No text.`;
+    const imgBuffer = await generateWithGemini(prompt);
 
-    const response = await client.images.generate({
-      model: "dall-e-2",
-      prompt: styledPrompt,
-      n: 1,
-      size: "1024x1024",
-    });
+    const arrayBuffer = imgBuffer.buffer.slice(
+      imgBuffer.byteOffset,
+      imgBuffer.byteOffset + imgBuffer.byteLength
+    ) as ArrayBuffer;
 
-    const dalleUrl = response.data?.[0]?.url;
-    if (!dalleUrl) throw new Error("Няма URL");
+    const publicUrl = await saveImageToStorage(fileName, arrayBuffer);
+    if (!publicUrl) throw new Error("Supabase upload failed");
 
-    // Upload to Supabase storage BEFORE returning
-    const publicUrl = await saveImageToStorage(fileName, dalleUrl);
-
-    return NextResponse.json({ url: publicUrl ?? dalleUrl, fromCache: false });
+    return NextResponse.json({ url: publicUrl, fromCache: false });
   } catch (error) {
     console.error("Image generation error:", error);
     return NextResponse.json({ error: "Грешка при генериране на илюстрация" }, { status: 500 });

@@ -38,21 +38,26 @@ export async function getCachedImage(fileName: string): Promise<string | null> {
   return data.publicUrl;
 }
 
-export async function saveImageToStorage(fileName: string, imageUrl: string): Promise<string | null> {
+export async function saveImageToStorage(fileName: string, source: string | ArrayBuffer): Promise<string | null> {
   const sb = getSupabase();
   if (!sb) return null;
   try {
-    const res = await fetch(imageUrl);
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    const arrayBuffer = await blob.arrayBuffer();
+    let arrayBuffer: ArrayBuffer;
+    if (typeof source === "string") {
+      const res = await fetch(source);
+      if (!res.ok) return null;
+      arrayBuffer = await res.arrayBuffer();
+    } else {
+      arrayBuffer = source;
+    }
     const { error } = await sb.storage
       .from("story-images")
       .upload(fileName, arrayBuffer, { contentType: "image/png", upsert: true });
-    if (error) return null;
+    if (error) { console.error("Supabase upload error:", error); return null; }
     const { data } = sb.storage.from("story-images").getPublicUrl(fileName);
     return data.publicUrl;
-  } catch {
+  } catch (e) {
+    console.error("saveImageToStorage exception:", e);
     return null;
   }
 }
