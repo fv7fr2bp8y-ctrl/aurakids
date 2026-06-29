@@ -32,10 +32,9 @@ export async function saveCachedStory(
 export async function getCachedImage(fileName: string): Promise<string | null> {
   const sb = getSupabase();
   if (!sb) return null;
+  const { data: files, error } = await sb.storage.from("story-images").list("", { search: fileName });
+  if (error || !files?.length) return null;
   const { data } = sb.storage.from("story-images").getPublicUrl(fileName);
-  // Verify the file actually exists
-  const { error } = await sb.storage.from("story-images").list("", { search: fileName });
-  if (error) return null;
   return data.publicUrl;
 }
 
