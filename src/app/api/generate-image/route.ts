@@ -36,7 +36,7 @@ async function callGemini(prompt: string): Promise<string | null> {
 }
 
 async function generateImage(prompt: string): Promise<Buffer> {
-  const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
+  const styledPrompt = `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks, no letters.`;
 
   let b64 = await callGemini(styledPrompt);
   if (!b64) {
