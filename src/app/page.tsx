@@ -4,6 +4,7 @@ import { useState } from "react";
 import StoryGenerator from "@/components/StoryGenerator";
 import HeroSection from "@/components/HeroSection";
 import HowItWorks from "@/components/HowItWorks";
+import StoryPreview from "@/components/StoryPreview";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 
@@ -16,6 +17,7 @@ export default function Home() {
         <>
           <HeroSection onStart={() => setShowGenerator(true)} />
           <HowItWorks />
+          <StoryPreview onStart={() => setShowGenerator(true)} />
           <Testimonials />
           <Footer />
         </>

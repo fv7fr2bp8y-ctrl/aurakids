@@ -1,65 +1,35 @@
 const STEPS = [
-  {
-    icon: "✍️",
-    title: "Въведи името",
-    description: "Напиши името на детето, избери тема и настрой вълшебното.",
-    color: "#7c3aed",
-    bg: "rgba(124, 58, 237, 0.08)",
-  },
-  {
-    icon: "🪄",
-    title: "AI създава приказката",
-    description: "За секунди се ражда уникална история с детето като главен герой.",
-    color: "#ec4899",
-    bg: "rgba(236, 72, 153, 0.08)",
-  },
-  {
-    icon: "🎨",
-    title: "Илюстрации оживяват",
-    description: "Всяка приказка получава красиви илюстрации, специално генерирани за нея.",
-    color: "#f59e0b",
-    bg: "rgba(245, 158, 11, 0.08)",
-  },
-  {
-    icon: "💝",
-    title: "Подари магията",
-    description: "Разпечатай, запази или сподели — нещо специално, само за него.",
-    color: "#10b981",
-    bg: "rgba(16, 185, 129, 0.08)",
-  },
+  { icon: "✍️", title: "Въведи името", desc: "Напиши името на детето и избери тема.", color: "#FF6B6B" },
+  { icon: "🪄", title: "AI създава", desc: "Уникална приказка се ражда за секунди.", color: "#FFD93D" },
+  { icon: "🎨", title: "Илюстрации", desc: "Красиви картинки оживяват историята.", color: "#9B6FE8" },
+  { icon: "🔊", title: "Чуй на глас", desc: "Естествен глас разказва приказката.", color: "#4FC3F7" },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-4" style={{ background: "#faf7f2" }}>
+    <section className="py-24 px-6" style={{ background: "#FFF8F0" }}>
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4" style={{ color: "#1a1a2e" }}>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 text-sm font-medium"
+            style={{ background: "rgba(107,53,184,0.1)", color: "#6B35B8" }}>
+            🪄 Само 4 стъпки
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#3B1A6B" }}>
             Как работи?
           </h2>
-          <p className="text-lg" style={{ color: "#6060a0" }}>
-            Четири прости стъпки до вашата вълшебна приказка
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {STEPS.map((step, i) => (
-            <div
-              key={step.title}
-              className="relative rounded-3xl p-6 transition-transform hover:-translate-y-1"
-              style={{ background: step.bg, border: `1px solid ${step.color}20` }}
-            >
-              <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                style={{ background: step.color }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {STEPS.map((s, i) => (
+            <div key={s.title} className="relative rounded-3xl p-6 card-hover text-center"
+              style={{ background: "#fff", border: "2px solid", borderColor: `${s.color}30`, boxShadow: `0 8px 24px ${s.color}15` }}>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                style={{ background: s.color }}>
                 {i + 1}
               </div>
-              <div className="text-4xl mb-4">{step.icon}</div>
-              <h3 className="text-lg font-bold mb-2" style={{ color: "#1a1a2e" }}>
-                {step.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#6060a0" }}>
-                {step.description}
-              </p>
+              <div className="text-4xl mt-2 mb-4">{s.icon}</div>
+              <h3 className="font-bold mb-1 text-sm" style={{ color: "#3B1A6B" }}>{s.title}</h3>
+              <p className="text-xs leading-relaxed" style={{ color: "#7B6FA0" }}>{s.desc}</p>
             </div>
           ))}
         </div>
