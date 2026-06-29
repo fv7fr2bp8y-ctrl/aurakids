@@ -22,7 +22,7 @@ export async function GET() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: HERO_PROMPT }] }],
-          generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+          generationConfig: { responseModalities: ["IMAGE"] },
         }),
       }
     );

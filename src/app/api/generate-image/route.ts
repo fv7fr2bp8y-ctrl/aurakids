@@ -8,11 +8,9 @@ function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
 
-async function generateImage(prompt: string): Promise<Buffer> {
+async function callGemini(prompt: string): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY not set");
-
-  const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
@@ -20,8 +18,8 @@ async function generateImage(prompt: string): Promise<Buffer> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: styledPrompt }] }],
-        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["IMAGE"] },
       }),
     }
   );
@@ -34,9 +32,21 @@ async function generateImage(prompt: string): Promise<Buffer> {
   const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts ?? [];
   const imgPart = parts.find((p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.mimeType?.startsWith("image/"));
-  if (!imgPart?.inlineData?.data) throw new Error("No image returned from Gemini");
+  return imgPart?.inlineData?.data ?? null;
+}
 
-  return Buffer.from(imgPart.inlineData.data, "base64");
+async function generateImage(prompt: string): Promise<Buffer> {
+  const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant jewel-tone colors, magical atmosphere, adorable characters with big expressive eyes, cinematic soft lighting, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks.`;
+
+  let b64 = await callGemini(styledPrompt);
+  if (!b64) {
+    // retry once — free tier throttles
+    await new Promise((r) => setTimeout(r, 3000));
+    b64 = await callGemini(styledPrompt);
+  }
+  if (!b64) throw new Error("No image returned from Gemini");
+
+  return Buffer.from(b64, "base64");
 }
 
 export async function POST(req: NextRequest) {
