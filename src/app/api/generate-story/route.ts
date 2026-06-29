@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { getCachedStory, saveCachedStory } from "@/lib/supabase";
 
 const client = new Anthropic();
+
+function makeCacheKey(childName: string, theme: string, age: string) {
+  return `story:${childName.toLowerCase().trim()}:${theme.toLowerCase()}:${age}`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +14,19 @@ export async function POST(req: NextRequest) {
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
+    }
+
+    const cacheKey = makeCacheKey(childName, themeName || theme, age);
+
+    // Check cache first
+    const cached = await getCachedStory(cacheKey);
+    if (cached) {
+      return NextResponse.json({
+        title: cached.title,
+        story: cached.story,
+        imagePrompts: cached.image_prompts,
+        fromCache: true,
+      });
     }
 
     const prompt = `Ти си талантлив детски писател, който пише на красив български език.
@@ -48,10 +66,14 @@ export async function POST(req: NextRequest) {
 
     const parsed = JSON.parse(jsonMatch[0]);
 
+    // Save to cache BEFORE returning (critical on Vercel serverless)
+    await saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []);
+
     return NextResponse.json({
       title: parsed.title,
       story: parsed.story,
       imagePrompts: parsed.imagePrompts || [],
+      fromCache: false,
     });
   } catch (error) {
     console.error("Story generation error:", error);

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
+import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
 const MODEL = "gemini-2.5-flash-preview-tts";
 const VOICE = "Schedar";
 
-function pcmToWav(pcm: Uint8Array, rate: number): Uint8Array {
+function textToFileName(text: string) {
+  return createHash("sha1").update(`${VOICE}|${text}`).digest("hex") + ".wav";
+}
+
+function pcmToWav(pcm: Uint8Array, rate: number): ArrayBuffer {
   const buf = new ArrayBuffer(44 + pcm.length);
   const dv = new DataView(buf);
   const w = (o: number, s: string) => {
@@ -15,7 +21,7 @@ function pcmToWav(pcm: Uint8Array, rate: number): Uint8Array {
   dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
   w(36, "data"); dv.setUint32(40, pcm.length, true);
   new Uint8Array(buf, 44).set(pcm);
-  return new Uint8Array(buf);
+  return buf;
 }
 
 async function callGemini(text: string, key: string) {
@@ -49,9 +55,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });
   }
 
-  // Подаваме само чист текст — без стилови инструкции (вж. критични уроци)
+  const fileName = textToFileName(text.trim());
+
+  // Check Supabase storage cache — return redirect to public URL
+  const cachedUrl = await getCachedAudio(fileName);
+  if (cachedUrl) {
+    const audioRes = await fetch(cachedUrl);
+    const wavBuffer = await audioRes.arrayBuffer();
+    return new NextResponse(wavBuffer, {
+      headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400" },
+    });
+  }
+
+  // Generate with Gemini
   let part = await callGemini(text.trim(), key);
-  if (!part) part = await callGemini(text.trim(), key); // един повторен опит
+  if (!part) part = await callGemini(text.trim(), key);
   if (!part?.data) {
     return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
   }
@@ -61,10 +79,10 @@ export async function POST(req: NextRequest) {
   const pcm = new Uint8Array(raw);
   const wav = pcmToWav(pcm, rate);
 
-  return new NextResponse(wav.buffer as ArrayBuffer, {
-    headers: {
-      "Content-Type": "audio/wav",
-      "Cache-Control": "public, max-age=3600",
-    },
+  // Save to Supabase BEFORE returning
+  await saveAudioToStorage(fileName, wav);
+
+  return new NextResponse(wav, {
+    headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400" },
   });
 }
