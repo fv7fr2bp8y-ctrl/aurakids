@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import StoryDisplay from "./StoryDisplay";
 import AuraLogo from "./AuraLogo";
 
@@ -41,6 +41,38 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
   const [storyData, setStoryData] = useState<StoryData | null>(null);
   const [error, setError] = useState("");
 
+  const prefetchRef = useRef<Promise<Record<string, unknown>> | null>(null);
+  const prefetchKeyRef = useRef<string>("");
+
+  // Speculative pre-fetch: start generating as soon as all fields are ready
+  useEffect(() => {
+    if (!childName.trim() || !selectedTheme || !selectedAge) return;
+    if (selectedTheme === "custom" && !customTheme.trim()) return;
+
+    const theme = selectedTheme === "custom"
+      ? { label: customTheme.trim(), description: customTheme.trim() }
+      : THEMES.find((t) => t.id === selectedTheme);
+
+    const key = `${childName.trim()}|${theme?.label}|${selectedAge}`;
+    if (prefetchKeyRef.current === key) return;
+
+    const timer = setTimeout(() => {
+      prefetchKeyRef.current = key;
+      prefetchRef.current = fetch("/api/generate-story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          childName: childName.trim(),
+          theme: theme?.description,
+          themeName: theme?.label,
+          age: selectedAge,
+        }),
+      }).then((r) => r.json());
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [childName, selectedTheme, customTheme, selectedAge]);
+
   const activeTheme = selectedTheme === "custom"
     ? { label: customTheme.trim(), description: customTheme.trim() }
     : THEMES.find((t) => t.id === selectedTheme);
@@ -51,19 +83,29 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
     setIsLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/generate-story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          childName: childName.trim(),
-          theme: activeTheme?.description || selectedTheme,
-          themeName: activeTheme?.label || selectedTheme,
-          age: selectedAge,
-        }),
-      });
-      if (!res.ok) throw new Error("Грешка при генериране");
-      const data = await res.json();
-      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, ...data });
+      const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}`;
+      let data: Record<string, unknown>;
+
+      if (prefetchRef.current && prefetchKeyRef.current === key) {
+        // Use already-running or completed prefetch
+        data = await prefetchRef.current;
+      } else {
+        const res = await fetch("/api/generate-story", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            childName: childName.trim(),
+            theme: activeTheme?.description || selectedTheme,
+            themeName: activeTheme?.label || selectedTheme,
+            age: selectedAge,
+          }),
+        });
+        if (!res.ok) throw new Error("Грешка при генериране");
+        data = await res.json();
+      }
+
+      if (data.error) throw new Error(String(data.error));
+      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, ...data } as StoryData);
     } catch {
       setError("Нещо се обърка. Опитай отново.");
     } finally {

@@ -10,6 +10,25 @@ function makeCacheKey(childName: string, theme: string, age: string) {
   return `story:${childName.toLowerCase().trim()}:${theme.toLowerCase()}:${age}`;
 }
 
+async function correctGrammar(story: string, childName: string): Promise<string> {
+  try {
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2500,
+      messages: [{
+        role: "user",
+        content: `Ти си коректор на български текст. Прегледай приказката и поправи САМО граматически грешки — род на главния герой (${childName}), членуване (-ът/-ят/-та/-то), пунктуация, книжовни форми. НЕ променяй съдържание, стил или структура. Върни САМО поправения текст, без обяснения, без коментари.
+
+${story}`,
+      }],
+    });
+    const text = msg.content[0];
+    return text.type === "text" ? text.text.trim() : story;
+  } catch {
+    return story;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { childName, theme, themeName, age } = await req.json();
@@ -20,7 +39,6 @@ export async function POST(req: NextRequest) {
 
     const cacheKey = makeCacheKey(childName, themeName || theme, age);
 
-    // Check cache first
     const cached = await getCachedStory(cacheKey);
     if (cached) {
       return NextResponse.json({
@@ -34,48 +52,40 @@ export async function POST(req: NextRequest) {
     const storyPrompt = `Ти си изключително талантлив детски писател. Пишеш на богат, красив, граматически безупречен съвременен български език.
 
 ГРАМАТИКА — ЗАДЪЛЖИТЕЛНО:
-- Спазвай точно граматическия род на главния герой според името му (${childName} — определи сам дали е момче или момиче и използвай последователно правилния род навсякъде)
+- Определи сам граматическия род на ${childName} (момче или момиче) и го спазвай навсякъде
 - Никога не бъркай "той/тя", "му/ѝ", "негов/неин"
-- Членувай правилно: -ът/-ят за мъжки, -та за женски, -то за среден род
-- Не използвай разговорни форми вместо книжовни (не "взима" а "взема", не "сещам" а "усещам")
-- Пунктуация: запетая пред "че", "който", "когато", "но", "а"
+- Членувай правилно: -ът/-ят за мъжки, -та за женски, -то за среден
+- Книжовни форми: "взема" не "взима", "усеща" не "сеща"
+- Запетая пред: "че", "който", "когато", "но", "а", "или"
 
 Напиши вълшебна детска приказка:
-- Главен герой: ${childName}, дете на ${age} години
+- Главен герой: ${childName}, на ${age}
 - Свят и тема: ${theme}
 - Дължина: 7–9 параграфа (550–700 думи)
 - ${childName} е активен герой — взема решения, проявява смелост, решава проблеми
-- Структура: интригуващо начало → среща с приятел или загадка → изпитание → кулминация → топъл край
-- Тон: вълшебен и топъл, с лек хумор
+- Структура: интригуващо начало → загадка → изпитание → кулминация → топъл край
+- Тон: вълшебен, топъл, лек хумор
 - Конкретни сетивни детайли — звуци, миризми, цветове
 - Заглавие: поетично, съдържа ${childName}
 
-За image_prompts: три сцени на английски, Disney watercolor illustration style, soft brushstrokes, magical, ultra-detailed, no text.`;
+За image_prompts: три сцени на английски, Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text.`;
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 3000,
-      tools: [
-        {
-          name: "save_story",
-          description: "Save the generated story with its title, text and image prompts",
-          input_schema: {
-            type: "object" as const,
-            properties: {
-              title: { type: "string", description: "Поетично заглавие на приказката, съдържащо името на детето" },
-              story: { type: "string", description: "Пълният текст на приказката, параграфите разделени с двоен нов ред" },
-              imagePrompts: {
-                type: "array",
-                items: { type: "string" },
-                description: "Три описания на сцени за DALL-E 3 на английски",
-                minItems: 3,
-                maxItems: 3,
-              },
-            },
-            required: ["title", "story", "imagePrompts"],
+      tools: [{
+        name: "save_story",
+        description: "Save the generated story",
+        input_schema: {
+          type: "object" as const,
+          properties: {
+            title: { type: "string" },
+            story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
+            imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           },
+          required: ["title", "story", "imagePrompts"],
         },
-      ],
+      }],
       tool_choice: { type: "tool", name: "save_story" },
       messages: [{ role: "user", content: storyPrompt }],
     });
@@ -85,12 +95,14 @@ export async function POST(req: NextRequest) {
 
     const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
 
-    // Save to cache BEFORE returning (critical on Vercel serverless)
-    await saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []);
+    // Grammar correction pass
+    const correctedStory = await correctGrammar(parsed.story, childName);
+
+    await saveCachedStory(cacheKey, parsed.title, correctedStory, parsed.imagePrompts || []);
 
     return NextResponse.json({
       title: parsed.title,
-      story: parsed.story,
+      story: correctedStory,
       imagePrompts: parsed.imagePrompts || [],
       fromCache: false,
     });
