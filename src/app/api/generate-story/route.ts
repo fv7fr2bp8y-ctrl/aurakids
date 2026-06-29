@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getCachedStory, saveCachedStory } from "@/lib/supabase";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const client = new Anthropic();
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 За image_prompts: три сцени на английски за DALL-E 3, Pixar 3D style, ultra-detailed, no text.`;
 
     const message = await client.messages.create({
-      model: "claude-opus-4-8",
+      model: "claude-sonnet-4-6",
       max_tokens: 3000,
       tools: [
         {
