@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import AuraLogo from "@/components/AuraLogo";
 
 interface Story {
   id: string;
@@ -82,11 +83,8 @@ export default function AdminPage() {
         <form onSubmit={handleLogin} className="rounded-3xl p-10 w-full max-w-sm"
           style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
           <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-              </svg>
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <AuraLogo size={48} />
             </div>
             <h1 className="text-xl font-bold text-white">AuraKids Admin</h1>
           </div>
@@ -121,12 +119,7 @@ export default function AdminPage() {
       <div className="px-6 py-5 flex items-center justify-between"
         style={{ background: "rgba(59,26,107,0.8)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
-          </div>
+          <AuraLogo size={32} />
           <span className="font-bold text-white">AuraKids Admin</span>
         </div>
         <button onClick={() => load(key)}

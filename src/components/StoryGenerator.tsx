@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import StoryDisplay from "./StoryDisplay";
+import AuraLogo from "./AuraLogo";
 
 interface StoryGeneratorProps {
   onBack: () => void;
@@ -81,11 +82,8 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
         </button>
 
         <div className="text-center mb-10">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
+          <div className="mx-auto mb-5 flex items-center justify-center">
+            <AuraLogo size={56} />
           </div>
           <h1 className="text-3xl font-bold mb-2 text-white">Създай вълшебна приказка</h1>
           <p style={{ color: "rgba(255,255,255,0.5)" }}>Три стъпки до нещо магическо</p>
