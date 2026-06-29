@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
       n: 1,
       size: "1792x1024",
       quality: "standard",
-      style: "vivid",
     });
 
     const dalleUrl = response.data?.[0]?.url;
