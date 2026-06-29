@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { StoryData } from "./StoryGenerator";
+import { useTTS } from "@/hooks/useTTS";
 
 interface StoryDisplayProps {
   story: StoryData;
@@ -17,6 +18,9 @@ const ILLUSTRATION_PLACEHOLDERS = [
 
 export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProps) {
   const [copied, setCopied] = useState(false);
+  const { speak, status: ttsStatus } = useTTS();
+
+  const fullStoryText = `${story.title}.\n\n${story.story}`;
 
   const paragraphs = story.story
     .split("\n")
@@ -44,6 +48,24 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
             <span className="font-bold text-sm" style={{ color: "#7c3aed" }}>AuraKids</span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => speak(fullStoryText)}
+              disabled={ttsStatus === "loading"}
+              className="text-sm px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5"
+              style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
+              title={ttsStatus === "playing" ? "Спри" : "Чуй приказката"}
+            >
+              {ttsStatus === "loading" ? (
+                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : ttsStatus === "playing" ? (
+                "⏹ Спри"
+              ) : (
+                "🔊 Чуй"
+              )}
+            </button>
             <button
               onClick={handleCopy}
               className="text-sm px-3 py-1.5 rounded-full transition-all"
