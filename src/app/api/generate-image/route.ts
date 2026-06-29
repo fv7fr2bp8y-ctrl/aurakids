@@ -30,14 +30,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const client = new OpenAI({ apiKey: key });
-    const styledPrompt = `3D Pixar animation style children's book illustration, ultra-detailed, cinematic lighting, rich jewel-tone colors, adorable expressive characters with big eyes, magical and whimsical atmosphere, ultra high quality render: ${prompt}. No text, no letters, no watermarks.`;
+    const trimmed = prompt.slice(0, 700);
+    const styledPrompt = `Children's book illustration, Pixar 3D style, vibrant colors, magical atmosphere, adorable characters with big expressive eyes, cinematic lighting: ${trimmed}. No text.`;
 
     const response = await client.images.generate({
-      model: "dall-e-3",
+      model: "dall-e-2",
       prompt: styledPrompt,
       n: 1,
-      size: "1792x1024",
-      quality: "standard",
+      size: "1024x1024",
     });
 
     const dalleUrl = response.data?.[0]?.url;

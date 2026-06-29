@@ -4,9 +4,9 @@ import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
 export const maxDuration = 60;
 
-const HERO_FILE = "hero-main-v5.png";
+const HERO_FILE = "hero-main-v6.png";
 const HERO_PROMPT =
-  "A breathtaking 3D Pixar-style children's book illustration: an adorable 5-year-old child hero with big expressive eyes and rosy cheeks, wearing a tiny golden crown, riding a friendly glowing purple dragon through a magical night sky. The dragon has soft iridescent scales, big kind eyes, and tiny wings with golden tips. Below them: a dreamy fantasy kingdom with glowing castle towers, floating islands, and thousands of twinkling stars. Warm magical light emanates from the child. Rich jewel-tone colors — deep purple, coral pink, golden yellow. Ultra-detailed 3D render, Pixar animation quality, cinematic lighting, wide landscape format, no text.";
+  "A magical children's book illustration, Pixar 3D style: an adorable child with big eyes and a tiny golden crown riding a friendly glowing purple dragon through a night sky. Fantasy kingdom below with glowing castles and stars. Rich purple, coral and gold colors. Cinematic lighting, ultra-detailed, no text.";
 
 export async function GET() {
   const key = process.env.OPENAI_API_KEY;
@@ -19,11 +19,10 @@ export async function GET() {
   try {
     const client = new OpenAI({ apiKey: key });
     const response = await client.images.generate({
-      model: "dall-e-3",
+      model: "dall-e-2",
       prompt: HERO_PROMPT,
       n: 1,
-      size: "1792x1024",
-      quality: "standard",
+      size: "1024x1024",
     });
 
     const dalleUrl = response.data?.[0]?.url;
