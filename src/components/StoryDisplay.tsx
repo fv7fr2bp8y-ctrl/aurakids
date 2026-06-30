@@ -42,10 +42,52 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
     .map((p) => p.trim())
     .filter(Boolean);
 
+  // Two extra in-story illustrations
+  const { url: midUrl, loading: midLoading } = useIllustration(story.imagePrompts?.[1]);
+  const { url: endImgUrl, loading: endImgLoading } = useIllustration(story.imagePrompts?.[2]);
+
   const handlePrint = () => window.print();
   const handleCopy = () => {
     navigator.clipboard.writeText(`${story.title}\n\n${story.story}`).catch(() => {});
   };
+  const handleShare = async () => {
+    const shareData = {
+      title: story.title,
+      text: `Виж приказката „${story.title}" — създадена специално за ${story.childName} с AuraKids ✨`,
+      url: typeof window !== "undefined" ? window.location.origin : "https://aurakids.fun",
+    };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else { await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`); }
+    } catch { /* user cancelled */ }
+  };
+
+  // Split paragraphs into thirds for the two mid illustrations
+  const third = Math.ceil(paragraphs.length / 3);
+  const part1 = paragraphs.slice(0, third);
+  const part2 = paragraphs.slice(third, third * 2);
+  const part3 = paragraphs.slice(third * 2);
+
+  function Illus({ url, loading, caption }: { url: string | null; loading: boolean; caption: string }) {
+    return (
+      <div className="story-illus">
+        {url ? (
+          <Image src={url} alt={caption} fill className="object-cover" unoptimized style={{ zIndex: 1 }} />
+        ) : (
+          <>
+            <div className="stars" />
+            {loading && (
+              <svg className="animate-spin-ak" width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.7)", zIndex: 1 }}>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
+          </>
+        )}
+        {url && <div className="scap">{caption}</div>}
+      </div>
+    );
+  }
 
   return (
     <div className="reader-screen">
@@ -72,6 +114,12 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
             </svg>
           </button>
           <div style={{ display: "flex", gap: 10 }}>
+            <button className="iconbtn" onClick={handleShare} title="Сподели">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+              </svg>
+            </button>
             <button className="iconbtn" onClick={handleCopy} title="Копирай">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -92,8 +140,20 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
         <span className="chapter-tag">Приказка за {story.childName}</span>
         <h1 className="chapter-title">{story.title}</h1>
         <div className="prose">
-          {paragraphs.map((p, i) => (
-            <p key={i} className={i === 0 ? "drop" : undefined}>{p}</p>
+          {part1.map((p, i) => (
+            <p key={`a${i}`} className={i === 0 ? "drop" : undefined}>{p}</p>
+          ))}
+          {part2.length > 0 && (
+            <Illus url={midUrl} loading={midLoading} caption={`${story.childName} в сърцето на приключението`} />
+          )}
+          {part2.map((p, i) => (
+            <p key={`b${i}`}>{p}</p>
+          ))}
+          {part3.length > 0 && (
+            <Illus url={endImgUrl} loading={endImgLoading} caption="Щастливият край" />
+          )}
+          {part3.map((p, i) => (
+            <p key={`c${i}`}>{p}</p>
           ))}
         </div>
 
