@@ -1,6 +1,6 @@
 export default function AuraLogo({ size = 36 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ background: "transparent", display: "block" }}>
       <defs>
         <radialGradient id="portal-inner" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#2D0A5E" />
