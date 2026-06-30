@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 За image_prompts: три сцени на английски, Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text.`;
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-opus-4-8",
       max_tokens: 3000,
       tools: [{
         name: "save_story",
