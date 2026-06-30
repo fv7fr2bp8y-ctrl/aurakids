@@ -8,20 +8,20 @@ const client = new OpenAI();
 
 const LOGO_CONCEPTS = [
   {
-    id: "book-star",
-    prompt: "Minimalist logo design, transparent background, centered composition: an open magical storybook with golden pages, a glowing five-pointed star rising from the center of the book, deep purple and gold color palette, elegant and modern, suitable for a children's app, clean vector-style illustration, no text, no letters, no background",
+    id: "portal-world",
+    prompt: "Minimalist logo icon, pure white background, centered: a perfect circle portal made of swirling purple and gold light, inside the portal a tiny magical fantasy kingdom with a castle and stars visible, as if looking through a magical window into another world, the portal ring glows with iridescent aurora colors, ultra clean modern design, no text, no letters",
   },
   {
-    id: "dragon-crown",
-    prompt: "Minimalist logo design, transparent background, centered composition: a friendly cute small dragon curled around a golden crown, purple and coral gradient colors, whimsical fairy-tale style, clean modern icon suitable for a children's app, soft rounded shapes, no text, no letters, no background",
+    id: "child-constellation",
+    prompt: "Minimalist logo icon, pure white background, centered: a small child silhouette sitting and reading, their body and the open book composed entirely of connected golden stars and constellation lines, the stars glow warmly against deep purple space, magical and poetic, clean modern design, no text, no letters",
   },
   {
-    id: "magic-quill",
-    prompt: "Minimalist logo design, transparent background, centered composition: a glowing magical golden feather quill pen with sparkling stars and magic dust trailing from its tip, deep purple and gold colors, elegant modern icon for a children's storytelling app, clean vector style, no text, no letters, no background",
+    id: "dragon-spiral",
+    prompt: "Minimalist logo icon, pure white background, centered: a small friendly dragon coiled into a perfect spiral shape, its tail curling into the center like a galaxy, scales are iridescent purple and teal, a single golden star at the center of the spiral, sleek modern design with soft rounded lines, no text, no letters",
   },
   {
-    id: "moon-book",
-    prompt: "Minimalist logo design, transparent background, centered composition: a crescent moon cradling a small open book with tiny stars scattered around, deep purple indigo and soft gold colors, dreamy and magical, modern clean icon for a children's bedtime story app, rounded soft shapes, no text, no letters, no background",
+    id: "dream-bubble",
+    prompt: "Minimalist logo icon, pure white background, centered: a sleeping child's profile as a simple elegant silhouette, above their head a large glowing dream bubble containing a tiny dragon flying over a castle with stars, the bubble outline shimmers with soft purple and gold gradient, dreamy and tender, modern clean icon design, no text, no letters",
   },
 ];
 

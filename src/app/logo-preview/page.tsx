@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const CONCEPTS = [
-  { id: "book-star", label: "Книга + Звезда" },
-  { id: "dragon-crown", label: "Дракон + Корона" },
-  { id: "magic-quill", label: "Магическо перо" },
-  { id: "moon-book", label: "Луна + Книга" },
+  { id: "portal-world", label: "Портал към свят" },
+  { id: "child-constellation", label: "Дете от звезди" },
+  { id: "dragon-spiral", label: "Дракон спирала" },
+  { id: "dream-bubble", label: "Мечта на дете" },
 ];
 
 function LogoCard({ id, label }: { id: string; label: string }) {
