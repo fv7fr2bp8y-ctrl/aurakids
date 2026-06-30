@@ -10,17 +10,17 @@ export async function GET() {
   try {
     const client = new OpenAI({ apiKey: key });
     const response = await client.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-1",
       prompt: "Disney watercolor illustration, a cute child riding a friendly purple dragon through a magical starry sky, soft painterly brushstrokes, no text",
       n: 1,
       size: "1024x1024",
       quality: "standard",
-      response_format: "url",
     });
 
-    const url = response.data?.[0]?.url;
-    if (!url) return NextResponse.json({ error: "No image returned" });
-    return NextResponse.json({ url, model: "dall-e-3", ok: true });
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) return NextResponse.json({ error: "No image returned", raw: response.data });
+    const url = `data:image/png;base64,${b64.slice(0, 30)}...`;
+    return NextResponse.json({ ok: true, model: "gpt-image-1", b64_length: b64.length, preview: url });
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) });
   }
