@@ -1,51 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
+import OpenAI from "openai";
 
 export const maxDuration = 60;
+
+const client = new OpenAI();
 
 function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
 
-async function callGemini(prompt: string): Promise<string | null> {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY not set");
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ["IMAGE"] },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini error: ${res.status} ${err}`);
-  }
-
-  const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts ?? [];
-  const imgPart = parts.find((p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.mimeType?.startsWith("image/"));
-  return imgPart?.inlineData?.data ?? null;
-}
-
 async function generateImage(prompt: string): Promise<Buffer> {
-  const styledPrompt = `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks, no letters.`;
+  const styledPrompt = `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 900)}. No text, no watermarks, no letters.`;
 
-  let b64 = await callGemini(styledPrompt);
-  if (!b64) {
-    // retry once — free tier throttles
-    await new Promise((r) => setTimeout(r, 3000));
-    b64 = await callGemini(styledPrompt);
-  }
-  if (!b64) throw new Error("No image returned from Gemini");
+  const response = await client.images.generate({
+    model: "dall-e-3",
+    prompt: styledPrompt,
+    n: 1,
+    size: "1024x1024",
+    quality: "standard",
+    response_format: "b64_json",
+  });
 
+  const b64 = response.data?.[0]?.b64_json;
+  if (!b64) throw new Error("No image returned from DALL-E 3");
   return Buffer.from(b64, "base64");
 }
 
