@@ -79,7 +79,9 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
 
           {/* Logo */}
           <div className="flex items-center gap-1.5 font-bold text-sm" style={{ color: "#7c3aed" }}>
-            <AuraLogo size={22} />
+            <div style={{ mixBlendMode: "multiply" }}>
+              <AuraLogo size={24} />
+            </div>
             AuraKids
           </div>
 
