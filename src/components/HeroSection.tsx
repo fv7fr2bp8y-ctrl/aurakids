@@ -8,6 +8,18 @@ interface HeroSectionProps {
   onStart: () => void;
 }
 
+function Stars5() {
+  return (
+    <span className="stars-row">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <svg key={i} viewBox="0 0 24 24" fill="#FFD93D">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
 export default function HeroSection({ onStart }: HeroSectionProps) {
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
 
@@ -19,137 +31,72 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
   }, []);
 
   return (
-    <>
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between"
-        style={{ background: "rgba(26,5,51,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3">
-          <AuraLogo size={38} />
-          <span className="text-xl font-bold text-white tracking-tight">AuraKids</span>
+    <section className="ak-screen home-hero-bg">
+      <div className="stars" />
+      <div className="glow" style={{ width: 240, height: 240, background: "rgba(255,107,107,0.18)", top: 120, right: -60 }} />
+      <div className="glow" style={{ width: 200, height: 200, background: "rgba(155,111,232,0.25)", top: 420, left: -70 }} />
+
+      <div className="ak-col">
+        {/* Nav */}
+        <div className="home-nav">
+          <div className="brandrow">
+            <AuraLogo size={34} />
+            <span className="wm">AuraKids</span>
+          </div>
+          <button className="pillbtn" onClick={onStart}>Вход</button>
         </div>
-        <button
-          onClick={onStart}
-          className="px-6 rounded-full font-semibold transition-all hover:scale-105"
-          style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)", color: "#3B1A6B", fontSize: 15, minHeight: 44 }}
-        >
-          Създай приказка
-        </button>
-      </nav>
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20"
-        style={{ background: "linear-gradient(160deg, #1A0533 0%, #3B1A6B 50%, #6B35B8 100%)" }}>
+        {/* Body */}
+        <div style={{ padding: "18px 0 40px" }}>
+          <span className="badge-chip" data-rise style={{ animationDelay: ".05s" }}>
+            ✨ Над 1 200 създадени приказки
+          </span>
 
-        <div className="absolute inset-0 stars-bg pointer-events-none opacity-60" />
+          <h1 className="hero-h1" data-rise style={{ animationDelay: ".12s" }}>
+            Само едно дете<br />е героят.<br />
+            <span className="shimmer">Твоето.</span>
+          </h1>
 
-        {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,107,107,0.12), transparent)" }} />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,217,61,0.10), transparent)" }} />
+          <p className="hero-sub" data-rise style={{ animationDelay: ".2s" }}>
+            Кажи ни името и любимия свят на детето — и за минута получаваш приказка,
+            написана, илюстрирана и разказана само за него.
+          </p>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-16">
-          {/* Left */}
-          <div className="animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-sm font-semibold tracking-wide"
-              style={{ background: "rgba(255,217,61,0.12)", color: "#FFD93D", border: "1px solid rgba(255,217,61,0.25)" }}>
-              <span className="hidden sm:inline">Персонализирани приказки с изкуствен интелект</span>
-              <span className="sm:hidden">Персонализирани AI приказки</span>
-            </div>
-
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] mb-7">
-              Само едно дете
-              <br />
-              е героят.
-              <br />
-              <span className="shimmer-text">Твоето.</span>
-            </h1>
-
-            <p className="text-xl mb-10 leading-relaxed" style={{ color: "rgba(255,255,255,0.65)", maxWidth: 480 }}>
-              Въведи името му — и за минута се ражда приказка, написана само за него. С него като главен герой. С илюстрации. С глас.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 items-start mb-10">
-              <button
-                onClick={onStart}
-                className="w-full sm:w-auto px-9 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105"
-                style={{
-                  background: "linear-gradient(135deg, #FF6B6B, #FFD93D)",
-                  color: "#3B1A6B",
-                  boxShadow: "0 12px 40px rgba(255,107,107,0.40)",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Създай приказката — безплатно
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-6">
-              {[["Напълно безплатно", "#FF6B6B"], ["На български", "#FFD93D"], ["Готово за 60 сек", "#4FC3F7"], ["Никога повторена", "#9B6FE8"]].map(([label, color]) => (
-                <div key={label} className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                  <span style={{ color: "rgba(255,255,255,0.55)" }}>{label}</span>
-                </div>
-              ))}
+          <div className="hero-illus" data-rise style={{ animationDelay: ".28s" }}>
+            {heroUrl ? (
+              <Image src={heroUrl} alt="AuraKids илюстрация" fill className="object-cover" unoptimized />
+            ) : (
+              <>
+                <div className="stars" />
+                <div className="glow animate-float-slow" style={{ width: 160, height: 160, background: "radial-gradient(circle, rgba(255,217,61,0.3), rgba(255,107,107,0.2), transparent)" }} />
+                <AuraLogo size={72} />
+              </>
+            )}
+            <div className="protect" />
+            <div className="floatcap">
+              <span className="badge-chip" style={{ background: "rgba(255,255,255,0.16)" }}>🌙 Лека нощ, герои</span>
             </div>
           </div>
 
-          {/* Right: hero illustration */}
-          <div className="relative flex items-center justify-center animate-scale-in">
-            <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-lg mx-auto"
-              style={{ filter: "drop-shadow(0 40px 80px rgba(0,0,0,0.6))" }}>
+          <button className="cta" data-rise style={{ animationDelay: ".34s" }} onClick={onStart}>
+            Създай приказка
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </button>
 
-              <div className="relative w-full rounded-3xl overflow-hidden"
-                style={{
-                  aspectRatio: "16/10",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  boxShadow: "0 0 0 1px rgba(255,255,255,0.05), inset 0 0 80px rgba(107,53,184,0.3)",
-                }}>
-                {heroUrl ? (
-                  <Image src={heroUrl} alt="AuraKids магическа илюстрация" fill className="object-cover" unoptimized />
-                ) : (
-                  /* Beautiful placeholder while DALL-E generates */
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-4"
-                    style={{ background: "linear-gradient(145deg, #2D0F55, #6B35B8, #9B6FE8)" }}>
-                    <div className="absolute inset-0 stars-bg opacity-70" />
-                    {/* Animated glow orb */}
-                    <div className="absolute w-40 h-40 rounded-full blur-3xl animate-float-slow"
-                      style={{ background: "radial-gradient(circle, rgba(255,217,61,0.3), rgba(255,107,107,0.2), transparent)" }} />
-                    <AuraLogo size={64} />
-                    <div className="text-center relative z-10">
-                      <div className="text-white font-semibold text-base mb-1">Зарежда илюстрация...</div>
-                      <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Първото зареждане отнема ~20 сек</div>
-                    </div>
-                    {/* Progress dots */}
-                    <div className="flex gap-2 relative z-10">
-                      {[0, 0.3, 0.6].map((d) => (
-                        <div key={d} className="w-2 h-2 rounded-full animate-twinkle"
-                          style={{ background: "#FFD93D", animationDelay: `${d}s` }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
+            <span>Безплатно</span><span className="dot">·</span>
+            <span>Готово за около минута</span><span className="dot">·</span>
+            <span>Запазена завинаги</span>
+          </div>
 
-              {/* Floating badges */}
-              <div className="absolute -top-4 -right-4 glass-dark rounded-2xl px-4 py-2.5 animate-float"
-                style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
-                <div className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>Тема</div>
-                <div className="text-sm font-bold text-white">Дракони</div>
-              </div>
-
-              <div className="absolute -bottom-4 -left-4 glass-dark rounded-2xl px-4 py-2.5 animate-float"
-                style={{ border: "1px solid rgba(255,255,255,0.1)", animationDelay: "1.5s" }}>
-                <div className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>Герой</div>
-                <div className="text-sm font-bold text-white">Александър</div>
-              </div>
-            </div>
-
-            <div className="absolute -inset-6 rounded-3xl border opacity-10 animate-spin-slow pointer-events-none"
-              style={{ borderColor: "#FFD93D", borderStyle: "dashed" }} />
+          <div className="rating" data-rise style={{ animationDelay: ".46s" }}>
+            <Stars5 />
+            <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> от 380+ родители</span>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
