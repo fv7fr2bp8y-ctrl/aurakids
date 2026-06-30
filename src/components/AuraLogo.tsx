@@ -1,24 +1,57 @@
 export default function AuraLogo({ size = 36 }: { size?: number }) {
-  const id = "al";
   return (
     <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id={`${id}-g1`} x1="0" y1="0" x2="1" y2="1">
+        <radialGradient id="portal-inner" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#2D0A5E" />
+          <stop offset="100%" stopColor="#0D0024" />
+        </radialGradient>
+        <linearGradient id="portal-ring" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#FF6B6B" />
+          <stop offset="40%" stopColor="#A855F7" />
           <stop offset="100%" stopColor="#FFD93D" />
         </linearGradient>
-        <linearGradient id={`${id}-g2`} x1="0" y1="0" x2="0.5" y2="1">
-          <stop offset="0%" stopColor="#9B6FE8" />
-          <stop offset="100%" stopColor="#5B21B6" />
-        </linearGradient>
+        <radialGradient id="portal-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#9B6FE8" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#9B6FE8" stopOpacity="0" />
+        </radialGradient>
+        <clipPath id="portal-clip">
+          <circle cx="28" cy="28" r="21" />
+        </clipPath>
       </defs>
-      <path d="M7 37 L7 17 C7 15.5 8.5 14.5 10 15.2 C14.5 17.2 21 19.5 28 20.5 L28 40.5 C21 39.5 14.5 37 10 35 C8.5 34.3 7 35 7 37Z"
-        fill={`url(#${id}-g2)`} />
-      <path d="M49 37 L49 17 C49 15.5 47.5 14.5 46 15.2 C41.5 17.2 35 19.5 28 20.5 L28 40.5 C35 39.5 41.5 37 46 35 C47.5 34.3 49 35 49 37Z"
-        fill={`url(#${id}-g2)`} opacity="0.65" />
-      <line x1="28" y1="20" x2="28" y2="41" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M28 3 L30.2 9.8 L37.4 9.8 L31.6 13.9 L33.8 20.7 L28 16.6 L22.2 20.7 L24.4 13.9 L18.6 9.8 L25.8 9.8Z"
-        fill={`url(#${id}-g1)`} />
+
+      {/* Outer glow */}
+      <circle cx="28" cy="28" r="28" fill="url(#portal-glow)" />
+
+      {/* Ring */}
+      <circle cx="28" cy="28" r="24" stroke="url(#portal-ring)" strokeWidth="3" fill="none" />
+
+      {/* Inner space */}
+      <circle cx="28" cy="28" r="21" fill="url(#portal-inner)" />
+
+      {/* Stars inside */}
+      <g clipPath="url(#portal-clip)">
+        <circle cx="18" cy="18" r="1" fill="white" opacity="0.9" />
+        <circle cx="36" cy="14" r="0.8" fill="white" opacity="0.7" />
+        <circle cx="40" cy="24" r="1" fill="white" opacity="0.8" />
+        <circle cx="14" cy="32" r="0.7" fill="white" opacity="0.6" />
+        <circle cx="38" cy="36" r="0.8" fill="white" opacity="0.7" />
+        <circle cx="22" cy="38" r="0.6" fill="white" opacity="0.5" />
+        <circle cx="32" cy="40" r="0.5" fill="white" opacity="0.4" />
+
+        {/* Castle silhouette */}
+        <path d="M21 36 L21 30 L23 30 L23 28 L25 28 L25 26 L27 26 L27 28 L29 28 L29 26 L31 26 L31 28 L33 28 L33 30 L35 30 L35 36 Z"
+          fill="rgba(255,255,255,0.25)" />
+        <path d="M24 30 L24 26 L26 26 L26 30 Z" fill="rgba(255,255,255,0.15)" />
+        <path d="M30 30 L30 26 L32 26 L32 30 Z" fill="rgba(255,255,255,0.15)" />
+
+        {/* Golden center star */}
+        <path d="M28 18 L28.9 21 L32 21 L29.5 22.8 L30.4 25.8 L28 24 L25.6 25.8 L26.5 22.8 L24 21 L27.1 21 Z"
+          fill="#FFD93D" opacity="0.95" />
+      </g>
+
+      {/* Inner ring shimmer */}
+      <circle cx="28" cy="28" r="21" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" fill="none" />
     </svg>
   );
 }
