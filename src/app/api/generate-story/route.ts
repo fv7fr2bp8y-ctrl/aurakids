@@ -10,25 +10,6 @@ function makeCacheKey(childName: string, theme: string, age: string) {
   return `story:${childName.toLowerCase().trim()}:${theme.toLowerCase()}:${age}`;
 }
 
-async function correctGrammar(story: string, childName: string): Promise<string> {
-  try {
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2500,
-      messages: [{
-        role: "user",
-        content: `Ти си коректор на български текст. Прегледай приказката и поправи САМО граматически грешки — род на главния герой (${childName}), членуване (-ът/-ят/-та/-то), пунктуация, книжовни форми. НЕ променяй съдържание, стил или структура. Върни САМО поправения текст, без обяснения, без коментари.
-
-${story}`,
-      }],
-    });
-    const text = msg.content[0];
-    return text.type === "text" ? text.text.trim() : story;
-  } catch {
-    return story;
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const { childName, theme, themeName, age } = await req.json();
@@ -95,14 +76,13 @@ export async function POST(req: NextRequest) {
 
     const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
 
-    // Grammar correction pass
-    const correctedStory = await correctGrammar(parsed.story, childName);
-
-    await saveCachedStory(cacheKey, parsed.title, correctedStory, parsed.imagePrompts || []);
+    // Opus 4.8 handles Bulgarian grammar well — skip the second correction pass for speed.
+    // Cache write is fire-and-forget so it doesn't block the response.
+    saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []).catch(() => {});
 
     return NextResponse.json({
       title: parsed.title,
-      story: correctedStory,
+      story: parsed.story,
       imagePrompts: parsed.imagePrompts || [],
       fromCache: false,
     });

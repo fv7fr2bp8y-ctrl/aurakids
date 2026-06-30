@@ -116,6 +116,22 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
         data = await res.json();
       }
       if (data.error) throw new Error(String(data.error));
+
+      // Warm up images + voice in parallel so the Reader is instant
+      const prompts = (data.imagePrompts as string[]) || [];
+      prompts.forEach((p) => {
+        if (p) fetch("/api/generate-image", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: p }),
+        }).catch(() => {});
+      });
+      if (data.title && data.story) {
+        fetch("/api/tts", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}` }),
+        }).catch(() => {});
+      }
+
       setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, ...data } as StoryData);
     } catch {
       setError("Нещо се обърка. Опитай отново.");
