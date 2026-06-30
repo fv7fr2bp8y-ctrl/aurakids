@@ -4,7 +4,9 @@ import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
 export const maxDuration = 60;
 
-const client = new OpenAI();
+function getClient() {
+  return new OpenAI();
+}
 
 const LOGO_CONCEPTS = [
   {
@@ -37,16 +39,16 @@ export async function GET(req: NextRequest) {
   if (cached) return NextResponse.json({ url: cached, fromCache: true });
 
   try {
-    const response = await client.images.generate({
+    const response = await getClient().images.generate({
       model: "gpt-image-1",
       prompt: concept.prompt,
       n: 1,
       size: "1024x1024",
       quality: "high",
       background: "transparent",
-    } as Parameters<typeof client.images.generate>[0]);
+    });
 
-    const b64 = response.data?.[0]?.b64_json;
+    const b64 = "data" in response ? response.data?.[0]?.b64_json : undefined;
     if (!b64) return NextResponse.json({ error: "No image" }, { status: 500 });
 
     const buf = Buffer.from(b64, "base64");
