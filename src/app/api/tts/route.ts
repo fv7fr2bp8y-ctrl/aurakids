@@ -3,10 +3,11 @@ import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
 const MODEL = "gemini-2.5-flash-preview-tts";
-const VOICE = "Schedar";
+const DEFAULT_VOICE = "Schedar";
+const ALLOWED_VOICES = new Set(["Schedar", "Kore", "Aoede", "Charon", "Puck", "Leda"]);
 
-function textToFileName(text: string) {
-  return createHash("sha1").update(`${VOICE}|${text}`).digest("hex") + ".wav";
+function textToFileName(text: string, voice: string) {
+  return createHash("sha1").update(`${voice}|${text}`).digest("hex") + ".wav";
 }
 
 function pcmToWav(pcm: Uint8Array, rate: number): ArrayBuffer {
@@ -24,7 +25,7 @@ function pcmToWav(pcm: Uint8Array, rate: number): ArrayBuffer {
   return buf;
 }
 
-async function callGemini(text: string, key: string) {
+async function callGemini(text: string, key: string, voice: string) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
     {
@@ -34,7 +35,7 @@ async function callGemini(text: string, key: string) {
         contents: [{ parts: [{ text }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
         },
       }),
     }
@@ -50,12 +51,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "TTS не е конфигуриран" }, { status: 503 });
   }
 
-  const { text } = await req.json();
+  const { text, voice } = await req.json();
   if (!text?.trim()) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });
   }
+  const useVoice = ALLOWED_VOICES.has(voice) ? voice : DEFAULT_VOICE;
 
-  const fileName = textToFileName(text.trim());
+  const fileName = textToFileName(text.trim(), useVoice);
 
   // Check Supabase storage cache — return redirect to public URL
   const cachedUrl = await getCachedAudio(fileName);
@@ -68,8 +70,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Generate with Gemini
-  let part = await callGemini(text.trim(), key);
-  if (!part) part = await callGemini(text.trim(), key);
+  let part = await callGemini(text.trim(), key, useVoice);
+  if (!part) part = await callGemini(text.trim(), key, useVoice);
   if (!part?.data) {
     return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
   }

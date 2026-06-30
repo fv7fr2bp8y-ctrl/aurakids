@@ -32,10 +32,22 @@ function useIllustration(prompt: string | undefined) {
   return { url, loading };
 }
 
+const VOICES = [
+  { id: "Schedar", name: "Аура", desc: "Топъл, спокоен" },
+  { id: "Kore", name: "Мира", desc: "Ясен, женски" },
+  { id: "Aoede", name: "Лина", desc: "Мек, приказен" },
+  { id: "Leda", name: "Ния", desc: "Млад, нежен" },
+  { id: "Charon", name: "Борис", desc: "Дълбок, мъжки" },
+  { id: "Puck", name: "Тео", desc: "Закачлив" },
+];
+
 export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProps) {
   const { speak, status: ttsStatus } = useTTS();
+  const [voice, setVoice] = useState("Schedar");
+  const [voiceMenu, setVoiceMenu] = useState(false);
   const fullStoryText = `${story.title}.\n\n${story.story}`;
   const { url: heroUrl, loading: heroLoading } = useIllustration(story.imagePrompts?.[0]);
+  const voiceName = VOICES.find((v) => v.id === voice)?.name ?? "Аура";
 
   const paragraphs = story.story
     .split("\n")
@@ -165,11 +177,32 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
         </div>
       </div>
 
+      {/* Voice picker — bottom right */}
+      <div className="voicepick">
+        {voiceMenu && (
+          <div className="voicepick-menu">
+            {VOICES.map((v) => (
+              <button key={v.id} className={v.id === voice ? "on" : ""}
+                onClick={() => { setVoice(v.id); setVoiceMenu(false); }}>
+                <span>{v.name}</span>
+                <span className="vdesc">{v.desc}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <button className="voicepick-toggle" onClick={() => setVoiceMenu((m) => !m)}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
+          </svg>
+          Глас: {voiceName}
+        </button>
+      </div>
+
       {/* Sticky audio player */}
       <div className="player">
         <div className="player-inner">
           <div className="player-row">
-            <button className="playbtn" onClick={() => speak(fullStoryText)} disabled={ttsStatus === "loading"}>
+            <button className="playbtn" onClick={() => speak(fullStoryText, voice)} disabled={ttsStatus === "loading"}>
               {ttsStatus === "loading" ? (
                 <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -182,7 +215,7 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
               )}
             </button>
             <div className="player-meta">
-              <div className="ptitle">Чете Аура</div>
+              <div className="ptitle">Чете {voiceName}</div>
               <div className="ptime">{ttsStatus === "playing" ? "Възпроизвежда…" : "Натисни, за да чуеш приказката"}</div>
             </div>
           </div>
