@@ -12,8 +12,7 @@ export const metadata: Metadata = {
   description: "Генерирай персонализирана приказка с името на детето си и уникални илюстрации. Нещо специално, само за него.",
   metadataBase: new URL("https://aurakids.fun"),
   icons: {
-    icon: "/api/logo-url",
-    apple: "/api/logo-url",
+    icon: "/favicon.ico",
   },
   openGraph: {
     title: "AuraKids — Вълшебни приказки за твоето дете",
