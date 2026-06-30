@@ -8,8 +8,8 @@ const client = new OpenAI();
 
 const LOGO_CONCEPTS = [
   {
-    id: "portal-world",
-    prompt: "Minimalist logo icon, pure white background, centered: a perfect circle portal made of swirling purple and gold light, inside the portal a tiny magical fantasy kingdom with a castle and stars visible, as if looking through a magical window into another world, the portal ring glows with iridescent aurora colors, ultra clean modern design, no text, no letters",
+    id: "portal-world-v2",
+    prompt: "Minimalist logo icon, transparent background, centered composition: a perfect glowing circle portal made of swirling deep purple and gold light, inside the portal a tiny magical fantasy kingdom with a castle and stars, the portal ring shimmers with iridescent aurora colors, ultra clean modern icon design, no text, no letters, no background fill",
   },
   {
     id: "child-constellation",
@@ -43,7 +43,8 @@ export async function GET(req: NextRequest) {
       n: 1,
       size: "1024x1024",
       quality: "high",
-    });
+      background: "transparent",
+    } as Parameters<typeof client.images.generate>[0]);
 
     const b64 = response.data?.[0]?.b64_json;
     if (!b64) return NextResponse.json({ error: "No image" }, { status: 500 });
