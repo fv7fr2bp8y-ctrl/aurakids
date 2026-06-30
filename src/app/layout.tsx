@@ -11,11 +11,23 @@ export const metadata: Metadata = {
   title: "AuraKids — Вълшебни приказки за твоето дете",
   description: "Генерирай персонализирана приказка с името на детето си и уникални илюстрации. Нещо специално, само за него.",
   metadataBase: new URL("https://aurakids.fun"),
+  icons: {
+    icon: "/api/logo-url",
+    apple: "/api/logo-url",
+  },
   openGraph: {
     title: "AuraKids — Вълшебни приказки за твоето дете",
-    description: "Персонализирани детски приказки с AI илюстрации",
+    description: "Персонализирани детски приказки с AI — детето ти е главният герой",
     url: "https://aurakids.fun",
     siteName: "AuraKids",
+    images: [{ url: "/api/og-image", width: 1200, height: 630, alt: "AuraKids" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AuraKids — Вълшебни приказки за твоето дете",
+    description: "Персонализирани детски приказки с AI — детето ти е главният герой",
+    images: ["/api/og-image"],
   },
 };
 
