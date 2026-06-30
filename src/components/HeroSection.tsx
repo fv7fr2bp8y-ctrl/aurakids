@@ -29,8 +29,8 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
         </div>
         <button
           onClick={onStart}
-          className="px-5 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105"
-          style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)", color: "#3B1A6B" }}
+          className="px-6 rounded-full font-semibold transition-all hover:scale-105"
+          style={{ background: "linear-gradient(135deg, #FF6B6B, #FFD93D)", color: "#3B1A6B", fontSize: 15, minHeight: 44 }}
         >
           Създай приказка
         </button>
@@ -53,7 +53,8 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
           <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-sm font-semibold tracking-wide"
               style={{ background: "rgba(255,217,61,0.12)", color: "#FFD93D", border: "1px solid rgba(255,217,61,0.25)" }}>
-              Персонализирани приказки с изкуствен интелект
+              <span className="hidden sm:inline">Персонализирани приказки с изкуствен интелект</span>
+              <span className="sm:hidden">Персонализирани AI приказки</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] mb-7">
@@ -71,7 +72,7 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
             <div className="flex flex-col sm:flex-row gap-4 items-start mb-10">
               <button
                 onClick={onStart}
-                className="px-9 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105"
+                className="w-full sm:w-auto px-9 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #FF6B6B, #FFD93D)",
                   color: "#3B1A6B",
@@ -95,7 +96,7 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
 
           {/* Right: hero illustration */}
           <div className="relative flex items-center justify-center animate-scale-in">
-            <div className="relative w-full max-w-lg"
+            <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-lg mx-auto"
               style={{ filter: "drop-shadow(0 40px 80px rgba(0,0,0,0.6))" }}>
 
               <div className="relative w-full rounded-3xl overflow-hidden"

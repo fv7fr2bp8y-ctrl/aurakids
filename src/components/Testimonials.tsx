@@ -37,12 +37,7 @@ export default function Testimonials() {
           <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
             Деца, станали герои
             <br />
-            <span style={{
-              background: "linear-gradient(90deg, #FF6B6B, #FFD93D)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>на собствената си история</span>
+            <span style={{ color: "rgba(255,255,255,0.65)" }}>на собствената си история</span>
           </h2>
         </div>
 
@@ -93,12 +88,7 @@ export default function Testimonials() {
             ["98%", "биха препоръчали"],
           ].map(([num, label]) => (
             <div key={label}>
-              <div className="text-3xl font-bold" style={{
-                background: "linear-gradient(135deg, #FF6B6B, #FFD93D)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}>{num}</div>
+              <div className="text-3xl font-bold text-white">{num}</div>
               <div className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</div>
             </div>
           ))}

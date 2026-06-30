@@ -208,7 +208,7 @@ function IllustrationListen() {
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-6" style={{ background: "linear-gradient(180deg, #FFF8F0 0%, #F0E6FF 60%, #FFF8F0 100%)" }}>
+    <section className="py-20 px-6" style={{ background: "linear-gradient(180deg, #FFF8F0 0%, #F0E6FF 60%, #FFF8F0 100%)" }}>
       <div className="max-w-5xl mx-auto">
 
         <div className="text-center mb-16">
