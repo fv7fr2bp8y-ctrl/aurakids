@@ -14,7 +14,7 @@ export async function GET() {
       prompt: "Disney watercolor illustration, a cute child riding a friendly purple dragon through a magical starry sky, soft painterly brushstrokes, no text",
       n: 1,
       size: "1024x1024",
-      quality: "standard",
+      quality: "medium",
     });
 
     const b64 = response.data?.[0]?.b64_json;
