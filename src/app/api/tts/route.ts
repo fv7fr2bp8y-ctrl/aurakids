@@ -1,44 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import Anthropic from "@anthropic-ai/sdk";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
-
-export const maxDuration = 120;
 
 const MODEL = "gemini-2.5-flash-preview-tts";
 const VOICE = "Schedar";
-
-const anthropic = new Anthropic();
-
-// Adds Bulgarian stress marks (combining acute U+0301) so the TTS voice
-// reads the correct syllable. Display text stays clean; this is voice-only.
-async function accentForSpeech(text: string): Promise<string> {
-  try {
-    const msg = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 4000,
-      messages: [{
-        role: "user",
-        content: `Постави знак за ударение върху ударената гласна на всяка многосрична българска дума, за да се прочете правилно от синтезатор на глас. Знакът е Unicode U+0301 (combining acute accent) — поставя се ВЕДНАГА след ударената гласна (напр. "геро́ят", "прика́зка", "Алекса́ндър").
-
-ПРАВИЛА:
-- НЕ променяй нито една буква, дума, пунктуация или ред — добавяй САМО знаци за ударение.
-- Едносричните думи остават без знак.
-- Спазвай книжовното българско ударение.
-- Върни САМО текста с ударенията, без обяснения.
-
-${text}`,
-      }],
-    });
-    const block = msg.content[0];
-    const out = block?.type === "text" ? block.text.trim() : "";
-    // Sanity check: accented text should be roughly same length (only marks added)
-    if (out && out.length >= text.length && out.length <= text.length * 1.6) return out;
-    return text;
-  } catch {
-    return text;
-  }
-}
 
 function textToFileName(text: string) {
   return createHash("sha1").update(`${VOICE}|${text}`).digest("hex") + ".wav";
@@ -102,12 +67,9 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Add Bulgarian stress marks so the voice reads correct syllables
-  const spoken = await accentForSpeech(text.trim());
-
   // Generate with Gemini
-  let part = await callGemini(spoken, key);
-  if (!part) part = await callGemini(spoken, key);
+  let part = await callGemini(text.trim(), key);
+  if (!part) part = await callGemini(text.trim(), key);
   if (!part?.data) {
     return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
   }
