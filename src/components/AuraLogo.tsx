@@ -40,6 +40,8 @@ export default function AuraLogo({ size = 36 }: { size?: number }) {
   if (!url) return FALLBACK(size);
 
   return (
-    <Image src={url} alt="AuraKids" width={size} height={size} className="object-contain" unoptimized />
+    <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+      <Image src={url} alt="AuraKids" width={size} height={size} className="object-cover" unoptimized />
+    </div>
   );
 }
