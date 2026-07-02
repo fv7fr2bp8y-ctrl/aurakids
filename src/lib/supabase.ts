@@ -71,13 +71,14 @@ export async function getCachedAudio(fileName: string): Promise<string | null> {
   return data.publicUrl;
 }
 
-export async function saveAudioToStorage(fileName: string, wav: ArrayBuffer): Promise<string | null> {
+export async function saveAudioToStorage(fileName: string, audio: ArrayBuffer): Promise<string | null> {
   const sb = getSupabase();
   if (!sb) return null;
   try {
+    const contentType = fileName.endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
     const { error } = await sb.storage
       .from("story-audio")
-      .upload(fileName, wav, { contentType: "audio/wav", upsert: true });
+      .upload(fileName, audio, { contentType, upsert: true });
     if (error) return null;
     const { data } = sb.storage.from("story-audio").getPublicUrl(fileName);
     return data.publicUrl;
