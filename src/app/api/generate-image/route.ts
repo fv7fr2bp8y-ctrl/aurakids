@@ -9,8 +9,8 @@ function promptToFileName(prompt: string) {
 }
 
 async function callGemini(prompt: string): Promise<string | null> {
-  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY not set");
+  const key = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("No Google API key set");
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
