@@ -8,6 +8,39 @@ const GEMINI_MODEL = "gemini-2.5-flash-preview-tts";
 const GEMINI_DEFAULT_VOICE = "Schedar";
 const GEMINI_VOICES = new Set(["Schedar", "Kore", "Aoede", "Charon", "Puck", "Leda"]);
 
+// Google Cloud Text-to-Speech — Chirp3-HD Bulgarian voices (best pronunciation).
+const GTTS_VOICE_MAP: Record<string, string> = {
+  Schedar: "bg-BG-Chirp3-HD-Aoede",
+  Kore: "bg-BG-Chirp3-HD-Kore",
+  Aoede: "bg-BG-Chirp3-HD-Leda",
+  Leda: "bg-BG-Chirp3-HD-Zephyr",
+  Charon: "bg-BG-Chirp3-HD-Charon",
+  Puck: "bg-BG-Chirp3-HD-Puck",
+};
+const GTTS_DEFAULT = "bg-BG-Chirp3-HD-Aoede";
+
+async function callGoogleTTS(text: string, key: string, voiceName: string): Promise<ArrayBuffer | null> {
+  const attempt = async (name: string) => {
+    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: { text },
+        voice: { languageCode: "bg-BG", name },
+        audioConfig: { audioEncoding: "MP3", speakingRate: 0.95 },
+      }),
+    });
+    if (!res.ok) {
+      console.error("Google TTS error:", res.status, await res.text().catch(() => ""));
+      return null;
+    }
+    const b64 = (await res.json())?.audioContent;
+    return b64 ? (Buffer.from(b64, "base64").buffer as ArrayBuffer) : null;
+  };
+  // Try Chirp3-HD; if the voice isn't available, fall back to Standard.
+  return (await attempt(voiceName)) ?? (await attempt("bg-BG-Standard-A"));
+}
+
 // ElevenLabs multilingual voices — best Bulgarian pronunciation.
 // Maps our friendly voice ids to ElevenLabs voice IDs.
 const EL_MODEL = "eleven_multilingual_v2";
@@ -82,10 +115,31 @@ export async function POST(req: NextRequest) {
   }
   const trimmed = text.trim();
 
+  const gttsKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_API_KEY;
   const elKey = process.env.ELEVENLABS_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
-  // ---------- Preferred: ElevenLabs (best Bulgarian) ----------
+  // ---------- Preferred: Google Cloud TTS (Chirp3-HD Bulgarian) ----------
+  if (gttsKey) {
+    const voiceName = GTTS_VOICE_MAP[voice] || GTTS_DEFAULT;
+    const fn = fileName(trimmed, voiceName, "gtts", "mp3");
+
+    const cachedUrl = await getCachedAudio(fn);
+    if (cachedUrl) {
+      const audio = await (await fetch(cachedUrl)).arrayBuffer();
+      return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+    }
+
+    let mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName);
+    if (!mp3) mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName);
+    if (mp3) {
+      await saveAudioToStorage(fn, mp3);
+      return new NextResponse(mp3, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+    }
+    // fall through if Google TTS failed
+  }
+
+  // ---------- ElevenLabs ----------
   if (elKey) {
     const voiceId = EL_VOICE_MAP[voice] || EL_DEFAULT;
     const fn = fileName(trimmed, voiceId, "el", "mp3");
