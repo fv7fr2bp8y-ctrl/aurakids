@@ -35,7 +35,9 @@ async function callGoogleTTS(text: string, key: string, voiceName: string): Prom
       return null;
     }
     const b64 = (await res.json())?.audioContent;
-    return b64 ? (Buffer.from(b64, "base64").buffer as ArrayBuffer) : null;
+    if (!b64) return null;
+    const buf = Buffer.from(b64, "base64");
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
   };
   // Try Chirp3-HD; if the voice isn't available, fall back to Standard.
   return (await attempt(voiceName)) ?? (await attempt("bg-BG-Standard-A"));
