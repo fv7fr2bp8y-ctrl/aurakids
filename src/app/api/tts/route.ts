@@ -117,9 +117,9 @@ export async function POST(req: NextRequest) {
   }
   const trimmed = text.trim();
 
-  const gttsKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_API_KEY;
+  const gttsKey = process.env.GOOGLE_API_KEY;
   const elKey = process.env.ELEVENLABS_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiKey = process.env.GOOGLE_API_KEY;
 
   // ---------- Preferred: Google Cloud TTS (Chirp3-HD Bulgarian) ----------
   if (gttsKey) {

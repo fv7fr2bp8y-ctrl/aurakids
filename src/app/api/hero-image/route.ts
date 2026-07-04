@@ -8,7 +8,7 @@ const HERO_PROMPT =
   "Disney watercolor illustration, soft painterly brushstrokes: an adorable young child with big expressive brown eyes and a tiny golden crown, riding a magnificent friendly purple dragon soaring through a magical twilight sky. The dragon has gentle eyes and iridescent lavender scales. Below: a glowing fantasy kingdom with tall castle spires, thousands of twinkling stars reflected in a silver river. Warm coral clouds, rich violet and gold watercolor washes, enchanting fairy-tale mood, cinematic wide composition, ultra-detailed, no text, no watermarks.";
 
 export async function GET() {
-  const key = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  const key = process.env.GOOGLE_API_KEY;
   if (!key) return NextResponse.json({ url: null }, { status: 503 });
 
   const cached = await getCachedImage(HERO_FILE);
