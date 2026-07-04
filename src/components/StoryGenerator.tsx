@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import StoryDisplay from "./StoryDisplay";
+import ComicDisplay, { type ComicData } from "./ComicDisplay";
 
 interface StoryGeneratorProps {
   onBack: () => void;
@@ -34,9 +35,11 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
   const [selectedTheme, setSelectedTheme] = useState("");
   const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
+  const [format, setFormat] = useState<"story" | "comic">("story");
   const [isLoading, setIsLoading] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
+  const [comicData, setComicData] = useState<ComicData | null>(null);
   const [error, setError] = useState("");
 
   const prefetchRef = useRef<Promise<Record<string, unknown>> | null>(null);
@@ -97,6 +100,25 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
     setIsLoading(true);
     setError("");
     try {
+      // ---- Comic path ----
+      if (format === "comic") {
+        const res = await fetch("/api/generate-comic", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            childName: childName.trim(),
+            theme: activeTheme?.description || selectedTheme,
+            age: selectedAge,
+          }),
+        });
+        if (!res.ok) throw new Error("fail");
+        const comic = await res.json();
+        if (comic.error) throw new Error(String(comic.error));
+        setComicData({ childName: childName.trim(), title: comic.title, panels: comic.panels });
+        return;
+      }
+
+      // ---- Story path ----
       const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}`;
       let data: Record<string, unknown>;
       if (prefetchRef.current && prefetchKeyRef.current === key) {
@@ -139,6 +161,10 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
       setIsLoading(false);
     }
   };
+
+  if (comicData) {
+    return <ComicDisplay comic={comicData} onBack={() => { setComicData(null); setStep(1); }} onHome={onBack} />;
+  }
 
   if (storyData) {
     return <StoryDisplay story={storyData} onBack={() => { setStoryData(null); setStep(1); }} onHome={onBack} />;
@@ -248,8 +274,29 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           )}
 
           <div className="create-foot">
+            {step === 3 && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                {([
+                  { id: "story", glyph: "📖", label: "Приказка", desc: "За четене и слушане" },
+                  { id: "comic", glyph: "💥", label: "Комикс", desc: "6 панела с реплики" },
+                ] as const).map((f) => (
+                  <button key={f.id} className="tile" onClick={() => setFormat(f.id)}
+                    style={format === f.id
+                      ? { borderColor: "var(--ak-gold)", background: "rgba(255,217,61,0.12)" }
+                      : undefined}>
+                    <span className="tglyph" style={{ fontSize: 24 }}>{f.glyph}</span>
+                    <span className="tlabel">{f.label}</span>
+                    <span className="tdesc">{f.desc}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
-              {step < 3 ? "Продължи" : `Напиши приказката на ${childName || "героя"}`}
+              {step < 3
+                ? "Продължи"
+                : format === "comic"
+                  ? `Нарисувай комикса на ${childName || "героя"}`
+                  : `Напиши приказката на ${childName || "героя"}`}
             </button>
           </div>
         </div>
@@ -262,7 +309,7 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
             <span className="ring" />
             <span>{selectedTheme !== "custom" ? THEMES.find((t) => t.id === selectedTheme)?.glyph ?? "✨" : "✨"}</span>
           </div>
-          <h3>Приказката се ражда…</h3>
+          <h3>{format === "comic" ? "Комиксът се рисува…" : "Приказката се ражда…"}</h3>
           <p>Никое друго дете не е получавало точно тази история.</p>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (

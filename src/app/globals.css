@@ -271,3 +271,20 @@ svg { background: transparent; }
 .voicepick-menu button:hover { background:rgba(255,255,255,0.08); }
 .voicepick-menu button.on { background:var(--grad-accent);color:var(--ak-purple-deep);font-weight:700; }
 .voicepick-menu .vdesc { font-size:11px;opacity:0.6;font-weight:400; }
+
+/* ============ COMIC ============ */
+.comic-screen { background: var(--grad-story-bg); min-height: 100vh; }
+.comic-grid { display:grid;grid-template-columns:1fr;gap:18px;max-width:480px;margin:0 auto;padding:4px 22px 40px; }
+@media (min-width: 720px) { .comic-grid { grid-template-columns:1fr 1fr;max-width:760px; } }
+.panel { border-radius:var(--radius-xl);overflow:hidden;background:#fff;box-shadow:var(--shadow-card);border:3px solid var(--ak-purple-night); }
+.panel-img { position:relative;width:100%;aspect-ratio:1;background:radial-gradient(120% 110% at 50% 20%,#9B6FE8,#6B35B8 55%,#3B1A6B);display:flex;align-items:center;justify-content:center; }
+.panel-num { position:absolute;top:10px;left:10px;z-index:5;width:28px;height:28px;border-radius:8px;
+  background:var(--ak-gold);color:var(--ak-purple-night);font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--ak-purple-night);transform:rotate(-4deg); }
+.bubble { position:relative;margin:12px 14px 14px;padding:10px 14px;background:#fff;border:2.5px solid var(--ak-purple-night);
+  border-radius:16px;font-size:14.5px;font-weight:600;color:var(--ak-purple-night);line-height:1.45; }
+.bubble::before { content:"";position:absolute;top:-12px;left:26px;width:18px;height:18px;background:#fff;
+  border-left:2.5px solid var(--ak-purple-night);border-top:2.5px solid var(--ak-purple-night);transform:rotate(45deg); }
+.bubble .who { display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ak-coral);margin-bottom:2px; }
+.caption-box { margin:12px 14px 14px;padding:9px 13px;background:var(--ak-gold);border:2.5px solid var(--ak-purple-night);
+  border-radius:10px;font-size:13.5px;font-style:italic;font-weight:600;color:var(--ak-purple-night);line-height:1.45;transform:rotate(-0.5deg); }
