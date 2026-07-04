@@ -1,18 +1,37 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import ServiceWorker from "@/components/ServiceWorker";
 
 const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#1A0533",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "AuraKids — Вълшебни приказки за твоето дете",
   description: "Генерирай персонализирана приказка с името на детето си и уникални илюстрации. Нещо специално, само за него.",
   metadataBase: new URL("https://aurakids.fun"),
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "AuraKids",
+  },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "AuraKids — Вълшебни приказки за твоето дете",
@@ -37,7 +56,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bg" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ServiceWorker />
+        {children}
+      </body>
     </html>
   );
 }
