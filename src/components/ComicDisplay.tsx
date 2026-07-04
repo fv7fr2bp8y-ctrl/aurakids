@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export interface ComicPanel {
@@ -59,6 +59,23 @@ function PanelImage({ prompt, index }: { prompt: string; index: number }) {
 }
 
 export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProps) {
+  const [active, setActive] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const onScroll = () => {
+    const el = trackRef.current;
+    if (!el) return;
+    const children = Array.from(el.children) as HTMLElement[];
+    const center = el.scrollLeft + el.clientWidth / 2;
+    let best = 0, bestDist = Infinity;
+    children.forEach((c, i) => {
+      const mid = c.offsetLeft + c.offsetWidth / 2;
+      const d = Math.abs(mid - center);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    setActive(best);
+  };
+
   return (
     <div className="comic-screen">
       {/* Header */}
@@ -86,8 +103,8 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
         </div>
       </div>
 
-      {/* Panels */}
-      <div className="comic-grid">
+      {/* Panels — swipe right through the story */}
+      <div className="comic-swipe" ref={trackRef} onScroll={onScroll}>
         {comic.panels.map((p, i) => (
           <div key={i} className="panel">
             <PanelImage prompt={p.imagePrompt} index={i} />
@@ -100,6 +117,13 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
               <div className="caption-box">{p.caption}</div>
             ) : null}
           </div>
+        ))}
+      </div>
+
+      {/* Dots */}
+      <div className="comic-dots">
+        {comic.panels.map((_, i) => (
+          <i key={i} className={i === active ? "on" : ""} />
         ))}
       </div>
 
