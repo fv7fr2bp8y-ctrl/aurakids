@@ -317,3 +317,9 @@ svg { background: transparent; }
 /* narration under each comic page */
 .page-story { padding:16px 18px 18px;background:#fff;border-top:3px solid var(--ak-purple-night);
   font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }
+
+/* door images */
+.door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:130px;overflow:hidden;
+  border-radius:calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0;
+  background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
+.app-door { overflow:hidden; }

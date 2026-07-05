@@ -21,15 +21,32 @@ function Stars5() {
   );
 }
 
-export default function HeroSection({ onStartStory, onStartComic }: HeroSectionProps) {
-  const [heroUrl, setHeroUrl] = useState<string | null>(null);
+const DOOR_PROMPTS = {
+  story: "A cozy magical bedtime scene: a small child tucked in bed under a starry blanket, a warm glowing lamp, an open storybook with golden sparkles rising from its pages toward a crescent moon in the window, soft dreamy night atmosphere, rich purples and warm gold",
+  comic: "A thrilled child superhero mid-leap over city rooftops at sunset, cape flying, dynamic action pose, comic book energy with motion lines and bright bold colors, joyful adventurous expression, cinematic wide angle",
+};
 
+function DoorImage({ kind }: { kind: "story" | "comic" }) {
+  const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
-    fetch("/api/hero-image")
+    fetch("/api/generate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: DOOR_PROMPTS[kind] }),
+    })
       .then((r) => r.json())
-      .then((d) => d.url && setHeroUrl(d.url))
+      .then((d) => d.url && setUrl(d.url))
       .catch(() => {});
-  }, []);
+  }, [kind]);
+
+  return (
+    <div className="door-img">
+      {url && <Image src={url} alt="" fill className="object-cover" unoptimized />}
+    </div>
+  );
+}
+
+export default function HeroSection({ onStartStory, onStartComic }: HeroSectionProps) {
 
   return (
     <section className="ak-screen home-hero-bg">
@@ -63,31 +80,15 @@ export default function HeroSection({ onStartStory, onStartComic }: HeroSectionP
             написана, илюстрирана и разказана само за него.
           </p>
 
-          <div className="hero-illus" data-rise style={{ animationDelay: ".28s" }}>
-            {heroUrl ? (
-              <Image src={heroUrl} alt="AuraKids илюстрация" fill className="object-cover" unoptimized />
-            ) : (
-              <>
-                <div className="stars" />
-                <div className="glow animate-float-slow" style={{ width: 160, height: 160, background: "radial-gradient(circle, rgba(255,217,61,0.3), rgba(255,107,107,0.2), transparent)" }} />
-                <AuraLogo size={72} />
-              </>
-            )}
-            <div className="protect" />
-            <div className="floatcap">
-              <span className="badge-chip" style={{ background: "rgba(255,255,255,0.16)" }}>🌙 Лека нощ, герои</span>
-            </div>
-          </div>
-
-          <div data-rise style={{ animationDelay: ".34s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div data-rise style={{ animationDelay: ".28s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 26 }}>
             <button className="app-door door-story" onClick={onStartStory}>
-              <span className="door-glyph">🌙</span>
+              <DoorImage kind="story" />
               <span className="door-title">Вечерна приказка</span>
               <span className="door-desc">За слушане преди сън — с илюстрации и глас</span>
               <span className="door-cta">Създай →</span>
             </button>
             <button className="app-door door-comic" onClick={onStartComic}>
-              <span className="door-glyph">💥</span>
+              <DoorImage kind="comic" />
               <span className="door-title">Комикс студио</span>
               <span className="door-desc">Цели комикс страници с реплики и екшън</span>
               <span className="door-cta">Нарисувай →</span>
