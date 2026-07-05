@@ -38,7 +38,7 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
   const panelLines = page.panels
     .map((p, i) => {
       const bubbles = p.bubbles.length && p.bubbles[0]
-        ? ` One speech bubble with EXACTLY this short Bulgarian exclamation, spelled letter-for-letter: "${p.bubbles[0]}".`
+        ? ` One large speech bubble with EXACTLY this Bulgarian text, spelled precisely letter-for-letter in a big bold clear font: "${p.bubbles[0]}". Every Cyrillic letter must be correct.`
         : " No text and no speech bubbles in this panel.";
       return `Panel ${i + 1}: ${p.scene}${bubbles}`;
     })
@@ -89,19 +89,19 @@ export async function POST(req: NextRequest) {
 - Главен герой: ${childName}, на ${age}
 - Свят: ${theme}
 - Сюжет: ${plot}
-- Точно 2 страници, всяка с 3 панела
+- Точно 4 страници, всяка с 3 панела (общо 12 панела)
 - Всеки панел: КИНЕМАТОГРАФИЧНО описание на сцената (на английски) — динамичен ъгъл, действие в движение, силна емоция. Мисли като режисьор на екшън: преследване, скок, изненада, падане, победа
-- Всеки панел: по избор ЕДНО възклицание за балон (на български, МАКСИМУМ 2 думи): "Уха!", "Насам!", "О, не!", "Дръж се!" — или празно
+- Всеки панел: ЕДНА кратка реплика за балон (на български, до 5 думи): "Насам, бързо!", "Това е невъзможно!", "Успяхме!" — или празно за чисто визуални моменти
 - За всяка страница: pageText — разказ на български под страницата (3-4 изречения), който разказва тази част от историята живо и с хумор. Перфектна граматика, правилен род за героя
 - Граматика: перфектен български, правилен род за ${childName}
-- Ясна дъга: страница 1 = завръзка и проблем; страница 2 = обрат и щастлив финал
-- Заглавие на всяка страница: "Част 1: …" / "Част 2: …" — кратко и интригуващо
+- Ясна дъга: стр. 1 = завръзка и загадка; стр. 2 = проблемът се задълбочава; стр. 3 = голям обрат и кулминация; стр. 4 = развръзка и щастлив финал
+- Заглавие на всяка страница: "Част 1: …" … "Част 4: …" — кратко и интригуващо
 
 За characterDescription: опиши ${childName} на английски в 1 изречение (възраст, коса, дрехи, отличителен белег) — използва се ЕДНАКВО навсякъде.`;
 
     const message = await anthropic.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 2500,
+      max_tokens: 4000,
       temperature: 1,
       tools: [{
         name: "save_comic",
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
             title: { type: "string", description: "Общо заглавие на комикса, съдържа името на героя" },
             characterDescription: { type: "string", description: "English, 1 sentence" },
             pages: {
-              type: "array", minItems: 2, maxItems: 2,
+              type: "array", minItems: 4, maxItems: 4,
               items: {
                 type: "object",
                 properties: {
