@@ -277,12 +277,14 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                     </button>
                   );
                 })}
-                {/* Custom */}
-                <button className="tile tile-cover" onClick={() => setSelectedTheme("custom")}
+                {/* Custom — slim full-width bar */}
+                <button className="tile tile-wide" onClick={() => setSelectedTheme("custom")}
                   style={selectedTheme === "custom" ? { borderColor: "#fff", background: "rgba(255,255,255,0.10)" } : undefined}>
-                  <TileImage id="custom" />
-                  <span className="tlabel">Нов свят</span>
-                  <span className="tdesc">Измисли го — или ни се довери</span>
+                  <span className="tglyph" style={{ fontSize: 20 }}>✨</span>
+                  <span>
+                    <span className="tlabel">Нов свят</span>
+                    <span className="tdesc" style={{ display: "block" }}>Измисли го — или ни се довери</span>
+                  </span>
                 </button>
               </div>
 
