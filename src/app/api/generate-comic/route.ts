@@ -42,7 +42,13 @@ interface PageScript {
   panels: PanelScript[];  // 3 panels per page
 }
 
-async function generatePage(page: PageScript, characterDesc: string, pageNum: number): Promise<string | null> {
+const ART_STYLES: Record<string, string> = {
+  pixar: "photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors",
+  cartoon: "classic European cartoon comic style (Asterix / Spirou school): bold playful linework, exaggerated funny expressions and poses, bright flat colors with simple shading, lively chaotic energy, big noses and expressive silhouettes",
+  manga: "colorful modern manga / anime style: large expressive eyes, dynamic speed lines and dramatic angles, cel-shaded vibrant colors, emotional close-ups, action-packed energy",
+};
+
+async function generatePage(page: PageScript, characterDesc: string, pageNum: number, artStyle: string): Promise<string | null> {
   const panelLines = page.panels
     .map((p, i) => {
       const bubbles = p.bubbles.length && p.bubbles[0]
@@ -56,7 +62,7 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
     ? "A full-page splash: ONE single epic full-bleed panel filling the entire page, maximum drama and scale."
     : `${page.panels.length} panels arranged in a clean grid layout with white gutters between panels.`;
   const prompt = `A full comic book page. ${layout}
-Style: photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors.
+Style: ${ART_STYLES[artStyle] || ART_STYLES.pixar}.
 The main character in every panel: ${characterDesc} Exactly the same character design, outfit and colors in all panels.
 At the top of the page: a parchment-style title banner with EXACTLY this text: "${page.pageTitle}" (render every letter precisely).
 Speech bubbles are white with black outlines; narration boxes are cream/parchment colored. All bubble text must be large and legible.
@@ -87,7 +93,7 @@ ${panelLines}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { childName, theme, age, language } = await req.json();
+    const { childName, theme, age, language, artStyle } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
@@ -168,7 +174,7 @@ export async function POST(req: NextRequest) {
 
     // Render both pages in parallel with gpt-image-1
     const urls = await Promise.all(
-      script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1))
+      script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1, artStyle || "pixar"))
     );
 
     const pages = script.pages

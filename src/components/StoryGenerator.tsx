@@ -73,6 +73,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const [selectedTheme, setSelectedTheme] = useState("");
   const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
+  const [artStyle, setArtStyle] = useState("pixar");
   const [isLoading, setIsLoading] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
@@ -153,6 +154,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
             theme: activeTheme?.description || selectedTheme,
             age: selectedAge,
             language: lang,
+            artStyle,
           }),
         });
         if (!res.ok) throw new Error("fail");
@@ -331,6 +333,26 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           )}
 
           <div className="create-foot">
+            {step === 3 && format === "comic" && (
+              <div style={{ marginBottom: 16 }}>
+                <p className="step-help" style={{ marginBottom: 10 }}>{t(lang, "styleQ")}</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                  {([
+                    { id: "pixar", glyph: "🎬", lk: "stPixar", dk: "stPixarD" },
+                    { id: "cartoon", glyph: "😄", lk: "stCartoon", dk: "stCartoonD" },
+                    { id: "manga", glyph: "⚡", lk: "stManga", dk: "stMangaD" },
+                  ] as const).map((st) => (
+                    <button key={st.id} className="tile" onClick={() => setArtStyle(st.id)}
+                      style={{ padding: "12px 10px", gap: 3,
+                        ...(artStyle === st.id ? { borderColor: "var(--ak-gold)", background: "rgba(255,217,61,0.12)" } : {}) }}>
+                      <span style={{ fontSize: 22 }}>{st.glyph}</span>
+                      <span className="tlabel" style={{ fontSize: 13 }}>{t(lang, st.lk)}</span>
+                      <span className="tdesc" style={{ fontSize: 10.5 }}>{t(lang, st.dk)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
               {step < 3
                 ? t(lang, "continueBtn")

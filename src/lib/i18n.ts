@@ -79,6 +79,15 @@ const D: Dict = {
   comicEndText: { bg: "Този комикс бе нарисуван само за", en: "This comic was drawn just for", de: "Dieser Comic wurde nur gezeichnet für", fr: "Cette BD a été dessinée rien que pour", ru: "Этот комикс нарисован только для" },
   newComicBtn: { bg: "🎨 Нов комикс", en: "🎨 New comic", de: "🎨 Neuer Comic", fr: "🎨 Nouvelle BD", ru: "🎨 Новый комикс" },
 
+  // ---- Comic styles ----
+  styleQ: { bg: "Стил на рисуване", en: "Art style", de: "Zeichenstil", fr: "Style de dessin", ru: "Стиль рисунка" },
+  stPixar: { bg: "3D филм", en: "3D movie", de: "3D-Film", fr: "Film 3D", ru: "3D-фильм" },
+  stPixarD: { bg: "Като Pixar анимация", en: "Like a Pixar film", de: "Wie ein Pixar-Film", fr: "Comme un film Pixar", ru: "Как мультфильм Pixar" },
+  stCartoon: { bg: "Карикатурен", en: "Cartoon", de: "Cartoon", fr: "Cartoon", ru: "Мультяшный" },
+  stCartoonD: { bg: "Смешен, като Астерикс", en: "Funny, like Asterix", de: "Lustig, wie Asterix", fr: "Drôle, comme Astérix", ru: "Смешной, как Астерикс" },
+  stManga: { bg: "Манга", en: "Manga", de: "Manga", fr: "Manga", ru: "Манга" },
+  stMangaD: { bg: "Големи очи, екшън", en: "Big eyes, action", de: "Große Augen, Action", fr: "Grands yeux, action", ru: "Большие глаза, экшен" },
+
   // ---- Themes ----
   thDragon: { bg: "Дракони", en: "Dragons", de: "Drachen", fr: "Dragons", ru: "Драконы" },
   thDragonD: { bg: "Смели полети и съкровища", en: "Brave flights and treasure", de: "Mutige Flüge und Schätze", fr: "Vols audacieux et trésors", ru: "Смелые полёты и сокровища" },
