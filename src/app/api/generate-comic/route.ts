@@ -35,7 +35,7 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
   const panelLines = page.panels
     .map((p, i) => {
       const bubbles = p.bubbles.length
-        ? ` Speech bubbles / caption boxes with EXACTLY this Bulgarian text (render the Cyrillic text precisely, character for character): ${p.bubbles.map((b) => `"${b}"`).join(", ")}.`
+        ? ` One large speech bubble containing EXACTLY this Bulgarian Cyrillic text, spelled precisely letter-for-letter, in a big bold clear font: ${p.bubbles.slice(0, 1).map((b) => `"${b}"`).join(", ")}. Double-check every Cyrillic letter is correct.`
         : "";
       return `Panel ${i + 1}: ${p.scene}${bubbles}`;
     })
@@ -56,7 +56,7 @@ ${panelLines}`;
       prompt: prompt.slice(0, 4000),
       n: 1,
       size: "1024x1536",
-      quality: "medium",
+      quality: "high",
     });
     const b64 = "data" in response ? response.data?.[0]?.b64_json : undefined;
     if (!b64) return null;
@@ -87,8 +87,9 @@ export async function POST(req: NextRequest) {
 - Свят: ${theme}
 - Сюжет: ${plot}
 - Точно 2 страници, всяка с 3 панела
-- Всеки панел: описание на сцената (на английски) + 1-2 кратки текста за балони (на български)
-- Балоните: кратки (до 8 думи), живи, детски, с хумор — както говорят истински деца
+- Всеки панел: описание на сцената (на английски) + ТОЧНО 1 кратък текст за балон (на български)
+- Балоните: МНОГО кратки (2–5 думи), живи, детски — както говорят истински деца. Например: "Насам, бързо!", "Уха! Виж това!"
+- Избягвай редки думи и струпани съгласни — прости, чести български думи се изписват най-точно
 - Граматика: перфектен български, правилен род за ${childName}
 - Ясна дъга: страница 1 = завръзка и проблем; страница 2 = обрат и щастлив финал
 - Заглавие на всяка страница: "Част 1: …" / "Част 2: …" — кратко и интригуващо
