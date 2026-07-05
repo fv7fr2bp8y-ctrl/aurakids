@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
+import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
 export const maxDuration = 60;
@@ -8,10 +9,7 @@ function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
 
-async function callGemini(prompt: string): Promise<string | null> {
-  const key = process.env.GOOGLE_API_KEY;
-  if (!key) throw new Error("GOOGLE_API_KEY not set");
-
+async function callGemini(prompt: string, key: string): Promise<string | null> {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
     {
@@ -25,8 +23,8 @@ async function callGemini(prompt: string): Promise<string | null> {
   );
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini error: ${res.status} ${err}`);
+    console.error("Gemini image error:", res.status, await res.text().catch(() => ""));
+    return null;
   }
 
   const data = await res.json();
@@ -35,17 +33,43 @@ async function callGemini(prompt: string): Promise<string | null> {
   return imgPart?.inlineData?.data ?? null;
 }
 
-async function generateImage(prompt: string): Promise<Buffer> {
-  const styledPrompt = `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks, no letters.`;
-
-  let b64 = await callGemini(styledPrompt);
-  if (!b64) {
-    await new Promise((r) => setTimeout(r, 3000));
-    b64 = await callGemini(styledPrompt);
+async function callOpenAI(prompt: string): Promise<string | null> {
+  if (!process.env.OPENAI_API_KEY) return null;
+  try {
+    const client = new OpenAI();
+    const response = await client.images.generate({
+      model: "gpt-image-1",
+      prompt: prompt.slice(0, 4000),
+      n: 1,
+      size: "1024x1024",
+      quality: "medium",
+    });
+    return "data" in response ? response.data?.[0]?.b64_json ?? null : null;
+  } catch (e) {
+    console.error("OpenAI image error:", e);
+    return null;
   }
-  if (!b64) throw new Error("No image returned from Gemini");
+}
 
-  return Buffer.from(b64, "base64");
+async function generateImage(prompt: string): Promise<Buffer> {
+  // Comic panels arrive pre-styled; everything else gets the watercolor house style.
+  const isPreStyled = /comic book panel/i.test(prompt);
+  const styledPrompt = isPreStyled
+    ? prompt.slice(0, 1500)
+    : `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks, no letters.`;
+
+  // 1) Google Gemini
+  const googleKey = process.env.GOOGLE_API_KEY;
+  if (googleKey) {
+    const b64 = await callGemini(styledPrompt, googleKey);
+    if (b64) return Buffer.from(b64, "base64");
+  }
+
+  // 2) OpenAI gpt-image-1 fallback
+  const b64 = await callOpenAI(styledPrompt);
+  if (b64) return Buffer.from(b64, "base64");
+
+  throw new Error("All image providers failed");
 }
 
 export async function POST(req: NextRequest) {
