@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 
@@ -19,6 +20,38 @@ const THEMES = [
 ];
 
 const AGES = ["2–3 г.", "4–5 г.", "6–7 г.", "8–9 г.", "10+ г.", "Изненадай ме"];
+
+const THEME_COVERS: Record<string, string> = {
+  dragon: "A majestic friendly dragon curled around a treasure-filled castle tower at golden hour, tiny sparkles, epic yet warm",
+  space: "A cute rocket ship soaring past ringed planets and a smiling crescent moon in deep violet space, golden star trails",
+  forest: "An enchanted forest clearing with giant glowing mushrooms, fireflies and a friendly fox peeking from ancient trees",
+  mermaid: "An underwater coral palace with shimmering fish, pearls and a gentle sea turtle, sunbeams piercing turquoise water",
+  superhero: "A heroic cape fluttering over a vibrant city skyline at sunset, comic-style energy, bold dynamic composition",
+  fairy: "A tiny fairy village inside glowing flowers with sparkling magic dust and butterfly wings, dreamy pastel light",
+  custom: "A magical glowing door standing alone in a starfield, slightly open with golden light and question-mark shaped sparkles spilling out, mysterious and inviting",
+};
+
+function TileImage({ id }: { id: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const prompt = THEME_COVERS[id];
+    if (!prompt) return;
+    fetch("/api/generate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    })
+      .then((r) => r.json())
+      .then((d) => d.url && setUrl(d.url))
+      .catch(() => {});
+  }, [id]);
+
+  return (
+    <div className="tile-img">
+      {url && <Image src={url} alt="" fill className="object-cover" unoptimized />}
+    </div>
+  );
+}
 
 const LOAD_STEPS = ["Измисляме героя", "Пишем приказката", "Рисуваме илюстрациите", "Записваме гласа"];
 
@@ -46,13 +79,14 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
   const prefetchKeyRef = useRef<string>("");
 
   const activeTheme = selectedTheme === "custom"
-    ? { label: customTheme.trim(), description: customTheme.trim() }
+    ? (customTheme.trim()
+        ? { label: customTheme.trim(), description: customTheme.trim() }
+        : { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" })
     : THEMES.find((t) => t.id === selectedTheme);
 
   // Speculative pre-fetch once all fields ready
   useEffect(() => {
     if (!childName.trim() || !selectedTheme || !selectedAge) return;
-    if (selectedTheme === "custom" && !customTheme.trim()) return;
     const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}`;
     if (prefetchKeyRef.current === key) return;
     const timer = setTimeout(() => {
@@ -83,7 +117,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
   const canProceed =
     (step === 1 && !!childName.trim()) ||
     (step === 2 && !!selectedAge) ||
-    (step === 3 && !!selectedTheme && (selectedTheme !== "custom" || !!customTheme.trim()));
+    (step === 3 && !!selectedTheme);
 
   const handleNext = () => {
     if (!canProceed) return;
@@ -235,20 +269,20 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                   const sel = selectedTheme === t.id;
                   const color = `var(--ak-theme-${t.id})`;
                   return (
-                    <button key={t.id} className="tile" onClick={() => setSelectedTheme(t.id)}
+                    <button key={t.id} className="tile tile-cover" onClick={() => setSelectedTheme(t.id)}
                       style={sel ? { borderColor: color, background: "rgba(255,255,255,0.10)" } : undefined}>
-                      <span className="tglyph">{t.glyph}</span>
+                      <TileImage id={t.id} />
                       <span className="tlabel">{t.label}</span>
                       <span className="tdesc">{t.desc}</span>
                     </button>
                   );
                 })}
                 {/* Custom */}
-                <button className="tile" onClick={() => setSelectedTheme("custom")}
+                <button className="tile tile-cover" onClick={() => setSelectedTheme("custom")}
                   style={selectedTheme === "custom" ? { borderColor: "#fff", background: "rgba(255,255,255,0.10)" } : undefined}>
-                  <span className="tglyph">✏️</span>
-                  <span className="tlabel">Друго</span>
-                  <span className="tdesc">Напиши свой свят</span>
+                  <TileImage id="custom" />
+                  <span className="tlabel">Нов свят</span>
+                  <span className="tdesc">Измисли го — или ни се довери</span>
                 </button>
               </div>
 
@@ -259,7 +293,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                   type="text"
                   value={customTheme}
                   onChange={(e) => setCustomTheme(e.target.value)}
-                  placeholder="напр. Динозаври, Пирати, Средновековие…"
+                  placeholder="Опиши свят… или остави празно за изненада ✨"
                   maxLength={60}
                   autoFocus
                 />

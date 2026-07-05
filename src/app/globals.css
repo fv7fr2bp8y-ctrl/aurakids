@@ -323,3 +323,11 @@ svg { background: transparent; }
   border-radius:calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0;
   background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
 .app-door { overflow:hidden; }
+
+/* theme tile covers */
+.tile-cover { padding:0 0 13px; }
+.tile-cover .tlabel { padding:0 14px; }
+.tile-cover .tdesc { padding:0 14px; }
+.tile-img { position:relative;width:100%;height:92px;margin-bottom:10px;overflow:hidden;
+  border-radius:calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0;
+  background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
