@@ -4,30 +4,25 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
+import { LANGS, t } from "@/lib/i18n";
 
 interface StoryGeneratorProps {
   format: "story" | "comic";
+  lang: string;
+  onLangChange: (l: string) => void;
   onBack: () => void;
 }
 
 const THEMES = [
-  { id: "dragon", glyph: "🐉", label: "Дракони", desc: "Смели полети и съкровища", description: "Дракони, замъци и приключения" },
-  { id: "space", glyph: "🚀", label: "Космос", desc: "Звезди и далечни планети", description: "Звезди, планети и извънземни" },
-  { id: "forest", glyph: "🌿", label: "Омагьосана гора", desc: "Приятели сред дърветата", description: "Говорещи животни и тайни пътеки" },
-  { id: "mermaid", glyph: "🧜", label: "Морско царство", desc: "Дълбини и русалки", description: "Русалки, рибки и съкровища" },
-  { id: "superhero", glyph: "🦸", label: "Супергерои", desc: "Сила да спасиш деня", description: "Спасяване на света с особени сили" },
-  { id: "fairy", glyph: "🧚", label: "Феи", desc: "Блясък и вълшебен прах", description: "Вълшебна пръчка и изпълнени желания" },
+  { id: "dragon", glyph: "🐉", lk: "thDragon", dk: "thDragonD", description: "Дракони, замъци и приключения" },
+  { id: "space", glyph: "🚀", lk: "thSpace", dk: "thSpaceD", description: "Звезди, планети и извънземни" },
+  { id: "forest", glyph: "🌿", lk: "thForest", dk: "thForestD", description: "Говорещи животни и тайни пътеки" },
+  { id: "mermaid", glyph: "🧜", lk: "thMermaid", dk: "thMermaidD", description: "Русалки, рибки и съкровища" },
+  { id: "superhero", glyph: "🦸", lk: "thSuper", dk: "thSuperD", description: "Спасяване на света с особени сили" },
+  { id: "fairy", glyph: "🧚", lk: "thFairy", dk: "thFairyD", description: "Вълшебна пръчка и изпълнени желания" },
 ];
 
-const AGES = ["2–3 г.", "4–5 г.", "6–7 г.", "8–9 г.", "10+ г.", "Изненадай ме"];
 
-const LANGS = [
-  { id: "bg", flag: "🇧🇬", label: "Български" },
-  { id: "en", flag: "🇬🇧", label: "English" },
-  { id: "de", flag: "🇩🇪", label: "Deutsch" },
-  { id: "fr", flag: "🇫🇷", label: "Français" },
-  { id: "ru", flag: "🇷🇺", label: "Русский" },
-];
 
 const THEME_COVERS: Record<string, string> = {
   dragon: "A majestic friendly dragon curled around a treasure-filled castle tower at golden hour, tiny sparkles, epic yet warm",
@@ -61,7 +56,7 @@ function TileImage({ id }: { id: string }) {
   );
 }
 
-const LOAD_STEPS = ["Измисляме героя", "Пишем приказката", "Рисуваме илюстрациите", "Записваме гласа"];
+
 
 export interface StoryData {
   childName: string;
@@ -72,13 +67,12 @@ export interface StoryData {
   language?: string;
 }
 
-export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) {
+export default function StoryGenerator({ format, lang, onLangChange, onBack }: StoryGeneratorProps) {
   const [step, setStep] = useState(1);
   const [childName, setChildName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
   const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
-  const [lang, setLang] = useState("bg");
   const [isLoading, setIsLoading] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
@@ -88,11 +82,15 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
   const prefetchRef = useRef<Promise<Record<string, unknown>> | null>(null);
   const prefetchKeyRef = useRef<string>("");
 
+  const yrs = t(lang, "yrs");
+  const AGES = [`2–3 ${yrs}`, `4–5 ${yrs}`, `6–7 ${yrs}`, `8–9 ${yrs}`, `10+ ${yrs}`, t(lang, "ageSurprise")];
+  const LOAD_STEPS = [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
+
   const activeTheme = selectedTheme === "custom"
     ? (customTheme.trim()
         ? { label: customTheme.trim(), description: customTheme.trim() }
         : { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" })
-    : THEMES.find((t) => t.id === selectedTheme);
+    : (() => { const th = THEMES.find((x) => x.id === selectedTheme); return th ? { label: t(lang, th.lk), description: th.description } : undefined; })();
 
   // Speculative pre-fetch once all fields ready
   useEffect(() => {
@@ -203,18 +201,18 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
 
       setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData);
     } catch {
-      setError("Нещо се обърка. Опитай отново.");
+      setError(t(lang, "errGeneric"));
     } finally {
       setIsLoading(false);
     }
   };
 
   if (comicData) {
-    return <ComicDisplay comic={comicData} onBack={() => { setComicData(null); setStep(1); }} onHome={onBack} />;
+    return <ComicDisplay comic={comicData} lang={lang} onBack={() => { setComicData(null); setStep(1); }} onHome={onBack} />;
   }
 
   if (storyData) {
-    return <StoryDisplay story={storyData} onBack={() => { setStoryData(null); setStep(1); }} onHome={onBack} />;
+    return <StoryDisplay story={storyData} lang={lang} onBack={() => { setStoryData(null); setStep(1); }} onHome={onBack} />;
   }
 
   return (
@@ -239,25 +237,25 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
           {/* Step 1 — name */}
           {step === 1 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 1 · Героят</span>
-              <h2 className="step-q">Как се казва детето?</h2>
-              <p className="step-help">Това име ще се появява в цялата приказка — детето е истинският герой.</p>
+              <span className="eyebrow step-eyebrow">{t(lang, "s1eyebrow")}</span>
+              <h2 className="step-q">{t(lang, "s1q")}</h2>
+              <p className="step-help">{t(lang, "s1help")}</p>
               <input
                 className={`tinput ${childName ? "filled" : ""}`}
                 type="text"
                 value={childName}
                 onChange={(e) => setChildName(e.target.value)}
-                placeholder="напр. Мария"
+                placeholder={t(lang, "namePlaceholder")}
                 maxLength={20}
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleNext()}
               />
-              <p className="step-help" style={{ margin: "22px 0 10px" }}>На кой език да е историята?</p>
+              <p className="step-help" style={{ margin: "22px 0 10px" }}>{t(lang, "langQ")}</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {LANGS.map((l) => (
                   <button key={l.id} className={`chip ${lang === l.id ? "sel" : ""}`}
                     style={{ padding: "10px 14px", fontSize: 14 }}
-                    onClick={() => setLang(l.id)}>
+                    onClick={() => onLangChange(l.id)}>
                     {l.flag} {l.label}
                   </button>
                 ))}
@@ -268,9 +266,9 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
           {/* Step 2 — age */}
           {step === 2 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 2 · Възраст</span>
-              <h2 className="step-q">На колко години е?</h2>
-              <p className="step-help">Нагласяме дължината и думите според възрастта.</p>
+              <span className="eyebrow step-eyebrow">{t(lang, "s2eyebrow")}</span>
+              <h2 className="step-q">{t(lang, "s2q")}</h2>
+              <p className="step-help">{t(lang, "s2help")}</p>
               <div className="age-grid">
                 {AGES.map((age) => (
                   <button key={age} className={`chip ${selectedAge === age ? "sel" : ""}`} onClick={() => setSelectedAge(age)}>
@@ -284,19 +282,19 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
           {/* Step 3 — world */}
           {step === 3 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 3 · Светът</span>
-              <h2 className="step-q">Изберете свят</h2>
-              <p className="step-help">В кой вълшебен свят да се случи приказката?</p>
+              <span className="eyebrow step-eyebrow">{t(lang, "s3eyebrow")}</span>
+              <h2 className="step-q">{t(lang, "s3q")}</h2>
+              <p className="step-help">{t(lang, "s3help")}</p>
               <div className="theme-grid">
-                {THEMES.map((t) => {
-                  const sel = selectedTheme === t.id;
-                  const color = `var(--ak-theme-${t.id})`;
+                {THEMES.map((th) => {
+                  const sel = selectedTheme === th.id;
+                  const color = `var(--ak-theme-${th.id})`;
                   return (
-                    <button key={t.id} className="tile tile-cover" onClick={() => setSelectedTheme(t.id)}
+                    <button key={th.id} className="tile tile-cover" onClick={() => setSelectedTheme(th.id)}
                       style={sel ? { borderColor: color, background: "rgba(255,255,255,0.10)" } : undefined}>
-                      <TileImage id={t.id} />
-                      <span className="tlabel">{t.label}</span>
-                      <span className="tdesc">{t.desc}</span>
+                      <TileImage id={th.id} />
+                      <span className="tlabel">{t(lang, th.lk)}</span>
+                      <span className="tdesc">{t(lang, th.dk)}</span>
                     </button>
                   );
                 })}
@@ -305,8 +303,8 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                   style={selectedTheme === "custom" ? { borderColor: "#fff", background: "rgba(255,255,255,0.10)" } : undefined}>
                   <span className="tglyph" style={{ fontSize: 20 }}>✨</span>
                   <span>
-                    <span className="tlabel">Нов свят</span>
-                    <span className="tdesc" style={{ display: "block" }}>Измисли го — или ни се довери</span>
+                    <span className="tlabel">{t(lang, "newWorld")}</span>
+                    <span className="tdesc" style={{ display: "block" }}>{t(lang, "newWorldDesc")}</span>
                   </span>
                 </button>
               </div>
@@ -318,7 +316,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                   type="text"
                   value={customTheme}
                   onChange={(e) => setCustomTheme(e.target.value)}
-                  placeholder="Опиши свят… или остави празно за изненада ✨"
+                  placeholder={t(lang, "newWorldPh")}
                   maxLength={60}
                   autoFocus
                 />
@@ -335,10 +333,10 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
           <div className="create-foot">
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
               {step < 3
-                ? "Продължи"
+                ? t(lang, "continueBtn")
                 : format === "comic"
-                  ? `Нарисувай комикса на ${childName || "героя"}`
-                  : `Напиши приказката на ${childName || "героя"}`}
+                  ? `${t(lang, "ctaComic")} ${childName || t(lang, "heroFallback")}`
+                  : `${t(lang, "ctaStory")} ${childName || t(lang, "heroFallback")}`}
             </button>
           </div>
         </div>
@@ -349,10 +347,10 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
         <div className="loading">
           <div className="orb">
             <span className="ring" />
-            <span>{selectedTheme !== "custom" ? THEMES.find((t) => t.id === selectedTheme)?.glyph ?? "✨" : "✨"}</span>
+            <span>{selectedTheme !== "custom" ? THEMES.find((x) => x.id === selectedTheme)?.glyph ?? "✨" : "✨"}</span>
           </div>
-          <h3>{format === "comic" ? "Комиксът се рисува…" : "Приказката се ражда…"}</h3>
-          <p>Никое друго дете не е получавало точно тази история.</p>
+          <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
+          <p>{t(lang, "loadSub")}</p>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
               <div key={label} className={i <= loadStep ? "done" : ""}>

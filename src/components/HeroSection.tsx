@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import AuraLogo from "./AuraLogo";
+import { LANGS, t } from "@/lib/i18n";
 
 interface HeroSectionProps {
+  lang: string;
+  onLangChange: (l: string) => void;
   onStartStory: () => void;
   onStartComic: () => void;
 }
@@ -46,7 +49,7 @@ function DoorImage({ kind }: { kind: "story" | "comic" }) {
   );
 }
 
-export default function HeroSection({ onStartStory, onStartComic }: HeroSectionProps) {
+export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic }: HeroSectionProps) {
 
   return (
     <section className="ak-screen home-hero-bg">
@@ -61,49 +64,56 @@ export default function HeroSection({ onStartStory, onStartComic }: HeroSectionP
             <AuraLogo size={34} />
             <span className="wm">AuraKids</span>
           </div>
-          <button className="pillbtn" onClick={onStartStory}>Вход</button>
+          <div style={{ display: "flex", gap: 6 }}>
+            {LANGS.map((l) => (
+              <button key={l.id} onClick={() => onLangChange(l.id)} title={l.label}
+                style={{ fontSize: 17, background: "none", border: "none", cursor: "pointer",
+                  opacity: lang === l.id ? 1 : 0.4, transform: lang === l.id ? "scale(1.2)" : "none", transition: "all .2s" }}>
+                {l.flag}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Body */}
         <div style={{ padding: "18px 0 40px" }}>
           <span className="badge-chip" data-rise style={{ animationDelay: ".05s" }}>
-            ✨ Над 1 200 създадени приказки
+            {t(lang, "badge")}
           </span>
 
           <h1 className="hero-h1" data-rise style={{ animationDelay: ".12s" }}>
-            Само едно дете<br />е героят.<br />
-            <span className="shimmer">Твоето.</span>
+            {t(lang, "h1a")}<br />{t(lang, "h1b")}<br />
+            <span className="shimmer">{t(lang, "h1c")}</span>
           </h1>
 
           <p className="hero-sub" data-rise style={{ animationDelay: ".2s" }}>
-            Кажи ни името и любимия свят на детето — и за минута получаваш приказка,
-            написана, илюстрирана и разказана само за него.
+            {t(lang, "sub")}
           </p>
 
           <div data-rise style={{ animationDelay: ".28s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 26 }}>
             <button className="app-door door-story" onClick={onStartStory}>
               <DoorImage kind="story" />
-              <span className="door-title">Вечерна приказка</span>
-              <span className="door-desc">За слушане преди сън — с илюстрации и глас</span>
-              <span className="door-cta">Създай →</span>
+              <span className="door-title">{t(lang, "doorStoryTitle")}</span>
+              <span className="door-desc">{t(lang, "doorStoryDesc")}</span>
+              <span className="door-cta">{t(lang, "doorStoryCta")}</span>
             </button>
             <button className="app-door door-comic" onClick={onStartComic}>
               <DoorImage kind="comic" />
-              <span className="door-title">Комикс студио</span>
-              <span className="door-desc">Цели комикс страници с реплики и екшън</span>
-              <span className="door-cta">Нарисувай →</span>
+              <span className="door-title">{t(lang, "doorComicTitle")}</span>
+              <span className="door-desc">{t(lang, "doorComicDesc")}</span>
+              <span className="door-cta">{t(lang, "doorComicCta")}</span>
             </button>
           </div>
 
           <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
-            <span>Безплатно</span><span className="dot">·</span>
-            <span>Готово за около минута</span><span className="dot">·</span>
-            <span>Запазена завинаги</span>
+            <span>{t(lang, "micro1")}</span><span className="dot">·</span>
+            <span>{t(lang, "micro2")}</span><span className="dot">·</span>
+            <span>{t(lang, "micro3")}</span>
           </div>
 
           <div className="rating" data-rise style={{ animationDelay: ".46s" }}>
             <Stars5 />
-            <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> от 380+ родители</span>
+            <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> {t(lang, "rating")}</span>
           </div>
         </div>
       </div>

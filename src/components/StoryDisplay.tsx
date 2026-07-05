@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StoryData } from "./StoryGenerator";
 import { useTTS } from "@/hooks/useTTS";
+import { t } from "@/lib/i18n";
 
 interface StoryDisplayProps {
   story: StoryData;
+  lang?: string;
   onBack: () => void;
   onHome: () => void;
 }
@@ -41,7 +43,8 @@ const VOICES = [
   { id: "Puck", name: "Тео", desc: "Закачлив" },
 ];
 
-export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProps) {
+export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: StoryDisplayProps) {
+  const lang = langProp || story.language || "bg";
   const { speak, status: ttsStatus } = useTTS();
   const [voice, setVoice] = useState("Schedar");
   const [voiceMenu, setVoiceMenu] = useState(false);
@@ -149,20 +152,20 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
 
       {/* Content */}
       <div className="reader-content">
-        <span className="chapter-tag">Приказка за {story.childName}</span>
+        <span className="chapter-tag">{t(lang, "storyFor")} {story.childName}</span>
         <h1 className="chapter-title">{story.title}</h1>
         <div className="prose">
           {part1.map((p, i) => (
             <p key={`a${i}`} className={i === 0 ? "drop" : undefined}>{p}</p>
           ))}
           {part2.length > 0 && (
-            <Illus url={midUrl} loading={midLoading} caption={`${story.childName} в сърцето на приключението`} />
+            <Illus url={midUrl} loading={midLoading} caption={`${story.childName} ${t(lang, "midCaption")}`} />
           )}
           {part2.map((p, i) => (
             <p key={`b${i}`}>{p}</p>
           ))}
           {part3.length > 0 && (
-            <Illus url={endImgUrl} loading={endImgLoading} caption="Щастливият край" />
+            <Illus url={endImgUrl} loading={endImgLoading} caption={t(lang, "endCaption")} />
           )}
           {part3.map((p, i) => (
             <p key={`c${i}`}>{p}</p>
@@ -171,9 +174,9 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
 
         <div className="endcard">
           <div className="ee">🌟</div>
-          <h4>Край на приказката</h4>
-          <p>Сладки сънища, малки герою. Тази история бе създадена само за {story.childName}.</p>
-          <button className="cta" onClick={onBack}>🪄 Създай нова приказка</button>
+          <h4>{t(lang, "theEnd")}</h4>
+          <p>{t(lang, "endText")} {story.childName}.</p>
+          <button className="cta" onClick={onBack}>{t(lang, "newStoryBtn")}</button>
         </div>
       </div>
 
@@ -194,7 +197,7 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
           </svg>
-          Глас: {voiceName}
+          {t(lang, "voiceLabel")}: {voiceName}
         </button>
       </div>
 
@@ -202,7 +205,7 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
       <div className="player">
         <div className="player-inner">
           <div className="player-row">
-            <button className="playbtn" onClick={() => speak(fullStoryText, voice, story.language || "bg")} disabled={ttsStatus === "loading"}>
+            <button className="playbtn" onClick={() => speak(fullStoryText, voice, lang)} disabled={ttsStatus === "loading"}>
               {ttsStatus === "loading" ? (
                 <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -215,8 +218,8 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
               )}
             </button>
             <div className="player-meta">
-              <div className="ptitle">Чете {voiceName}</div>
-              <div className="ptime">{ttsStatus === "playing" ? "Възпроизвежда…" : "Натисни, за да чуеш приказката"}</div>
+              <div className="ptitle">{t(lang, "readBy")} {voiceName}</div>
+              <div className="ptime">{ttsStatus === "playing" ? t(lang, "playing") : t(lang, "tapToListen")}</div>
             </div>
           </div>
         </div>

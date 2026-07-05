@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { t } from "@/lib/i18n";
 
 export interface ComicPage {
   url: string;
@@ -17,11 +18,13 @@ export interface ComicData {
 
 interface ComicDisplayProps {
   comic: ComicData;
+  lang?: string;
   onBack: () => void;
   onHome: () => void;
 }
 
-export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProps) {
+export default function ComicDisplay({ comic, lang: langProp, onBack, onHome }: ComicDisplayProps) {
+  const lang = langProp || "bg";
   const [active, setActive] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +62,7 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
         </div>
 
         <div style={{ textAlign: "center", padding: "10px 0 18px" }}>
-          <span className="chapter-tag">Комикс за {comic.childName}</span>
+          <span className="chapter-tag">{t(lang, "comicFor")} {comic.childName}</span>
           <h1 style={{ fontSize: 28, fontWeight: 900, color: "var(--ak-purple-night)", lineHeight: 1.15, marginTop: 8, letterSpacing: "-0.02em" }}>
             {comic.title}
           </h1>
@@ -88,9 +91,9 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
       <div className="ak-col" style={{ paddingBottom: 48 }}>
         <div className="endcard" style={{ display: "block" }}>
           <div className="ee">💥</div>
-          <h4>Край!</h4>
-          <p>Този комикс бе нарисуван само за {comic.childName}.</p>
-          <button className="cta" onClick={onBack}>🎨 Нов комикс</button>
+          <h4>{t(lang, "comicEnd")}</h4>
+          <p>{t(lang, "comicEndText")} {comic.childName}.</p>
+          <button className="cta" onClick={onBack}>{t(lang, "newComicBtn")}</button>
         </div>
       </div>
     </div>
