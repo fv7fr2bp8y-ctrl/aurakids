@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
       panels: { imagePrompt: string; speech?: string; speaker?: string; caption?: string }[];
     };
 
-    // Bake the consistent character into every panel prompt + comic style
+    // Bake the consistent character into every panel prompt + cinematic 3D comic style
     const styled = parsed.panels.map((p) => ({
       ...p,
-      imagePrompt: `Comic book panel, vibrant children's comic style, bold clean outlines, bright saturated colors, dynamic composition: ${p.imagePrompt} The main character: ${parsed.characterDescription} Same character design in every panel. No text, no speech bubbles, no letters.`,
+      imagePrompt: `Comic book panel, photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environment, expressive adorable characters, vibrant saturated colors, shallow depth of field: ${p.imagePrompt} The main character: ${parsed.characterDescription} Exactly the same character design, outfit and colors in every panel. No text, no speech bubbles, no letters, no watermarks.`,
     }));
 
     return NextResponse.json({

@@ -81,13 +81,14 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
   }, [isLoading]);
 
   const canProceed =
-    (step === 1 && !!childName.trim()) ||
-    (step === 2 && !!selectedAge) ||
-    (step === 3 && !!selectedTheme && (selectedTheme !== "custom" || !!customTheme.trim()));
+    step === 1 ||
+    (step === 2 && !!childName.trim()) ||
+    (step === 3 && !!selectedAge) ||
+    (step === 4 && !!selectedTheme && (selectedTheme !== "custom" || !!customTheme.trim()));
 
   const handleNext = () => {
     if (!canProceed) return;
-    if (step < 3) { setStep(step + 1); return; }
+    if (step < 4) { setStep(step + 1); return; }
     handleGenerate();
   };
 
@@ -183,16 +184,40 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
             </svg>
           </button>
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
+            <div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }} />
           </div>
-          <span className="step-count">{step} / 3</span>
+          <span className="step-count">{step} / 4</span>
         </div>
 
         <div className="create-body">
-          {/* Step 1 */}
+          {/* Step 1 — format */}
           {step === 1 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 1 · Героят</span>
+              <span className="eyebrow step-eyebrow">Стъпка 1 · Формат</span>
+              <h2 className="step-q">Какво да създадем?</h2>
+              <p className="step-help">Приказка за слушане преди сън — или комикс за разглеждане и смях.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {([
+                  { id: "story", glyph: "📖", label: "Чуй приказка", desc: "С илюстрации и глас" },
+                  { id: "comic", glyph: "💥", label: "Виж комикс", desc: "6 панела с реплики" },
+                ] as const).map((f) => (
+                  <button key={f.id} className="tile" onClick={() => setFormat(f.id)}
+                    style={format === f.id
+                      ? { borderColor: "var(--ak-gold)", background: "rgba(255,217,61,0.12)" }
+                      : undefined}>
+                    <span className="tglyph" style={{ fontSize: 34 }}>{f.glyph}</span>
+                    <span className="tlabel" style={{ fontSize: 16 }}>{f.label}</span>
+                    <span className="tdesc">{f.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 — name */}
+          {step === 2 && (
+            <div data-rise>
+              <span className="eyebrow step-eyebrow">Стъпка 2 · Героят</span>
               <h2 className="step-q">Как се казва детето?</h2>
               <p className="step-help">Това име ще се появява в цялата приказка — детето е истинският герой.</p>
               <input
@@ -208,10 +233,10 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
             </div>
           )}
 
-          {/* Step 2 */}
-          {step === 2 && (
+          {/* Step 3 — age */}
+          {step === 3 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 2 · Възраст</span>
+              <span className="eyebrow step-eyebrow">Стъпка 3 · Възраст</span>
               <h2 className="step-q">На колко години е?</h2>
               <p className="step-help">Нагласяме дължината и думите според възрастта.</p>
               <div className="age-grid">
@@ -224,10 +249,10 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
             </div>
           )}
 
-          {/* Step 3 */}
-          {step === 3 && (
+          {/* Step 4 — world */}
+          {step === 4 && (
             <div data-rise>
-              <span className="eyebrow step-eyebrow">Стъпка 3 · Светът</span>
+              <span className="eyebrow step-eyebrow">Стъпка 4 · Светът</span>
               <h2 className="step-q">Изберете свят</h2>
               <p className="step-help">В кой вълшебен свят да се случи приказката?</p>
               <div className="theme-grid">
@@ -274,25 +299,8 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
           )}
 
           <div className="create-foot">
-            {step === 3 && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-                {([
-                  { id: "story", glyph: "📖", label: "Приказка", desc: "За четене и слушане" },
-                  { id: "comic", glyph: "💥", label: "Комикс", desc: "6 панела с реплики" },
-                ] as const).map((f) => (
-                  <button key={f.id} className="tile" onClick={() => setFormat(f.id)}
-                    style={format === f.id
-                      ? { borderColor: "var(--ak-gold)", background: "rgba(255,217,61,0.12)" }
-                      : undefined}>
-                    <span className="tglyph" style={{ fontSize: 24 }}>{f.glyph}</span>
-                    <span className="tlabel">{f.label}</span>
-                    <span className="tdesc">{f.desc}</span>
-                  </button>
-                ))}
-              </div>
-            )}
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
-              {step < 3
+              {step < 4
                 ? "Продължи"
                 : format === "comic"
                   ? `Нарисувай комикса на ${childName || "героя"}`
