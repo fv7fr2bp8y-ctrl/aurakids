@@ -293,3 +293,8 @@ svg { background: transparent; }
 .bubble .who { display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ak-coral);margin-bottom:2px; }
 .caption-box { margin:12px 14px 14px;padding:9px 13px;background:var(--ak-gold);border:2.5px solid var(--ak-purple-night);
   border-radius:10px;font-size:13.5px;font-style:italic;font-weight:600;color:var(--ak-purple-night);line-height:1.45;transform:rotate(-0.5deg); }
+
+/* full comic pages */
+.comic-page { flex:0 0 min(92vw, 480px);scroll-snap-align:center;border-radius:var(--radius-xl);overflow:hidden;
+  border:3px solid var(--ak-purple-night);box-shadow:var(--shadow-card);background:#fff; }
+.comic-page img { display:block; }

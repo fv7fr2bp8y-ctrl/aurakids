@@ -1,61 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-
-export interface ComicPanel {
-  imagePrompt: string;
-  speech?: string;
-  speaker?: string;
-  caption?: string;
-}
 
 export interface ComicData {
   childName: string;
   title: string;
-  panels: ComicPanel[];
+  pages: string[]; // full-page image URLs
 }
 
 interface ComicDisplayProps {
   comic: ComicData;
   onBack: () => void;
   onHome: () => void;
-}
-
-function PanelImage({ prompt, index }: { prompt: string; index: number }) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      })
-        .then((r) => r.json())
-        .then((d) => d.url && setUrl(d.url))
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }, index * 700);
-    return () => clearTimeout(t);
-  }, [prompt, index]);
-
-  return (
-    <div className="panel-img">
-      <span className="panel-num">{index + 1}</span>
-      {url ? (
-        <Image src={url} alt={`Панел ${index + 1}`} fill className="object-cover" unoptimized />
-      ) : loading ? (
-        <svg className="animate-spin-ak" width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.7)" }}>
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-      ) : (
-        <div className="stars" />
-      )}
-    </div>
-  );
 }
 
 export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProps) {
@@ -95,34 +52,27 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
           </button>
         </div>
 
-        <div style={{ textAlign: "center", padding: "10px 0 22px" }}>
+        <div style={{ textAlign: "center", padding: "10px 0 18px" }}>
           <span className="chapter-tag">Комикс за {comic.childName}</span>
-          <h1 style={{ fontSize: 30, fontWeight: 900, color: "var(--ak-purple-night)", lineHeight: 1.15, marginTop: 8, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: "var(--ak-purple-night)", lineHeight: 1.15, marginTop: 8, letterSpacing: "-0.02em" }}>
             {comic.title}
           </h1>
         </div>
       </div>
 
-      {/* Panels — swipe right through the story */}
+      {/* Full pages — swipe right through them */}
       <div className="comic-swipe" ref={trackRef} onScroll={onScroll}>
-        {comic.panels.map((p, i) => (
-          <div key={i} className="panel">
-            <PanelImage prompt={p.imagePrompt} index={i} />
-            {p.speech ? (
-              <div className="bubble">
-                {p.speaker && <span className="who">{p.speaker}</span>}
-                {p.speech}
-              </div>
-            ) : p.caption ? (
-              <div className="caption-box">{p.caption}</div>
-            ) : null}
+        {comic.pages.map((url, i) => (
+          <div key={i} className="comic-page">
+            <Image src={url} alt={`Страница ${i + 1}`} width={1024} height={1536}
+              className="w-full h-auto" unoptimized priority={i === 0} />
           </div>
         ))}
       </div>
 
       {/* Dots */}
       <div className="comic-dots">
-        {comic.panels.map((_, i) => (
+        {comic.pages.map((_, i) => (
           <i key={i} className={i === active ? "on" : ""} />
         ))}
       </div>

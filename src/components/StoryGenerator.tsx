@@ -115,7 +115,7 @@ export default function StoryGenerator({ onBack }: StoryGeneratorProps) {
         if (!res.ok) throw new Error("fail");
         const comic = await res.json();
         if (comic.error) throw new Error(String(comic.error));
-        setComicData({ childName: childName.trim(), title: comic.title, panels: comic.panels });
+        setComicData({ childName: childName.trim(), title: comic.title, pages: comic.pages });
         return;
       }
 

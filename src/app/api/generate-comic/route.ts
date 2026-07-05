@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
+import { createHash } from "crypto";
+import { saveImageToStorage } from "@/lib/supabase";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
-const client = new Anthropic();
+const anthropic = new Anthropic();
 
 const PLOTS = [
   "спасяване на приятел от беда",
@@ -18,6 +21,56 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+interface PanelScript {
+  scene: string;      // English scene description
+  bubbles: string[];  // Bulgarian speech/caption texts to render inside the image
+}
+
+interface PageScript {
+  pageTitle: string;      // Bulgarian, e.g. "Част 1: Тайната пътека"
+  panels: PanelScript[];  // 3-4 panels per page
+}
+
+async function generatePage(page: PageScript, characterDesc: string, pageNum: number): Promise<string | null> {
+  const panelLines = page.panels
+    .map((p, i) => {
+      const bubbles = p.bubbles.length
+        ? ` Speech bubbles / caption boxes with EXACTLY this Bulgarian text (render the Cyrillic text precisely, character for character): ${p.bubbles.map((b) => `"${b}"`).join(", ")}.`
+        : "";
+      return `Panel ${i + 1}: ${p.scene}${bubbles}`;
+    })
+    .join("\n");
+
+  const prompt = `A full comic book page with ${page.panels.length} panels arranged in a clean grid layout with white gutters between panels.
+Style: photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors.
+The main character in every panel: ${characterDesc} Exactly the same character design, outfit and colors in all panels.
+At the top of the page: a parchment-style title banner with the Bulgarian text "${page.pageTitle}" (render the Cyrillic precisely).
+Speech bubbles are white with black outlines; narration boxes are cream/parchment colored. All text inside bubbles must be in Bulgarian Cyrillic, large and legible.
+
+${panelLines}`;
+
+  const client = new OpenAI();
+  try {
+    const response = await client.images.generate({
+      model: "gpt-image-1",
+      prompt: prompt.slice(0, 4000),
+      n: 1,
+      size: "1024x1536",
+      quality: "medium",
+    });
+    const b64 = "data" in response ? response.data?.[0]?.b64_json : undefined;
+    if (!b64) return null;
+
+    const buf = Buffer.from(b64, "base64");
+    const arrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+    const fileName = "comic-" + createHash("sha1").update(prompt).digest("hex").slice(0, 24) + `-p${pageNum}.png`;
+    return await saveImageToStorage(fileName, arrayBuffer);
+  } catch (e) {
+    console.error("Comic page generation error:", e);
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { childName, theme, age } = await req.json();
@@ -28,77 +81,75 @@ export async function POST(req: NextRequest) {
 
     const plot = pick(PLOTS);
 
-    const prompt = `Ти си сценарист на детски комикси. Създай кратък, забавен комикс на български:
+    const scriptPrompt = `Ти си сценарист на детски комикси. Създай кратък, забавен комикс на български:
 
 - Главен герой: ${childName}, на ${age}
 - Свят: ${theme}
 - Сюжет: ${plot}
-- Точно 6 панела
-- Всеки панел: кратко описание на сцената + реплика (пряка реч на героя/друг герой) ИЛИ разказвачески надпис
-- Репликите: кратки, живи, детски, с хумор — както говорят истински деца
+- Точно 2 страници, всяка с 3 панела
+- Всеки панел: описание на сцената (на английски) + 1-2 кратки текста за балони (на български)
+- Балоните: кратки (до 8 думи), живи, детски, с хумор — както говорят истински деца
 - Граматика: перфектен български, правилен род за ${childName}
-- Второстепенни герои: истински имена или описания („старият бухал"), НИКАКВИ измислени безсмислици
-- Ясна дъга: завръзка (1-2) → проблем (3) → опит (4) → обрат (5) → щастлив финал (6)
+- Ясна дъга: страница 1 = завръзка и проблем; страница 2 = обрат и щастлив финал
+- Заглавие на всяка страница: "Част 1: …" / "Част 2: …" — кратко и интригуващо
 
-За characterDescription: опиши ${childName} на английски в 1 изречение (възраст, коса, дрехи, отличителен белег) — това описание се използва ЕДНАКВО във всички панели за визуална консистентност.
+За characterDescription: опиши ${childName} на английски в 1 изречение (възраст, коса, дрехи, отличителен белег) — използва се ЕДНАКВО навсякъде.`;
 
-За всеки панел imagePrompt: сцената на английски, БЕЗ текст в картинката. Започвай с действието и емоцията.`;
-
-    const message = await client.messages.create({
+    const message = await anthropic.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 3000,
+      max_tokens: 2500,
       temperature: 1,
       tools: [{
         name: "save_comic",
-        description: "Save the generated comic",
+        description: "Save the comic script",
         input_schema: {
           type: "object" as const,
           properties: {
-            title: { type: "string", description: "Заглавие на комикса, съдържа името на героя" },
-            characterDescription: { type: "string", description: "English, 1 sentence, consistent look of the hero" },
-            panels: {
-              type: "array",
-              minItems: 6,
-              maxItems: 6,
+            title: { type: "string", description: "Общо заглавие на комикса, съдържа името на героя" },
+            characterDescription: { type: "string", description: "English, 1 sentence" },
+            pages: {
+              type: "array", minItems: 2, maxItems: 2,
               items: {
                 type: "object",
                 properties: {
-                  imagePrompt: { type: "string", description: "English scene description, no text in image" },
-                  speech: { type: "string", description: "Реплика на герой (пряка реч) или празно" },
-                  speaker: { type: "string", description: "Кой говори (име), или празно ако е разказвач" },
-                  caption: { type: "string", description: "Разказвачески надпис, или празно ако има реплика" },
+                  pageTitle: { type: "string", description: "Български, напр. 'Част 1: Тайната пътека'" },
+                  panels: {
+                    type: "array", minItems: 3, maxItems: 3,
+                    items: {
+                      type: "object",
+                      properties: {
+                        scene: { type: "string", description: "English scene description" },
+                        bubbles: { type: "array", items: { type: "string" }, description: "1-2 къси български текста за балони" },
+                      },
+                      required: ["scene", "bubbles"],
+                    },
+                  },
                 },
-                required: ["imagePrompt"],
+                required: ["pageTitle", "panels"],
               },
             },
           },
-          required: ["title", "characterDescription", "panels"],
+          required: ["title", "characterDescription", "pages"],
         },
       }],
       tool_choice: { type: "tool", name: "save_comic" },
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: scriptPrompt }],
     });
 
     const toolUse = message.content.find((b) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор");
 
-    const parsed = toolUse.input as {
-      title: string;
-      characterDescription: string;
-      panels: { imagePrompt: string; speech?: string; speaker?: string; caption?: string }[];
-    };
+    const script = toolUse.input as { title: string; characterDescription: string; pages: PageScript[] };
 
-    // Bake the consistent character into every panel prompt + cinematic 3D comic style
-    const styled = parsed.panels.map((p) => ({
-      ...p,
-      imagePrompt: `Comic book panel, photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environment, expressive adorable characters, vibrant saturated colors, shallow depth of field: ${p.imagePrompt} The main character: ${parsed.characterDescription} Exactly the same character design, outfit and colors in every panel. No text, no speech bubbles, no letters, no watermarks.`,
-    }));
+    // Render both pages in parallel with gpt-image-1
+    const urls = await Promise.all(
+      script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1))
+    );
 
-    return NextResponse.json({
-      title: parsed.title,
-      panels: styled,
-      fromCache: false,
-    });
+    const pages = urls.filter((u): u is string => !!u);
+    if (pages.length === 0) throw new Error("No pages rendered");
+
+    return NextResponse.json({ title: script.title, pages });
   } catch (error) {
     console.error("Comic generation error:", error);
     return NextResponse.json({ error: "Грешка при генериране" }, { status: 500 });
