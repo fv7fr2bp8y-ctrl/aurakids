@@ -59,7 +59,7 @@ async function generateImage(prompt: string): Promise<Buffer> {
     : `Disney watercolor illustration, soft painterly brushstrokes, warm magical atmosphere, beautiful expressive characters, delicate watercolor washes, enchanting fairy-tale mood, ultra-detailed: ${prompt.slice(0, 800)}. No text, no watermarks, no letters.`;
 
   // 1) Google Gemini
-  const googleKey = process.env.GOOGLE_API_KEY;
+  const googleKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   if (googleKey) {
     const b64 = await callGemini(styledPrompt, googleKey);
     if (b64) return Buffer.from(b64, "base64");
