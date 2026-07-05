@@ -19,6 +19,14 @@ const PLOTS = [
   "двама съперници са принудени да работят заедно и стават най-добри приятели",
 ];
 
+const SIDEKICKS = [
+  "предпазлив и мрънкащ спътник, който все казва 'това е ЛОША идея' — и все идва",
+  "самоуверен дребосък с огромно его, който създава половината проблеми",
+  "муден, вечно гладен спътник, който в решителния момент изненадва всички",
+  "свръхентусиазиран новак, който разбира всичко буквално",
+  "уж страшен на вид, а всъщност страхлив и мек спътник",
+];
+
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -44,7 +52,10 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
     })
     .join("\n");
 
-  const prompt = `A full comic book page with ${page.panels.length} panels arranged in a clean grid layout with white gutters between panels.
+  const layout = page.panels.length === 1
+    ? "A full-page splash: ONE single epic full-bleed panel filling the entire page, maximum drama and scale."
+    : `${page.panels.length} panels arranged in a clean grid layout with white gutters between panels.`;
+  const prompt = `A full comic book page. ${layout}
 Style: photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors.
 The main character in every panel: ${characterDesc} Exactly the same character design, outfit and colors in all panels.
 At the top of the page: a parchment-style title banner with EXACTLY this text: "${page.pageTitle}" (render every letter precisely).
@@ -83,6 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const plot = pick(PLOTS);
+    const sidekick = pick(SIDEKICKS);
 
     const LANG_NAMES: Record<string, string> = {
       bg: "български", en: "английски", de: "немски", fr: "френски", ru: "руски",
@@ -92,17 +104,20 @@ export async function POST(req: NextRequest) {
     const scriptPrompt = `Ти си сценарист на детски комикси. Създай кратък, забавен комикс. ВСИЧКИ текстове за читателя (заглавия, балони, pageText) са на ${langName}:
 
 - Главен герой: ${childName}, на ${age}
+- ЗАДЪЛЖИТЕЛНО ДУО: ${childName} има спътник с ПРОТИВОПОЛОЖЕН характер — ${sidekick}. Контрастът между двамата ражда хумора. Спътникът има смешно, просто име (истинска дума, не измислица)
 - Свят: ${theme}
 - Сюжет: ${plot}
-- Точно 4 страници, всяка с 3 панела (общо 12 панела)
-- Всеки панел: КИНЕМАТОГРАФИЧНО описание на сцената (на английски) — динамичен ъгъл, действие в движение, силна емоция. Мисли като режисьор на екшън: преследване, скок, изненада, падане, победа
-- Всеки панел: ЕДНА кратка реплика за балон (до 5 думи): "Насам, бързо!", "Това е невъзможно!", "Успяхме!" — или празно за чисто визуални моменти
-- За всяка страница: pageText — разказ под страницата (3-4 изречения), който разказва тази част от историята живо и с хумор. Перфектна граматика, правилен род за героя
-- Граматика: перфектен български, правилен род за ${childName}
-- Ясна дъга: стр. 1 = завръзка и загадка; стр. 2 = проблемът се задълбочава; стр. 3 = голям обрат и кулминация; стр. 4 = развръзка и щастлив финал
+- Точно 4 страници: стр. 1–2 и 4 имат по 3 панела; стр. 3 (КУЛМИНАЦИЯТА) е SPLASH — ЕДИН огромен епичен кадър на цяла страница
+- Всеки панел: КИНЕМАТОГРАФИЧНО описание на сцената (на английски) — динамичен ъгъл, действие в движение, силна емоция. Мисли като режисьор на екшън
+- Балони: предимно ОНОМАТОПЕЯ и възклицания — "БУМ!", "ФИУУ!", "ПЛЬОК!", "О, НЕ!" (1-3 думи). Максимум по 1 истинска кратка реплика на страница. Ономатопеята на езика на комикса
+- ПОВТАРЯЩ СЕ ГЕГ: измисли една смешна подробност (навик на спътника, предмет, звук), която се появява на стр. 1, връща се на стр. 2 и НЕОЧАКВАНО спасява положението или гърми най-смешно на стр. 4
+- Последният панел на стр. 1 и стр. 2: мини-клифхенгър — изненада или въпрос, който кара читателя да плъзне напред
+- За всяка страница: pageText — разказ под страницата (3-4 изречения), жив и смешен. Перфектна граматика, правилен род за героя
+- Възрастово темпо: за 2–5 г. — по-прости сцени, по-едри кадри, по-къс pageText (2 изречения); за 8+ — по-плътно действие и по-богат език
+- Ясна дъга: стр. 1 = завръзка и загадка; стр. 2 = проблемът се задълбочава; стр. 3 = SPLASH кулминация; стр. 4 = развръзка + гегът гърми + щастлив финал
 - Заглавие на всяка страница: "Част 1: …" … "Част 4: …" — кратко и интригуващо
 
-За characterDescription: опиши ${childName} на английски в 1 изречение (възраст, коса, дрехи, отличителен белег) — използва се ЕДНАКВО навсякъде.`;
+За characterDescription: опиши на английски в 2 изречения: (1) ${childName} — възраст, коса, дрехи, 1-2 запомнящи се визуални маркера (напр. червен шал, раирана тениска); (2) спътника — вид, цвят, отличителен белег. Използва се ЕДНАКВО навсякъде.`;
 
     const message = await anthropic.messages.create({
       model: "claude-opus-4-8",
@@ -124,7 +139,7 @@ export async function POST(req: NextRequest) {
                   pageTitle: { type: "string", description: "Български, напр. 'Част 1: Тайната пътека'" },
                   pageText: { type: "string", description: "Разказ на български под страницата, 3-4 изречения" },
                   panels: {
-                    type: "array", minItems: 3, maxItems: 3,
+                    type: "array", minItems: 1, maxItems: 3,
                     items: {
                       type: "object",
                       properties: {
