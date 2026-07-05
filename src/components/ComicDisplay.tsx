@@ -3,10 +3,16 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 
+export interface ComicPage {
+  url: string;
+  text: string;
+  pageTitle: string;
+}
+
 export interface ComicData {
   childName: string;
   title: string;
-  pages: string[]; // full-page image URLs
+  pages: ComicPage[];
 }
 
 interface ComicDisplayProps {
@@ -62,10 +68,11 @@ export default function ComicDisplay({ comic, onBack, onHome }: ComicDisplayProp
 
       {/* Full pages — swipe right through them */}
       <div className="comic-swipe" ref={trackRef} onScroll={onScroll}>
-        {comic.pages.map((url, i) => (
+        {comic.pages.map((page, i) => (
           <div key={i} className="comic-page">
-            <Image src={url} alt={`Страница ${i + 1}`} width={1024} height={1536}
+            <Image src={page.url} alt={page.pageTitle} width={1024} height={1536}
               className="w-full h-auto" unoptimized priority={i === 0} />
+            <div className="page-story">{page.text}</div>
           </div>
         ))}
       </div>

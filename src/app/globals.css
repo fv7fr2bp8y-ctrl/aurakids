@@ -313,3 +313,7 @@ svg { background: transparent; }
 .door-title { font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.01em; }
 .door-desc { font-size:12px;color:rgba(255,255,255,0.6);line-height:1.45; }
 .door-cta { margin-top:6px;font-size:13px;font-weight:700;color:var(--ak-gold); }
+
+/* narration under each comic page */
+.page-story { padding:16px 18px 18px;background:#fff;border-top:3px solid var(--ak-purple-night);
+  font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }

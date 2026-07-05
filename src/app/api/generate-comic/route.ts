@@ -9,12 +9,14 @@ export const maxDuration = 300;
 const anthropic = new Anthropic();
 
 const PLOTS = [
-  "спасяване на приятел от беда",
-  "откриване на тайно място, което никой не е виждал",
-  "състезание с неочакван край — печели хитростта",
-  "среща със същество, което изглежда страшно, но е добро",
-  "изгубено съкровище, което се оказва нещо съвсем различно",
-  "малка пакост, която трябва да бъде поправена",
+  "лудо преследване с неочакван съюзник — накрая гоненият се оказва приятел",
+  "мисия да откраднеш обратно нещо откраднато, с хитър план, който се обърква смешно",
+  "състезание срещу самохвалко — героят печели с ум, не със сила",
+  "загадъчна карта води до съкровище, което не е това, което очакваш",
+  "гигантско същество тероризира всички — а всъщност има малък, смешен проблем, който героят решава",
+  "героят случайно става невидим/огромен/мъничък и трябва да оправи хаоса, който създава",
+  "спасителна мисия срещу времето — нещо ще се случи на залез и героят трябва да успее",
+  "двама съперници са принудени да работят заедно и стават най-добри приятели",
 ];
 
 function pick<T>(arr: T[]): T {
@@ -28,15 +30,16 @@ interface PanelScript {
 
 interface PageScript {
   pageTitle: string;      // Bulgarian, e.g. "Част 1: Тайната пътека"
-  panels: PanelScript[];  // 3-4 panels per page
+  pageText: string;       // Bulgarian narration shown under the page (HTML, always correct)
+  panels: PanelScript[];  // 3 panels per page
 }
 
 async function generatePage(page: PageScript, characterDesc: string, pageNum: number): Promise<string | null> {
   const panelLines = page.panels
     .map((p, i) => {
-      const bubbles = p.bubbles.length
-        ? ` One large speech bubble containing EXACTLY this Bulgarian Cyrillic text, spelled precisely letter-for-letter, in a big bold clear font: ${p.bubbles.slice(0, 1).map((b) => `"${b}"`).join(", ")}. Double-check every Cyrillic letter is correct.`
-        : "";
+      const bubbles = p.bubbles.length && p.bubbles[0]
+        ? ` One speech bubble with EXACTLY this short Bulgarian exclamation, spelled letter-for-letter: "${p.bubbles[0]}".`
+        : " No text and no speech bubbles in this panel.";
       return `Panel ${i + 1}: ${p.scene}${bubbles}`;
     })
     .join("\n");
@@ -87,9 +90,9 @@ export async function POST(req: NextRequest) {
 - Свят: ${theme}
 - Сюжет: ${plot}
 - Точно 2 страници, всяка с 3 панела
-- Всеки панел: описание на сцената (на английски) + ТОЧНО 1 кратък текст за балон (на български)
-- Балоните: МНОГО кратки (2–5 думи), живи, детски — както говорят истински деца. Например: "Насам, бързо!", "Уха! Виж това!"
-- Избягвай редки думи и струпани съгласни — прости, чести български думи се изписват най-точно
+- Всеки панел: КИНЕМАТОГРАФИЧНО описание на сцената (на английски) — динамичен ъгъл, действие в движение, силна емоция. Мисли като режисьор на екшън: преследване, скок, изненада, падане, победа
+- Всеки панел: по избор ЕДНО възклицание за балон (на български, МАКСИМУМ 2 думи): "Уха!", "Насам!", "О, не!", "Дръж се!" — или празно
+- За всяка страница: pageText — разказ на български под страницата (3-4 изречения), който разказва тази част от историята живо и с хумор. Перфектна граматика, правилен род за героя
 - Граматика: перфектен български, правилен род за ${childName}
 - Ясна дъга: страница 1 = завръзка и проблем; страница 2 = обрат и щастлив финал
 - Заглавие на всяка страница: "Част 1: …" / "Част 2: …" — кратко и интригуващо
@@ -114,6 +117,7 @@ export async function POST(req: NextRequest) {
                 type: "object",
                 properties: {
                   pageTitle: { type: "string", description: "Български, напр. 'Част 1: Тайната пътека'" },
+                  pageText: { type: "string", description: "Разказ на български под страницата, 3-4 изречения" },
                   panels: {
                     type: "array", minItems: 3, maxItems: 3,
                     items: {
@@ -126,7 +130,7 @@ export async function POST(req: NextRequest) {
                     },
                   },
                 },
-                required: ["pageTitle", "panels"],
+                required: ["pageTitle", "pageText", "panels"],
               },
             },
           },
@@ -147,7 +151,9 @@ export async function POST(req: NextRequest) {
       script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1))
     );
 
-    const pages = urls.filter((u): u is string => !!u);
+    const pages = script.pages
+      .map((page, i) => ({ url: urls[i], text: page.pageText, pageTitle: page.pageTitle }))
+      .filter((p): p is { url: string; text: string; pageTitle: string } => !!p.url);
     if (pages.length === 0) throw new Error("No pages rendered");
 
     return NextResponse.json({ title: script.title, pages });
