@@ -5,7 +5,8 @@ import Image from "next/image";
 import AuraLogo from "./AuraLogo";
 
 interface HeroSectionProps {
-  onStart: () => void;
+  onStartStory: () => void;
+  onStartComic: () => void;
 }
 
 function Stars5() {
@@ -20,7 +21,7 @@ function Stars5() {
   );
 }
 
-export default function HeroSection({ onStart }: HeroSectionProps) {
+export default function HeroSection({ onStartStory, onStartComic }: HeroSectionProps) {
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
             <AuraLogo size={34} />
             <span className="wm">AuraKids</span>
           </div>
-          <button className="pillbtn" onClick={onStart}>Вход</button>
+          <button className="pillbtn" onClick={onStartStory}>Вход</button>
         </div>
 
         {/* Body */}
@@ -78,12 +79,20 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
             </div>
           </div>
 
-          <button className="cta" data-rise style={{ animationDelay: ".34s" }} onClick={onStart}>
-            Създай приказка
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </button>
+          <div data-rise style={{ animationDelay: ".34s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <button className="app-door door-story" onClick={onStartStory}>
+              <span className="door-glyph">🌙</span>
+              <span className="door-title">Вечерна приказка</span>
+              <span className="door-desc">За слушане преди сън — с илюстрации и глас</span>
+              <span className="door-cta">Създай →</span>
+            </button>
+            <button className="app-door door-comic" onClick={onStartComic}>
+              <span className="door-glyph">💥</span>
+              <span className="door-title">Комикс студио</span>
+              <span className="door-desc">Цели комикс страници с реплики и екшън</span>
+              <span className="door-cta">Нарисувай →</span>
+            </button>
+          </div>
 
           <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
             <span>Безплатно</span><span className="dot">·</span>

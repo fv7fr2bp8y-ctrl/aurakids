@@ -298,3 +298,18 @@ svg { background: transparent; }
 .comic-page { flex:0 0 min(92vw, 480px);scroll-snap-align:center;border-radius:var(--radius-xl);overflow:hidden;
   border:3px solid var(--ak-purple-night);box-shadow:var(--shadow-card);background:#fff; }
 .comic-page img { display:block; }
+
+/* app doors — two entrances on home */
+.app-door { display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;
+  padding:18px 16px;border-radius:var(--radius-xl);cursor:pointer;font-family:inherit;
+  border:2px solid rgba(255,255,255,0.14);transition:transform .25s var(--ease-out),border-color .25s; }
+.app-door:hover { transform:translateY(-3px); }
+.app-door:active { transform:scale(.97); }
+.door-story { background:linear-gradient(150deg,rgba(107,53,184,0.55),rgba(26,5,51,0.7)); }
+.door-story:hover { border-color:var(--ak-purple-light); }
+.door-comic { background:linear-gradient(150deg,rgba(255,107,107,0.4),rgba(255,154,60,0.25)); }
+.door-comic:hover { border-color:var(--ak-gold); }
+.door-glyph { font-size:32px;line-height:1; }
+.door-title { font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.01em; }
+.door-desc { font-size:12px;color:rgba(255,255,255,0.6);line-height:1.45; }
+.door-cta { margin-top:6px;font-size:13px;font-weight:700;color:var(--ak-gold); }

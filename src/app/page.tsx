@@ -8,22 +8,26 @@ import StoryPreview from "@/components/StoryPreview";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 
+type Mode = "home" | "story" | "comic";
+
 export default function Home() {
-  const [showGenerator, setShowGenerator] = useState(false);
+  const [mode, setMode] = useState<Mode>("home");
+
+  if (mode !== "home") {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <StoryGenerator format={mode} onBack={() => setMode("home")} />
+      </main>
+    );
+  }
 
   return (
     <main className="flex flex-col min-h-screen">
-      {!showGenerator ? (
-        <>
-          <HeroSection onStart={() => setShowGenerator(true)} />
-          <HowItWorks />
-          <StoryPreview onStart={() => setShowGenerator(true)} />
-          <Testimonials />
-          <Footer />
-        </>
-      ) : (
-        <StoryGenerator onBack={() => setShowGenerator(false)} />
-      )}
+      <HeroSection onStartStory={() => setMode("story")} onStartComic={() => setMode("comic")} />
+      <HowItWorks />
+      <StoryPreview onStart={() => setMode("story")} />
+      <Testimonials />
+      <Footer />
     </main>
   );
 }
