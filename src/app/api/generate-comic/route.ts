@@ -38,7 +38,7 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
   const panelLines = page.panels
     .map((p, i) => {
       const bubbles = p.bubbles.length && p.bubbles[0]
-        ? ` One large speech bubble with EXACTLY this Bulgarian text, spelled precisely letter-for-letter in a big bold clear font: "${p.bubbles[0]}". Every Cyrillic letter must be correct.`
+        ? ` One large speech bubble with EXACTLY this text, spelled precisely letter-for-letter in a big bold clear font: "${p.bubbles[0]}". Every letter must be correct.`
         : " No text and no speech bubbles in this panel.";
       return `Panel ${i + 1}: ${p.scene}${bubbles}`;
     })
@@ -47,8 +47,8 @@ async function generatePage(page: PageScript, characterDesc: string, pageNum: nu
   const prompt = `A full comic book page with ${page.panels.length} panels arranged in a clean grid layout with white gutters between panels.
 Style: photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors.
 The main character in every panel: ${characterDesc} Exactly the same character design, outfit and colors in all panels.
-At the top of the page: a parchment-style title banner with the Bulgarian text "${page.pageTitle}" (render the Cyrillic precisely).
-Speech bubbles are white with black outlines; narration boxes are cream/parchment colored. All text inside bubbles must be in Bulgarian Cyrillic, large and legible.
+At the top of the page: a parchment-style title banner with EXACTLY this text: "${page.pageTitle}" (render every letter precisely).
+Speech bubbles are white with black outlines; narration boxes are cream/parchment colored. All bubble text must be large and legible.
 
 ${panelLines}`;
 
@@ -76,7 +76,7 @@ ${panelLines}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { childName, theme, age } = await req.json();
+    const { childName, theme, age, language } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
@@ -84,15 +84,20 @@ export async function POST(req: NextRequest) {
 
     const plot = pick(PLOTS);
 
-    const scriptPrompt = `Ти си сценарист на детски комикси. Създай кратък, забавен комикс на български:
+    const LANG_NAMES: Record<string, string> = {
+      bg: "български", en: "английски", de: "немски", fr: "френски", ru: "руски",
+    };
+    const langName = LANG_NAMES[language] || "български";
+
+    const scriptPrompt = `Ти си сценарист на детски комикси. Създай кратък, забавен комикс. ВСИЧКИ текстове за читателя (заглавия, балони, pageText) са на ${langName}:
 
 - Главен герой: ${childName}, на ${age}
 - Свят: ${theme}
 - Сюжет: ${plot}
 - Точно 4 страници, всяка с 3 панела (общо 12 панела)
 - Всеки панел: КИНЕМАТОГРАФИЧНО описание на сцената (на английски) — динамичен ъгъл, действие в движение, силна емоция. Мисли като режисьор на екшън: преследване, скок, изненада, падане, победа
-- Всеки панел: ЕДНА кратка реплика за балон (на български, до 5 думи): "Насам, бързо!", "Това е невъзможно!", "Успяхме!" — или празно за чисто визуални моменти
-- За всяка страница: pageText — разказ на български под страницата (3-4 изречения), който разказва тази част от историята живо и с хумор. Перфектна граматика, правилен род за героя
+- Всеки панел: ЕДНА кратка реплика за балон (до 5 думи): "Насам, бързо!", "Това е невъзможно!", "Успяхме!" — или празно за чисто визуални моменти
+- За всяка страница: pageText — разказ под страницата (3-4 изречения), който разказва тази част от историята живо и с хумор. Перфектна граматика, правилен род за героя
 - Граматика: перфектен български, правилен род за ${childName}
 - Ясна дъга: стр. 1 = завръзка и загадка; стр. 2 = проблемът се задълбочава; стр. 3 = голям обрат и кулминация; стр. 4 = развръзка и щастлив финал
 - Заглавие на всяка страница: "Част 1: …" … "Част 4: …" — кратко и интригуващо

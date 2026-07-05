@@ -8,25 +8,22 @@ const GEMINI_MODEL = "gemini-2.5-flash-preview-tts";
 const GEMINI_DEFAULT_VOICE = "Schedar";
 const GEMINI_VOICES = new Set(["Schedar", "Kore", "Aoede", "Charon", "Puck", "Leda"]);
 
-// Google Cloud Text-to-Speech — Chirp3-HD Bulgarian voices (best pronunciation).
-const GTTS_VOICE_MAP: Record<string, string> = {
-  Schedar: "bg-BG-Chirp3-HD-Aoede",
-  Kore: "bg-BG-Chirp3-HD-Kore",
-  Aoede: "bg-BG-Chirp3-HD-Leda",
-  Leda: "bg-BG-Chirp3-HD-Zephyr",
-  Charon: "bg-BG-Chirp3-HD-Charon",
-  Puck: "bg-BG-Chirp3-HD-Puck",
+// Google Cloud Text-to-Speech — Chirp3-HD voices per language.
+const LOCALES: Record<string, string> = {
+  bg: "bg-BG", en: "en-US", de: "de-DE", fr: "fr-FR", ru: "ru-RU",
 };
-const GTTS_DEFAULT = "bg-BG-Chirp3-HD-Aoede";
+const GTTS_SUFFIX: Record<string, string> = {
+  Schedar: "Aoede", Kore: "Kore", Aoede: "Leda", Leda: "Zephyr", Charon: "Charon", Puck: "Puck",
+};
 
-async function callGoogleTTS(text: string, key: string, voiceName: string): Promise<ArrayBuffer | null> {
+async function callGoogleTTS(text: string, key: string, voiceName: string, locale: string): Promise<ArrayBuffer | null> {
   const attempt = async (name: string) => {
     const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         input: { text },
-        voice: { languageCode: "bg-BG", name },
+        voice: { languageCode: locale, name },
         audioConfig: { audioEncoding: "MP3", speakingRate: 0.95 },
       }),
     });
@@ -40,7 +37,7 @@ async function callGoogleTTS(text: string, key: string, voiceName: string): Prom
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
   };
   // Try Chirp3-HD; if the voice isn't available, fall back to Standard.
-  return (await attempt(voiceName)) ?? (await attempt("bg-BG-Standard-A"));
+  return (await attempt(voiceName)) ?? (await attempt(`${locale}-Standard-A`));
 }
 
 // ElevenLabs multilingual voices — best Bulgarian pronunciation.
@@ -111,7 +108,7 @@ async function callGemini(text: string, key: string, voice: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const { text, voice } = await req.json();
+  const { text, voice, language } = await req.json();
   if (!text?.trim()) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });
   }
@@ -121,9 +118,10 @@ export async function POST(req: NextRequest) {
   const elKey = process.env.ELEVENLABS_API_KEY;
   const geminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
-  // ---------- Preferred: Google Cloud TTS (Chirp3-HD Bulgarian) ----------
+  // ---------- Preferred: Google Cloud TTS (Chirp3-HD, language-aware) ----------
+  const locale = LOCALES[language] || "bg-BG";
   if (gttsKey) {
-    const voiceName = GTTS_VOICE_MAP[voice] || GTTS_DEFAULT;
+    const voiceName = `${locale}-Chirp3-HD-${GTTS_SUFFIX[voice] || "Aoede"}`;
     const fn = fileName(trimmed, voiceName, "gtts", "mp3");
 
     const cachedUrl = await getCachedAudio(fn);
@@ -132,8 +130,8 @@ export async function POST(req: NextRequest) {
       return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     }
 
-    let mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName);
-    if (!mp3) mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName);
+    let mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName, locale);
+    if (!mp3) mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName, locale);
     if (mp3) {
       await saveAudioToStorage(fn, mp3);
       return new NextResponse(mp3, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });

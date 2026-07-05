@@ -21,6 +21,14 @@ const THEMES = [
 
 const AGES = ["2–3 г.", "4–5 г.", "6–7 г.", "8–9 г.", "10+ г.", "Изненадай ме"];
 
+const LANGS = [
+  { id: "bg", flag: "🇧🇬", label: "Български" },
+  { id: "en", flag: "🇬🇧", label: "English" },
+  { id: "de", flag: "🇩🇪", label: "Deutsch" },
+  { id: "fr", flag: "🇫🇷", label: "Français" },
+  { id: "ru", flag: "🇷🇺", label: "Русский" },
+];
+
 const THEME_COVERS: Record<string, string> = {
   dragon: "A majestic friendly dragon curled around a treasure-filled castle tower at golden hour, tiny sparkles, epic yet warm",
   space: "A cute rocket ship soaring past ringed planets and a smiling crescent moon in deep violet space, golden star trails",
@@ -61,6 +69,7 @@ export interface StoryData {
   story: string;
   title: string;
   imagePrompts: string[];
+  language?: string;
 }
 
 export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) {
@@ -69,6 +78,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
   const [selectedTheme, setSelectedTheme] = useState("");
   const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
+  const [lang, setLang] = useState("bg");
   const [isLoading, setIsLoading] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
@@ -87,7 +97,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
   // Speculative pre-fetch once all fields ready
   useEffect(() => {
     if (!childName.trim() || !selectedTheme || !selectedAge) return;
-    const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}`;
+    const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}|${lang}`;
     if (prefetchKeyRef.current === key) return;
     const timer = setTimeout(() => {
       prefetchKeyRef.current = key;
@@ -99,6 +109,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
           theme: activeTheme?.description,
           themeName: activeTheme?.label,
           age: selectedAge,
+          language: lang,
         }),
       }).then((r) => r.json());
     }, 600);
@@ -143,6 +154,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
             childName: childName.trim(),
             theme: activeTheme?.description || selectedTheme,
             age: selectedAge,
+            language: lang,
           }),
         });
         if (!res.ok) throw new Error("fail");
@@ -153,7 +165,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
       }
 
       // ---- Story path ----
-      const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}`;
+      const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}|${lang}`;
       let data: Record<string, unknown>;
       if (prefetchRef.current && prefetchKeyRef.current === key) {
         data = await prefetchRef.current;
@@ -166,6 +178,7 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
             theme: activeTheme?.description || selectedTheme,
             themeName: activeTheme?.label || selectedTheme,
             age: selectedAge,
+            language: lang,
           }),
         });
         if (!res.ok) throw new Error("fail");
@@ -184,11 +197,11 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
       if (data.title && data.story) {
         fetch("/api/tts", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}` }),
+          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}`, language: lang }),
         }).catch(() => {});
       }
 
-      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, ...data } as StoryData);
+      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData);
     } catch {
       setError("Нещо се обърка. Опитай отново.");
     } finally {
@@ -239,6 +252,16 @@ export default function StoryGenerator({ format, onBack }: StoryGeneratorProps) 
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleNext()}
               />
+              <p className="step-help" style={{ margin: "22px 0 10px" }}>На кой език да е историята?</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {LANGS.map((l) => (
+                  <button key={l.id} className={`chip ${lang === l.id ? "sel" : ""}`}
+                    style={{ padding: "10px 14px", fontSize: 14 }}
+                    onClick={() => setLang(l.id)}>
+                    {l.flag} {l.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

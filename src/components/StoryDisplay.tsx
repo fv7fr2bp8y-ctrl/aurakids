@@ -202,7 +202,7 @@ export default function StoryDisplay({ story, onBack, onHome }: StoryDisplayProp
       <div className="player">
         <div className="player-inner">
           <div className="player-row">
-            <button className="playbtn" onClick={() => speak(fullStoryText, voice)} disabled={ttsStatus === "loading"}>
+            <button className="playbtn" onClick={() => speak(fullStoryText, voice, story.language || "bg")} disabled={ttsStatus === "loading"}>
               {ttsStatus === "loading" ? (
                 <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

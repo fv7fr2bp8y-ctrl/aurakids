@@ -20,7 +20,7 @@ export function useTTS() {
   }, []);
 
   const speak = useCallback(
-    async (text: string, voice = "Schedar") => {
+    async (text: string, voice = "Schedar", language = "bg") => {
       if (status === "playing") {
         stop();
         return;
@@ -29,14 +29,14 @@ export function useTTS() {
       setStatus("loading");
 
       try {
-        const cacheKey = `${voice}|${text}`;
+        const cacheKey = `${language}|${voice}|${text}`;
         let url = audioCache.get(cacheKey);
 
         if (!url) {
           const res = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, voice }),
+            body: JSON.stringify({ text, voice, language }),
           });
 
           if (!res.ok) throw new Error("TTS грешка");

@@ -56,7 +56,7 @@ function pick<T>(arr: T[]): T {
 
 export async function POST(req: NextRequest) {
   try {
-    const { childName, theme, themeName, age } = await req.json();
+    const { childName, theme, themeName, age, language } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
@@ -67,9 +67,17 @@ export async function POST(req: NextRequest) {
     const opening = pick(OPENINGS);
     const sidekick = pick(SIDEKICKS);
 
-    const storyPrompt = `Ти си майстор-разказвач на детски приказки от ранга на Астрид Линдгрен и Валери Петров. Пишеш на богат, жив, граматически безупречен съвременен български език.
+    const LANG_NAMES: Record<string, string> = {
+      bg: "български", en: "английски (English)", de: "немски (Deutsch)", fr: "френски (Français)", ru: "руски (Русский)",
+    };
+    const langName = LANG_NAMES[language] || "български";
+    const langLine = language && language !== "bg"
+      ? `\n\nЕЗИК: Напиши ЦЯЛАТА приказка (заглавие и текст) на ${langName}, с перфектна граматика и естествен, богат език на носител. Името ${childName} остава както е.`
+      : "";
 
-ГРАМАТИКА — ЗАДЪЛЖИТЕЛНО:
+    const storyPrompt = `Ти си майстор-разказвач на детски приказки от ранга на Астрид Линдгрен и Валери Петров. Пишеш богато, живо и граматически безупречно.${langLine}
+
+ГРАМАТИКА (за български) — ЗАДЪЛЖИТЕЛНО:
 - Определи сам граматическия род на името „${childName}" (момче или момиче) и го спазвай в ЦЯЛАТА приказка — той/тя, му/ѝ, негов/неин, окончанията на прилагателните
 - Членувай правилно: -ът/-ят (подлог, м.р.), -а/-я (допълнение, м.р.), -та (ж.р.), -то (ср.р.)
 - Книжовни форми: „взема" не „взима", „видя" не „видя́л е" в неуместни времена
