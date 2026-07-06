@@ -5,6 +5,7 @@ import Image from "next/image";
 import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
+import { saveToLibrary } from "@/lib/library";
 
 interface StoryGeneratorProps {
   format: "story" | "comic";
@@ -84,8 +85,10 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const prefetchKeyRef = useRef<string>("");
 
   const yrs = t(lang, "yrs");
-  const AGES = [`2–3 ${yrs}`, `4–5 ${yrs}`, `6–7 ${yrs}`, `8–9 ${yrs}`, `10+ ${yrs}`, t(lang, "ageSurprise")];
-  const LOAD_STEPS = [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
+  const AGES = [`3–4 ${yrs}`, `5–6 ${yrs}`, `7–8 ${yrs}`, `9–10 ${yrs}`, `11–12 ${yrs}`, `13+ ${yrs}`];
+  const LOAD_STEPS = format === "comic"
+    ? [t(lang, "cls1"), t(lang, "cls2"), t(lang, "cls3"), t(lang, "cls4")]
+    : [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
 
   const activeTheme = selectedTheme === "custom"
     ? (customTheme.trim()
@@ -120,7 +123,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   useEffect(() => {
     if (!isLoading) return;
     setLoadStep(0);
-    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), 2200);
+    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), format === "comic" ? 30000 : 2200);
     return () => clearInterval(t);
   }, [isLoading]);
 
@@ -160,7 +163,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
         if (!res.ok) throw new Error("fail");
         const comic = await res.json();
         if (comic.error) throw new Error(String(comic.error));
-        setComicData({ childName: childName.trim(), title: comic.title, pages: comic.pages });
+        const comicData: ComicData = { childName: childName.trim(), title: comic.title, pages: comic.pages };
+        saveToLibrary({ type: "comic", title: comic.title, childName: childName.trim(), lang, cover: comic.pages[0]?.url ?? null, data: comicData });
+        setComicData(comicData);
         return;
       }
 
@@ -188,12 +193,13 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
 
       // Warm up images + voice in parallel so the Reader is instant
       const prompts = (data.imagePrompts as string[]) || [];
-      prompts.forEach((p) => {
-        if (p) fetch("/api/generate-image", {
+      const warmups = prompts.map((p) =>
+        p ? fetch("/api/generate-image", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt: p }),
-        }).catch(() => {});
-      });
+        }).then((r) => r.json()).then((d) => (d.url as string) || null).catch(() => null)
+          : Promise.resolve(null)
+      );
       if (data.title && data.story) {
         fetch("/api/tts", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -201,7 +207,12 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
         }).catch(() => {});
       }
 
-      setStoryData({ childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData);
+      const storyResult = { childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData;
+      // Save to library once the cover image is ready (or without one on failure)
+      (warmups[0] ?? Promise.resolve(null)).then((cover) => {
+        saveToLibrary({ type: "story", title: storyResult.title, childName: storyResult.childName, lang, cover, data: storyResult });
+      });
+      setStoryData(storyResult);
     } catch {
       setError(t(lang, "errGeneric"));
     } finally {
@@ -269,7 +280,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           {step === 2 && (
             <div data-rise>
               <span className="eyebrow step-eyebrow">{t(lang, "s2eyebrow")}</span>
-              <h2 className="step-q">{t(lang, "s2q")}</h2>
+              <h2 className="step-q">{childName.trim() ? t(lang, "s2qN").replace("{n}", childName.trim()) : t(lang, "s2q")}</h2>
               <p className="step-help">{t(lang, "s2help")}</p>
               <div className="age-grid">
                 {AGES.map((age) => (

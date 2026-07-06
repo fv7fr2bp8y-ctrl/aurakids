@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import StoryGenerator from "@/components/StoryGenerator";
 import HeroSection from "@/components/HeroSection";
+import Library from "@/components/Library";
 import HowItWorks from "@/components/HowItWorks";
 import StoryPreview from "@/components/StoryPreview";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 
-type Mode = "home" | "story" | "comic";
+type Mode = "home" | "story" | "comic" | "library";
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("home");
@@ -24,6 +25,14 @@ export default function Home() {
     localStorage.setItem("ak-lang", l);
   };
 
+  if (mode === "library") {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Library lang={lang} onBack={() => setMode("home")} onNew={() => setMode("story")} />
+      </main>
+    );
+  }
+
   if (mode !== "home") {
     return (
       <main className="flex flex-col min-h-screen">
@@ -35,7 +44,8 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen">
       <HeroSection lang={lang} onLangChange={changeLang}
-        onStartStory={() => setMode("story")} onStartComic={() => setMode("comic")} />
+        onStartStory={() => setMode("story")} onStartComic={() => setMode("comic")}
+        onOpenLibrary={() => setMode("library")} />
       {lang === "bg" && (
         <>
           <HowItWorks />

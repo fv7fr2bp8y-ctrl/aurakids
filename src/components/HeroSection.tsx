@@ -10,6 +10,7 @@ interface HeroSectionProps {
   onLangChange: (l: string) => void;
   onStartStory: () => void;
   onStartComic: () => void;
+  onOpenLibrary: () => void;
 }
 
 function Stars5() {
@@ -49,7 +50,7 @@ function DoorImage({ kind }: { kind: "story" | "comic" }) {
   );
 }
 
-export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic }: HeroSectionProps) {
+export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary }: HeroSectionProps) {
 
   return (
     <section className="ak-screen home-hero-bg">
@@ -104,6 +105,11 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
               <span className="door-cta">{t(lang, "doorComicCta")}</span>
             </button>
           </div>
+
+          <button className="cta ghost" data-rise onClick={onOpenLibrary}
+            style={{ animationDelay: ".34s", marginTop: 14, height: 48 }}>
+            📚 {t(lang, "libTitle")}
+          </button>
 
           <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
             <span>{t(lang, "micro1")}</span><span className="dot">·</span>

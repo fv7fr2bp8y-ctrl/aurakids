@@ -333,4 +333,26 @@ svg { background: transparent; }
   background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
 
 /* slim full-width "new world" tile */
-.tile-wide { grid-column:1 / -1;flex-direction:row;align-items:center;gap:12px;padding:12px 16px; }
+.tile-wide { grid-column:1 / -1;flex-direction:row;align-items:center;gap:12px;padding:12px 16px;
+  border:1px dashed rgba(255,255,255,0.3);background:rgba(255,255,255,0.04); }
+
+/* ---- Library ---- */
+.lib-chip { height:44px;padding:0 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.75);
+  backdrop-filter:blur(16px);transition:all .25s var(--ease-out); }
+.lib-chip.on { background:var(--grad-accent);color:var(--ak-purple-deep);font-weight:700;border-color:transparent; }
+.lib-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+.lib-card { display:flex;flex-direction:column;text-align:left;cursor:pointer;overflow:hidden;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:24px;
+  backdrop-filter:blur(16px);padding:0 0 14px;transition:transform .25s var(--ease-out); }
+.lib-card:hover { transform:translateY(-4px); }
+.lib-cover { position:relative;width:100%;height:172px;overflow:hidden;
+  background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
+.lib-badge { position:absolute;top:10px;left:10px;z-index:1;padding:5px 10px;border-radius:999px;
+  background:rgba(26,5,51,0.65);backdrop-filter:blur(8px);font-size:11px;font-weight:700;color:#fff; }
+.lib-title { font-size:15px;font-weight:800;color:#fff;line-height:1.25;padding:12px 14px 4px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.lib-meta { font-size:12px;color:rgba(255,255,255,0.5);padding:0 14px; }
+.lib-foot { position:fixed;left:0;right:0;bottom:0;z-index:40;padding:14px 22px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent,rgba(26,5,51,0.85) 40%); }
+.lib-foot .cta { max-width:520px;margin:0 auto;display:flex; }

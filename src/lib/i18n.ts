@@ -37,6 +37,7 @@ const D: Dict = {
   langQ: { bg: "На кой език да е историята?", en: "In which language should the story be?", de: "In welcher Sprache soll die Geschichte sein?", fr: "Dans quelle langue veux-tu l'histoire ?", ru: "На каком языке будет история?" },
   s2eyebrow: { bg: "Стъпка 2 · Възраст", en: "Step 2 · Age", de: "Schritt 2 · Alter", fr: "Étape 2 · Âge", ru: "Шаг 2 · Возраст" },
   s2q: { bg: "На колко години е?", en: "How old are they?", de: "Wie alt ist dein Kind?", fr: "Quel âge a-t-il ?", ru: "Сколько лет ребёнку?" },
+  s2qN: { bg: "На колко години е {n}?", en: "How old is {n}?", de: "Wie alt ist {n}?", fr: "Quel âge a {n} ?", ru: "Сколько лет {n}?" },
   s2help: { bg: "Нагласяме дължината и думите според възрастта.", en: "We adjust length and vocabulary to the age.", de: "Wir passen Länge und Wortwahl dem Alter an.", fr: "Nous adaptons la longueur et les mots à l'âge.", ru: "Мы подбираем длину и слова по возрасту." },
   ageSurprise: { bg: "Изненадай ме", en: "Surprise me", de: "Überrasch mich", fr: "Surprends-moi", ru: "Удиви меня" },
   yrs: { bg: "г.", en: "yrs", de: "J.", fr: "ans", ru: "лет" },
@@ -87,6 +88,25 @@ const D: Dict = {
   stCartoonD: { bg: "Смешен, като Астерикс", en: "Funny, like Asterix", de: "Lustig, wie Asterix", fr: "Drôle, comme Astérix", ru: "Смешной, как Астерикс" },
   stManga: { bg: "Манга", en: "Manga", de: "Manga", fr: "Manga", ru: "Манга" },
   stMangaD: { bg: "Големи очи, екшън", en: "Big eyes, action", de: "Große Augen, Action", fr: "Grands yeux, action", ru: "Большие глаза, экшен" },
+
+  // ---- Comic generating checklist ----
+  cls1: { bg: "Историята се пише", en: "Writing the story", de: "Die Geschichte wird geschrieben", fr: "L'histoire s'écrit", ru: "История пишется" },
+  cls2: { bg: "Героят се рисува", en: "Drawing the hero", de: "Der Held wird gezeichnet", fr: "Le héros se dessine", ru: "Герой рисуется" },
+  cls3: { bg: "Страниците се подреждат", en: "Laying out the pages", de: "Die Seiten werden angeordnet", fr: "Les pages se mettent en place", ru: "Страницы выстраиваются" },
+  cls4: { bg: "Балончетата се пълнят с реплики", en: "Filling the speech bubbles", de: "Die Sprechblasen werden gefüllt", fr: "Les bulles se remplissent", ru: "Пузыри наполняются репликами" },
+
+  // ---- Library ----
+  libTitle: { bg: "Моята библиотека", en: "My library", de: "Meine Bibliothek", fr: "Ma bibliothèque", ru: "Моя библиотека" },
+  libSub: { bg: "запазени завинаги", en: "saved forever", de: "für immer gespeichert", fr: "gardées pour toujours", ru: "сохранены навсегда" },
+  libCount: { bg: "истории", en: "stories", de: "Geschichten", fr: "histoires", ru: "историй" },
+  libAll: { bg: "Всички", en: "All", de: "Alle", fr: "Toutes", ru: "Все" },
+  libComics: { bg: "💥 Комикси", en: "💥 Comics", de: "💥 Comics", fr: "💥 BD", ru: "💥 Комиксы" },
+  libStories: { bg: "🌙 Приказки", en: "🌙 Stories", de: "🌙 Geschichten", fr: "🌙 Histoires", ru: "🌙 Сказки" },
+  libNewBtn: { bg: "✨ Нова история", en: "✨ New story", de: "✨ Neue Geschichte", fr: "✨ Nouvelle histoire", ru: "✨ Новая история" },
+  libEmpty: { bg: "Още няма запазени истории. Създай първата!", en: "No saved stories yet. Create the first one!", de: "Noch keine gespeicherten Geschichten. Erstelle die erste!", fr: "Pas encore d'histoires enregistrées. Crée la première !", ru: "Пока нет сохранённых историй. Создай первую!" },
+  libBadgeComic: { bg: "💥 Комикс", en: "💥 Comic", de: "💥 Comic", fr: "💥 BD", ru: "💥 Комикс" },
+  libBadgeStory: { bg: "🌙 Приказка", en: "🌙 Story", de: "🌙 Geschichte", fr: "🌙 Histoire", ru: "🌙 Сказка" },
+  libFor: { bg: "за", en: "for", de: "für", fr: "pour", ru: "для" },
 
   // ---- Themes ----
   thDragon: { bg: "Дракони", en: "Dragons", de: "Drachen", fr: "Dragons", ru: "Драконы" },
