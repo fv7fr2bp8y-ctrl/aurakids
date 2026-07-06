@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import AuraLogo from "./AuraLogo";
 import { LANGS, t } from "@/lib/i18n";
 
 interface HeroSectionProps {
@@ -30,13 +29,18 @@ const DOOR_PROMPTS = {
   comic: "A thrilled child superhero mid-leap over city rooftops at sunset, cape flying, dynamic action pose, comic book energy with motion lines and bright bold colors, joyful adventurous expression, cinematic wide angle",
 };
 
+const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
+const DOOR_COVERS = {
+  story: `${ASSETS}/door-story.png`,
+  comic: `${ASSETS}/door-comic.png`,
+};
+
 function DoorImage({ kind }: { kind: "story" | "comic" }) {
   const [url, setUrl] = useState<string | null>(null);
-  const [staticOk, setStaticOk] = useState(true);
-  const staticSrc = `/covers/door-${kind}.png`;
+  const [coverOk, setCoverOk] = useState(true);
 
   useEffect(() => {
-    if (staticOk) return;
+    if (coverOk) return;
     fetch("/api/generate-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,13 +49,13 @@ function DoorImage({ kind }: { kind: "story" | "comic" }) {
       .then((r) => r.json())
       .then((d) => d.url && setUrl(d.url))
       .catch(() => {});
-  }, [kind, staticOk]);
+  }, [kind, coverOk]);
 
   return (
     <div className="door-img">
-      {staticOk ? (
-        <Image src={staticSrc} alt="" fill className="object-cover" unoptimized
-          onError={() => setStaticOk(false)} />
+      {coverOk ? (
+        <Image src={DOOR_COVERS[kind]} alt="" fill className="object-cover" unoptimized
+          onError={() => setCoverOk(false)} />
       ) : (
         url && <Image src={url} alt="" fill className="object-cover" unoptimized />
       )}
@@ -71,7 +75,8 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         {/* Nav */}
         <div className="home-nav">
           <div className="brandrow">
-            <AuraLogo size={34} />
+            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={38} height={38} unoptimized
+              style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span></span>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
