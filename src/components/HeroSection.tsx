@@ -26,7 +26,7 @@ function Stars5() {
 }
 
 const DOOR_PROMPTS = {
-  story: "A cozy magical bedtime scene: a small child tucked in bed under a starry blanket, a warm glowing lamp, an open storybook with golden sparkles rising from its pages toward a crescent moon in the window, soft dreamy night atmosphere, rich purples and warm gold",
+  story: "A cozy magical bedtime scene: a small child in starry pajamas sitting up in bed with a teddy bear, reading a glowing open storybook; a shimmering golden stream of magic rises from the pages into dreamy clouds holding a fairytale castle, a tiny sailing ship, a hot-air balloon and a friendly golden dragon; crescent moon and stars, star-lamp on the nightstand, rich purples and warm gold, soft dreamy night atmosphere",
   comic: "A thrilled child superhero mid-leap over city rooftops at sunset, cape flying, dynamic action pose, comic book energy with motion lines and bright bold colors, joyful adventurous expression, cinematic wide angle",
 };
 
@@ -72,7 +72,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         <div className="home-nav">
           <div className="brandrow">
             <AuraLogo size={34} />
-            <span className="wm">AuraKids</span>
+            <span className="wm">Aura<span className="wm-kids">Kids</span></span>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             {LANGS.map((l) => (
