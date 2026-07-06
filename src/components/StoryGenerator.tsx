@@ -6,6 +6,22 @@ import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
+import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
+
+const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
+const WORLD_IMG: Record<string, string> = {
+  dragon: `${ASSETS}/world-dragon.png`,
+  space: `${ASSETS}/world-space.png`,
+  forest: `${ASSETS}/world-forest.png`,
+  mermaid: `${ASSETS}/world-ocean.png`,
+  superhero: `${ASSETS}/world-superhero.png`,
+  fairy: `${ASSETS}/world-fairy.png`,
+};
+const STYLE_IMG: Record<string, string> = {
+  pixar: `${ASSETS}/style-pixar.png`,
+  cartoon: `${ASSETS}/style-cartoon.png`,
+  manga: `${ASSETS}/style-manga.png`,
+};
 
 interface StoryGeneratorProps {
   format: "story" | "comic";
@@ -35,10 +51,15 @@ const THEME_COVERS: Record<string, string> = {
   custom: "A magical glowing door standing alone in a starfield, slightly open with golden light and question-mark shaped sparkles spilling out, mysterious and inviting",
 };
 
-function TileImage({ id }: { id: string }) {
-  const [url, setUrl] = useState<string | null>(null);
+function TileImage({ id, src }: { id?: string; src?: string }) {
+  // Prefer a fixed brand-kit image; fall back to generating one only if it fails.
+  const fixed = src || (id ? WORLD_IMG[id] : undefined);
+  const [url, setUrl] = useState<string | null>(fixed ?? null);
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
-    const prompt = THEME_COVERS[id];
+    if (!failed) return;
+    const prompt = id ? THEME_COVERS[id] : undefined;
     if (!prompt) return;
     fetch("/api/generate-image", {
       method: "POST",
@@ -48,11 +69,12 @@ function TileImage({ id }: { id: string }) {
       .then((r) => r.json())
       .then((d) => d.url && setUrl(d.url))
       .catch(() => {});
-  }, [id]);
+  }, [id, failed]);
 
   return (
     <div className="tile-img">
-      {url && <Image src={url} alt="" fill className="object-cover" unoptimized />}
+      {url && <Image src={url} alt="" fill className="object-cover" unoptimized
+        onError={() => { setFailed(true); setUrl(null); }} />}
     </div>
   );
 }
@@ -75,6 +97,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
   const [artStyle, setArtStyle] = useState("pixar");
+  const [s3Tab, setS3Tab] = useState<"world" | "style">("world");
   const [isLoading, setIsLoading] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [storyData, setStoryData] = useState<StoryData | null>(null);
@@ -292,47 +315,75 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
             </div>
           )}
 
-          {/* Step 3 — world */}
+          {/* Step 3 — world (+ style for comics) */}
           {step === 3 && (
             <div data-rise>
               <span className="eyebrow step-eyebrow">{t(lang, "s3eyebrow")}</span>
-              <h2 className="step-q">{t(lang, "s3q")}</h2>
-              <p className="step-help">{t(lang, "s3help")}</p>
-              <div className="theme-grid">
-                {THEMES.map((th) => {
-                  const sel = selectedTheme === th.id;
-                  const color = `var(--ak-theme-${th.id})`;
-                  return (
-                    <button key={th.id} className="tile tile-cover" onClick={() => setSelectedTheme(th.id)}
-                      style={sel ? { borderColor: color, background: "rgba(255,255,255,0.10)" } : undefined}>
-                      <TileImage id={th.id} />
-                      <span className="tlabel">{t(lang, th.lk)}</span>
-                      <span className="tdesc">{t(lang, th.dk)}</span>
-                    </button>
-                  );
-                })}
-                {/* Custom — slim full-width bar */}
-                <button className="tile tile-wide" onClick={() => setSelectedTheme("custom")}
-                  style={selectedTheme === "custom" ? { borderColor: "#fff", background: "rgba(255,255,255,0.10)" } : undefined}>
-                  <span className="tglyph" style={{ fontSize: 20 }}>✨</span>
-                  <span>
-                    <span className="tlabel">{t(lang, "newWorld")}</span>
-                    <span className="tdesc" style={{ display: "block" }}>{t(lang, "newWorldDesc")}</span>
-                  </span>
-                </button>
-              </div>
+              <h2 className="step-q">{s3Tab === "style" ? t(lang, "styleQ") : t(lang, "s3q")}</h2>
+              <p className="step-help">{s3Tab === "style" ? t(lang, "styleHelp") : t(lang, "s3help")}</p>
 
-              {selectedTheme === "custom" && (
-                <input
-                  className={`tinput ${customTheme.trim() ? "filled" : ""}`}
-                  style={{ marginTop: 14, fontSize: 16 }}
-                  type="text"
-                  value={customTheme}
-                  onChange={(e) => setCustomTheme(e.target.value)}
-                  placeholder={t(lang, "newWorldPh")}
-                  maxLength={60}
-                  autoFocus
-                />
+              {/* Segmented switch — only comics have a style step */}
+              {format === "comic" && (
+                <div className="segmented">
+                  <button className={s3Tab === "world" ? "on" : ""} onClick={() => setS3Tab("world")}>
+                    {t(lang, "tabWorld")}
+                  </button>
+                  <button className={s3Tab === "style" ? "on" : ""} onClick={() => setS3Tab("style")}>
+                    {t(lang, "tabStyle")}
+                  </button>
+                </div>
+              )}
+
+              {s3Tab === "world" ? (
+                <>
+                  <div className="theme-grid">
+                    {THEMES.map((th) => (
+                      <button key={th.id} className={`tile tile-cover ${selectedTheme === th.id ? "sel-gold" : ""}`}
+                        onClick={() => setSelectedTheme(th.id)}>
+                        <TileImage id={th.id} />
+                        <span className="tlabel">{t(lang, th.lk)}</span>
+                        <span className="tdesc">{t(lang, th.dk)}</span>
+                      </button>
+                    ))}
+                    {/* Custom — slim full-width bar */}
+                    <button className={`tile tile-wide ${selectedTheme === "custom" ? "sel-gold" : ""}`}
+                      onClick={() => setSelectedTheme("custom")}>
+                      <Sparkle size={20} className="text-[color:var(--ak-gold)]" />
+                      <span>
+                        <span className="tlabel">{t(lang, "newWorld")}</span>
+                        <span className="tdesc" style={{ display: "block" }}>{t(lang, "newWorldDesc")}</span>
+                      </span>
+                    </button>
+                  </div>
+
+                  {selectedTheme === "custom" && (
+                    <input
+                      className={`tinput ${customTheme.trim() ? "filled" : ""}`}
+                      style={{ marginTop: 14, fontSize: 16 }}
+                      type="text"
+                      value={customTheme}
+                      onChange={(e) => setCustomTheme(e.target.value)}
+                      placeholder={t(lang, "newWorldPh")}
+                      maxLength={60}
+                      autoFocus
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="theme-grid">
+                  {([
+                    { id: "pixar", lk: "stPixar", dk: "stPixarD" },
+                    { id: "cartoon", lk: "stCartoon", dk: "stCartoonD" },
+                    { id: "manga", lk: "stManga", dk: "stMangaD" },
+                  ] as const).map((st) => (
+                    <button key={st.id} className={`tile tile-cover ${artStyle === st.id ? "sel-gold" : ""}`}
+                      onClick={() => setArtStyle(st.id)}>
+                      <TileImage src={STYLE_IMG[st.id]} />
+                      <span className="tlabel">{t(lang, st.lk)}</span>
+                      <span className="tdesc">{t(lang, st.dk)}</span>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -344,33 +395,20 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           )}
 
           <div className="create-foot">
-            {step === 3 && format === "comic" && (
-              <div style={{ marginBottom: 16 }}>
-                <p className="step-help" style={{ marginBottom: 10 }}>{t(lang, "styleQ")}</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  {([
-                    { id: "pixar", glyph: "🎬", lk: "stPixar", dk: "stPixarD" },
-                    { id: "cartoon", glyph: "😄", lk: "stCartoon", dk: "stCartoonD" },
-                    { id: "manga", glyph: "⚡", lk: "stManga", dk: "stMangaD" },
-                  ] as const).map((st) => (
-                    <button key={st.id} className="tile" onClick={() => setArtStyle(st.id)}
-                      style={{ padding: "12px 10px", gap: 3,
-                        ...(artStyle === st.id ? { borderColor: "var(--ak-gold)", background: "rgba(255,217,61,0.12)" } : {}) }}>
-                      <span style={{ fontSize: 22 }}>{st.glyph}</span>
-                      <span className="tlabel" style={{ fontSize: 13 }}>{t(lang, st.lk)}</span>
-                      <span className="tdesc" style={{ fontSize: 10.5 }}>{t(lang, st.dk)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
-              {step < 3
-                ? t(lang, "continueBtn")
-                : format === "comic"
-                  ? `${t(lang, "ctaComic")} ${childName || t(lang, "heroFallback")}`
-                  : `${t(lang, "ctaStory")} ${childName || t(lang, "heroFallback")}`}
+              {step < 3 ? (
+                t(lang, "continueBtn")
+              ) : format === "comic" ? (
+                <><ComicIcon size={18} /> {t(lang, "ctaComic")} {childName || t(lang, "heroFallback")}</>
+              ) : (
+                <><Sparkle size={18} /> {t(lang, "ctaStory")} {childName || t(lang, "heroFallback")}</>
+              )}
             </button>
+            {step === 1 && (
+              <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12 }}>
+                {t(lang, "micro1")} · {t(lang, "micro2")}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -380,14 +418,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
         <div className="loading">
           <div className="orb">
             <span className="ring" />
-            <span>{selectedTheme !== "custom" ? THEMES.find((x) => x.id === selectedTheme)?.glyph ?? "✨" : "✨"}</span>
+            <Sparkle size={46} className="text-white" />
           </div>
           <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
           <p>{t(lang, "loadSub")}</p>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
               <div key={label} className={i <= loadStep ? "done" : ""}>
-                <span className="mk">{i <= loadStep ? "✓" : ""}</span> {label}
+                <span className="mk">{i <= loadStep && <Check size={13} />}</span> {label}
               </div>
             ))}
           </div>

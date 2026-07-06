@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { StoryData } from "./StoryGenerator";
 import { useTTS } from "@/hooks/useTTS";
 import { t } from "@/lib/i18n";
+import { Sparkle } from "./Icons";
 
 interface StoryDisplayProps {
   story: StoryData;
@@ -176,7 +177,7 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
           <div className="ee">🌟</div>
           <h4>{t(lang, "theEnd")}</h4>
           <p>{t(lang, "endText")} {story.childName}.</p>
-          <button className="cta" onClick={onBack}>{t(lang, "newStoryBtn")}</button>
+          <button className="cta" onClick={onBack}><Sparkle size={18} /> {t(lang, "newStoryBtn")}</button>
         </div>
       </div>
 

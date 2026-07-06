@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { t } from "@/lib/i18n";
+import { Comic as ComicIcon } from "./Icons";
 
 export interface ComicPage {
   url: string;
@@ -93,7 +94,7 @@ export default function ComicDisplay({ comic, lang: langProp, onBack, onHome }: 
           <div className="ee">💥</div>
           <h4>{t(lang, "comicEnd")}</h4>
           <p>{t(lang, "comicEndText")} {comic.childName}.</p>
-          <button className="cta" onClick={onBack}>{t(lang, "newComicBtn")}</button>
+          <button className="cta" onClick={onBack}><ComicIcon size={18} /> {t(lang, "newComicBtn")}</button>
         </div>
       </div>
     </div>

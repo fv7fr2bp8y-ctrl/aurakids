@@ -7,6 +7,7 @@ import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import type { StoryData } from "./StoryGenerator";
 import { getLibrary, type LibraryItem } from "@/lib/library";
 import { t } from "@/lib/i18n";
+import { Sparkle, Comic as ComicIcon, Moon } from "./Icons";
 
 interface LibraryProps {
   lang: string;
@@ -85,6 +86,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
                 <div className="lib-cover">
                   {item.cover && <Image src={item.cover} alt="" fill className="object-cover" unoptimized />}
                   <span className="lib-badge">
+                    {item.type === "comic" ? <ComicIcon size={12} /> : <Moon size={12} />}
                     {t(lang, item.type === "comic" ? "libBadgeComic" : "libBadgeStory")}
                   </span>
                 </div>
@@ -100,7 +102,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
 
       {/* Bottom CTA */}
       <div className="lib-foot">
-        <button className="cta" onClick={onNew}>{t(lang, "libNewBtn")}</button>
+        <button className="cta" onClick={onNew}><Sparkle size={18} /> {t(lang, "libNewBtn")}</button>
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LANGS, t } from "@/lib/i18n";
+import { Library as LibraryIcon } from "./Icons";
 
 interface HeroSectionProps {
   lang: string;
@@ -75,7 +76,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         {/* Nav */}
         <div className="home-nav">
           <div className="brandrow">
-            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={38} height={38} unoptimized
+            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={44} height={44} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span></span>
           </div>
@@ -122,7 +123,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
 
           <button className="cta ghost" data-rise onClick={onOpenLibrary}
             style={{ animationDelay: ".34s", marginTop: 14, height: 48 }}>
-            📚 {t(lang, "libTitle")}
+            <LibraryIcon size={18} /> {t(lang, "libTitle")}
           </button>
 
           <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
