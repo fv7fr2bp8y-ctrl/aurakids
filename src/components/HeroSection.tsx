@@ -32,7 +32,11 @@ const DOOR_PROMPTS = {
 
 function DoorImage({ kind }: { kind: "story" | "comic" }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [staticOk, setStaticOk] = useState(true);
+  const staticSrc = `/covers/door-${kind}.png`;
+
   useEffect(() => {
+    if (staticOk) return;
     fetch("/api/generate-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,11 +45,16 @@ function DoorImage({ kind }: { kind: "story" | "comic" }) {
       .then((r) => r.json())
       .then((d) => d.url && setUrl(d.url))
       .catch(() => {});
-  }, [kind]);
+  }, [kind, staticOk]);
 
   return (
     <div className="door-img">
-      {url && <Image src={url} alt="" fill className="object-cover" unoptimized />}
+      {staticOk ? (
+        <Image src={staticSrc} alt="" fill className="object-cover" unoptimized
+          onError={() => setStaticOk(false)} />
+      ) : (
+        url && <Image src={url} alt="" fill className="object-cover" unoptimized />
+      )}
     </div>
   );
 }
