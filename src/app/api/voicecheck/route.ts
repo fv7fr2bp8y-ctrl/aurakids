@@ -29,36 +29,36 @@ export async function GET() {
     out.google_cloud_tts = "SKIP — no key";
   }
 
-  // Gemini TTS — the path that actually works with a plain API key.
+  // Gemini TTS — the path that works with a plain API key. Try each model with a
+  // full sentence (single words tend to come back with finishReason OTHER).
   if (gKey) {
-    try {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${gKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "здравей" }] }],
-            generationConfig: {
-              responseModalities: ["AUDIO"],
-              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Schedar" } } },
-            },
-          }),
+    const sentence = "Здравей! Аз съм гласът на твоята приказка.";
+    for (const model of ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"]) {
+      try {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${gKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: sentence }] }],
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Schedar" } } },
+              },
+            }),
+          }
+        );
+        const raw = await r.text();
+        if (r.ok && JSON.parse(raw)?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data) {
+          out[`tts_${model}`] = "OK — got audio";
+        } else {
+          out[`tts_${model}`] = `FAILED — ${raw.slice(0, 300)}`;
         }
-      );
-      const raw = await r.text();
-      if (r.ok) {
-        const data = JSON.parse(raw);
-        const has = !!data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        out.gemini_tts = has ? "OK — got audio" : `FAILED — no audio: ${raw.slice(0, 500)}`;
-      } else {
-        out.gemini_tts = `FAILED ${r.status} — ${raw.slice(0, 400)}`;
+      } catch (e: unknown) {
+        out[`tts_${model}`] = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
       }
-    } catch (e: unknown) {
-      out.gemini_tts = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
     }
-  } else {
-    out.gemini_tts = "SKIP — no key";
   }
 
   // Which models can this key see? (find the real TTS model name)
