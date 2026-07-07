@@ -29,6 +29,37 @@ export async function GET() {
     out.google_cloud_tts = "SKIP — no key";
   }
 
+  // Gemini TTS — the path that actually works with a plain API key.
+  if (gKey) {
+    try {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${gKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "здравей" }] }],
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Schedar" } } },
+            },
+          }),
+        }
+      );
+      if (r.ok) {
+        const data = await r.json();
+        const has = !!data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        out.gemini_tts = has ? "OK — got audio" : "FAILED — no audio in response";
+      } else {
+        out.gemini_tts = `FAILED ${r.status} — ${(await r.text()).slice(0, 300)}`;
+      }
+    } catch (e: unknown) {
+      out.gemini_tts = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
+    }
+  } else {
+    out.gemini_tts = "SKIP — no key";
+  }
+
   const elKey = process.env.ELEVENLABS_API_KEY;
   if (elKey) {
     try {

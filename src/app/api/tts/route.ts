@@ -16,11 +16,11 @@ const GTTS_SUFFIX: Record<string, string> = {
   Schedar: "Aoede", Kore: "Kore", Aoede: "Leda", Leda: "Zephyr", Charon: "Charon", Puck: "Puck",
 };
 
-async function callGoogleTTS(text: string, key: string, voiceName: string, locale: string): Promise<ArrayBuffer | null> {
+async function callGoogleTTSOAuth(text: string, token: string, voiceName: string, locale: string): Promise<ArrayBuffer | null> {
   const attempt = async (name: string) => {
-    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`, {
+    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         input: { text },
         voice: { languageCode: locale, name },
@@ -114,13 +114,15 @@ export async function POST(req: NextRequest) {
   }
   const trimmed = text.trim();
 
-  const gttsKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   const elKey = process.env.ELEVENLABS_API_KEY;
   const geminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  // Google Cloud TTS (Chirp3-HD) needs OAuth — a plain API key gets 401. Only
+  // use it when a bearer access token is explicitly provided.
+  const gttsToken = process.env.GOOGLE_TTS_ACCESS_TOKEN;
 
-  // ---------- Preferred: Google Cloud TTS (Chirp3-HD, language-aware) ----------
+  // ---------- Preferred (only if OAuth token present): Google Cloud TTS ----------
   const locale = LOCALES[language] || "bg-BG";
-  if (gttsKey) {
+  if (gttsToken) {
     const voiceName = `${locale}-Chirp3-HD-${GTTS_SUFFIX[voice] || "Aoede"}`;
     const fn = fileName(trimmed, voiceName, "gtts", "mp3");
 
@@ -130,8 +132,8 @@ export async function POST(req: NextRequest) {
       return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     }
 
-    let mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName, locale);
-    if (!mp3) mp3 = await callGoogleTTS(trimmed, gttsKey, voiceName, locale);
+    let mp3 = await callGoogleTTSOAuth(trimmed, gttsToken, voiceName, locale);
+    if (!mp3) mp3 = await callGoogleTTSOAuth(trimmed, gttsToken, voiceName, locale);
     if (mp3) {
       await saveAudioToStorage(fn, mp3);
       return new NextResponse(mp3, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
