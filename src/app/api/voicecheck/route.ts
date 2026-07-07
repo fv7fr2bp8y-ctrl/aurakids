@@ -46,18 +46,35 @@ export async function GET() {
           }),
         }
       );
+      const raw = await r.text();
       if (r.ok) {
-        const data = await r.json();
+        const data = JSON.parse(raw);
         const has = !!data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        out.gemini_tts = has ? "OK — got audio" : "FAILED — no audio in response";
+        out.gemini_tts = has ? "OK — got audio" : `FAILED — no audio: ${raw.slice(0, 500)}`;
       } else {
-        out.gemini_tts = `FAILED ${r.status} — ${(await r.text()).slice(0, 300)}`;
+        out.gemini_tts = `FAILED ${r.status} — ${raw.slice(0, 400)}`;
       }
     } catch (e: unknown) {
       out.gemini_tts = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
     }
   } else {
     out.gemini_tts = "SKIP — no key";
+  }
+
+  // Which models can this key see? (find the real TTS model name)
+  if (gKey) {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${gKey}&pageSize=200`);
+      if (r.ok) {
+        const data = await r.json();
+        const names: string[] = (data?.models || []).map((m: { name?: string }) => m.name || "");
+        out.tts_models = names.filter((n) => n.toLowerCase().includes("tts")).join(", ") || "none with 'tts'";
+      } else {
+        out.tts_models = `list FAILED ${r.status} — ${(await r.text()).slice(0, 200)}`;
+      }
+    } catch (e: unknown) {
+      out.tts_models = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
+    }
   }
 
   const elKey = process.env.ELEVENLABS_API_KEY;
