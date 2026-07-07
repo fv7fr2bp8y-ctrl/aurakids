@@ -4,7 +4,8 @@ import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
 export const maxDuration = 120;
 
-const GEMINI_MODEL = "gemini-2.5-flash-preview-tts";
+// Newest first — 3.1 is the most reliable; 2.5 as fallback.
+const GEMINI_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
 const GEMINI_DEFAULT_VOICE = "Schedar";
 const GEMINI_VOICES = new Set(["Schedar", "Kore", "Aoede", "Charon", "Puck", "Leda"]);
 
@@ -88,23 +89,30 @@ async function callElevenLabs(text: string, key: string, voiceId: string): Promi
 }
 
 async function callGemini(text: string, key: string, voice: string) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text }] }],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
-        },
-      }),
-    }
-  );
-  if (!res.ok) return null;
-  const part = (await res.json())?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-  return part?.data ? part : null;
+  // Try each model until one returns audio (preview models occasionally answer
+  // with finishReason OTHER and no audio; the next model usually succeeds).
+  for (const model of GEMINI_MODELS) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text }] }],
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+            },
+          }),
+        }
+      );
+      if (!res.ok) continue;
+      const part = (await res.json())?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+      if (part?.data) return part;
+    } catch { /* try next model */ }
+  }
+  return null;
 }
 
 export async function POST(req: NextRequest) {
