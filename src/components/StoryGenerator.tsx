@@ -237,7 +237,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
       });
       setStoryData(storyResult);
     } catch {
-      setError(t(lang, "errGeneric"));
+      setError(t(lang, format === "comic" ? "errComic" : "errStory"));
     } finally {
       setIsLoading(false);
     }
@@ -389,8 +389,13 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           )}
 
           {error && (
-            <div style={{ marginTop: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.15)", color: "#ff8a8a", fontSize: 14, textAlign: "center" }}>
-              {error}
+            <div style={{ marginTop: 18, padding: "16px", borderRadius: 14, background: "rgba(239,68,68,0.12)",
+              border: "1px solid rgba(239,68,68,0.25)", textAlign: "center" }}>
+              <p style={{ color: "#ff9a9a", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>{error}</p>
+              <button className="cta ghost" style={{ height: 44, maxWidth: 220, margin: "0 auto" }}
+                onClick={handleGenerate}>
+                {t(lang, "retryBtn")}
+              </button>
             </div>
           )}
 
