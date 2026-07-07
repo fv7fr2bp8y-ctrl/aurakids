@@ -1,16 +1,20 @@
 import type { NextConfig } from "next";
 
+// Which build this is (story | comic | both) — inlined at build time.
+const APP = process.env.NEXT_PUBLIC_APP === "story" ? "story"
+  : process.env.NEXT_PUBLIC_APP === "comic" ? "comic" : "both";
+
 const nextConfig: NextConfig = {
   async rewrites() {
-    // Serve every legacy icon path from the brand-kit app icon (via /api/icon),
-    // so anything iOS/Android/browsers probe resolves to the real icon.
+    // Serve every legacy icon path from this build's brand icon (via /api/icon),
+    // so anything iOS/Android/browsers probe resolves to the right icon.
     return [
-      { source: "/apple-touch-icon.png", destination: "/api/icon?size=180" },
-      { source: "/apple-touch-icon-precomposed.png", destination: "/api/icon?size=180" },
-      { source: "/icon-192.png", destination: "/api/icon?size=192" },
-      { source: "/icon-512.png", destination: "/api/icon?size=512" },
-      { source: "/icon-maskable-512.png", destination: "/api/icon?size=512&padded=1" },
-      { source: "/favicon-32.png", destination: "/api/icon?size=32" },
+      { source: "/apple-touch-icon.png", destination: `/api/icon?size=180&app=${APP}` },
+      { source: "/apple-touch-icon-precomposed.png", destination: `/api/icon?size=180&app=${APP}` },
+      { source: "/icon-192.png", destination: `/api/icon?size=192&app=${APP}` },
+      { source: "/icon-512.png", destination: `/api/icon?size=512&app=${APP}` },
+      { source: "/icon-maskable-512.png", destination: `/api/icon?size=512&padded=1&app=${APP}` },
+      { source: "/favicon-32.png", destination: `/api/icon?size=32&app=${APP}` },
     ];
   },
 };

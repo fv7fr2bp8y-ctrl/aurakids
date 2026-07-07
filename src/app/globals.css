@@ -339,6 +339,16 @@ svg { background: transparent; }
 .door-desc { font-size:12px;color:rgba(255,255,255,0.6);line-height:1.45; }
 .door-cta { margin-top:6px;font-size:13px;font-weight:700;color:var(--ak-gold); }
 
+/* dedicated-app single big door */
+.door-solo { width:100%;padding:0;overflow:hidden; }
+.door-solo .door-img { width:100%;height:210px;margin:0 0 4px; }
+.door-solo .door-title { font-size:22px;padding:0 18px; }
+.door-solo .door-desc { font-size:13.5px;padding:0 18px; }
+.door-solo .door-cta { font-size:15px;padding:0 18px 16px; }
+.brandrow .wm-sub { display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;
+  font-size:12px;font-weight:700;color:var(--ak-purple-night);background:var(--grad-accent);
+  vertical-align:middle;-webkit-text-fill-color:var(--ak-purple-night); }
+
 /* narration under each comic page */
 .page-story { padding:16px 18px 18px;background:#fff;border-top:3px solid var(--ak-purple-night);
   font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }

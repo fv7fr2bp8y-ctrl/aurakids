@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LANGS, t } from "@/lib/i18n";
 import { Library as LibraryIcon } from "./Icons";
+import { soleFormat } from "@/lib/appConfig";
 
 interface HeroSectionProps {
   lang: string;
@@ -78,7 +79,9 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
           <div className="brandrow">
             <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={44} height={44} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
-            <span className="wm">Aura<span className="wm-kids">Kids</span></span>
+            <span className="wm">Aura<span className="wm-kids">Kids</span>{soleFormat && (
+              <span className="wm-sub">{t(lang, soleFormat === "comic" ? "appTagComic" : "appTagStory")}</span>
+            )}</span>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             {LANGS.map((l) => (
@@ -103,23 +106,36 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
           </h1>
 
           <p className="hero-sub" data-rise style={{ animationDelay: ".2s" }}>
-            {t(lang, "sub")}
+            {soleFormat === "comic" ? t(lang, "subComic") : t(lang, "sub")}
           </p>
 
-          <div data-rise style={{ animationDelay: ".28s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 26 }}>
-            <button className="app-door door-story" onClick={onStartStory}>
-              <DoorImage kind="story" />
-              <span className="door-title">{t(lang, "doorStoryTitle")}</span>
-              <span className="door-desc">{t(lang, "doorStoryDesc")}</span>
-              <span className="door-cta">{t(lang, "doorStoryCta")}</span>
-            </button>
-            <button className="app-door door-comic" onClick={onStartComic}>
-              <DoorImage kind="comic" />
-              <span className="door-title">{t(lang, "doorComicTitle")}</span>
-              <span className="door-desc">{t(lang, "doorComicDesc")}</span>
-              <span className="door-cta">{t(lang, "doorComicCta")}</span>
-            </button>
-          </div>
+          {soleFormat ? (
+            /* Dedicated build: one big door for this app's format */
+            <div data-rise style={{ animationDelay: ".28s", marginTop: 26 }}>
+              <button className={`app-door door-${soleFormat} door-solo`}
+                onClick={soleFormat === "comic" ? onStartComic : onStartStory}>
+                <DoorImage kind={soleFormat} />
+                <span className="door-title">{t(lang, soleFormat === "comic" ? "doorComicTitle" : "doorStoryTitle")}</span>
+                <span className="door-desc">{t(lang, soleFormat === "comic" ? "doorComicDesc" : "doorStoryDesc")}</span>
+                <span className="door-cta">{t(lang, soleFormat === "comic" ? "doorComicCta" : "doorStoryCta")}</span>
+              </button>
+            </div>
+          ) : (
+            <div data-rise style={{ animationDelay: ".28s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 26 }}>
+              <button className="app-door door-story" onClick={onStartStory}>
+                <DoorImage kind="story" />
+                <span className="door-title">{t(lang, "doorStoryTitle")}</span>
+                <span className="door-desc">{t(lang, "doorStoryDesc")}</span>
+                <span className="door-cta">{t(lang, "doorStoryCta")}</span>
+              </button>
+              <button className="app-door door-comic" onClick={onStartComic}>
+                <DoorImage kind="comic" />
+                <span className="door-title">{t(lang, "doorComicTitle")}</span>
+                <span className="door-desc">{t(lang, "doorComicDesc")}</span>
+                <span className="door-cta">{t(lang, "doorComicCta")}</span>
+              </button>
+            </div>
+          )}
 
           <button className="cta ghost" data-rise onClick={onOpenLibrary}
             style={{ animationDelay: ".34s", marginTop: 14, height: 48 }}>
