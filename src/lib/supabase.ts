@@ -62,6 +62,41 @@ export async function saveImageToStorage(fileName: string, source: string | Arra
   }
 }
 
+// ---------- Cloud library (per family code, JSON in a private bucket) ----------
+const LIB_BUCKET = "libraries";
+
+async function ensureLibBucket(sb: NonNullable<ReturnType<typeof getSupabase>>) {
+  try { await sb.storage.createBucket(LIB_BUCKET, { public: false }); } catch { /* already exists */ }
+}
+
+export async function getLibraryFile(code: string): Promise<unknown[] | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  try {
+    const { data, error } = await sb.storage.from(LIB_BUCKET).download(`${code}.json`);
+    if (error || !data) return [];
+    const text = await data.text();
+    return JSON.parse(text);
+  } catch {
+    return [];
+  }
+}
+
+export async function putLibraryFile(code: string, items: unknown[]): Promise<boolean> {
+  const sb = getSupabase();
+  if (!sb) return false;
+  try {
+    await ensureLibBucket(sb);
+    const body = new Blob([JSON.stringify(items)], { type: "application/json" });
+    const { error } = await sb.storage.from(LIB_BUCKET).upload(`${code}.json`, body, {
+      contentType: "application/json", upsert: true,
+    });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function getCachedAudio(fileName: string): Promise<string | null> {
   const sb = getSupabase();
   if (!sb) return null;

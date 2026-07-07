@@ -5,7 +5,7 @@ import Image from "next/image";
 import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import type { StoryData } from "./StoryGenerator";
-import { getLibrary, type LibraryItem } from "@/lib/library";
+import { getLibrary, syncLibrary, getFamilyCode, type LibraryItem } from "@/lib/library";
 import { t } from "@/lib/i18n";
 import { Sparkle, Comic as ComicIcon, Moon } from "./Icons";
 
@@ -21,10 +21,31 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [open, setOpen] = useState<LibraryItem | null>(null);
+  const [code, setCode] = useState("");
+  const [showSync, setShowSync] = useState(false);
+  const [restoreCode, setRestoreCode] = useState("");
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     setItems(getLibrary());
+    setCode(getFamilyCode());
+    // Pull the cloud copy and merge in.
+    syncLibrary().then(setItems).catch(() => {});
   }, []);
+
+  const restore = async () => {
+    if (!restoreCode.trim()) return;
+    setSyncing(true);
+    try {
+      const merged = await syncLibrary(restoreCode.trim());
+      setItems(merged);
+      setCode(getFamilyCode());
+      setShowSync(false);
+      setRestoreCode("");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   if (open) {
     if (open.type === "comic") {
@@ -62,6 +83,30 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
               {items.length} {t(lang, "libCount")} · {t(lang, "libSub")}
             </p>
           </div>
+        </div>
+
+        {/* Family code / sync across devices */}
+        <div className="lib-sync">
+          <div className="lib-code-row">
+            <span className="lib-code-label">{t(lang, "libCode")}</span>
+            <button className="lib-code" onClick={() => { navigator.clipboard?.writeText(code); }} title={t(lang, "libCopyCode")}>
+              {code || "…"}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            <button className="lib-restore-btn" onClick={() => setShowSync((s) => !s)}>{t(lang, "libRestore")}</button>
+          </div>
+          <p className="lib-code-hint">{t(lang, "libCodeHint")}</p>
+          {showSync && (
+            <div className="lib-restore">
+              <input value={restoreCode} onChange={(e) => setRestoreCode(e.target.value)}
+                placeholder="AURA-XXXX-XXXX" className="lib-restore-input" />
+              <button className="cta" style={{ height: 44, maxWidth: 130 }} onClick={restore} disabled={syncing}>
+                {syncing ? "…" : t(lang, "libLoad")}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Filter chips */}

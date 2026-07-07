@@ -116,6 +116,11 @@ const D: Dict = {
   libBadgeComic: { bg: "Комикс", en: "Comic", de: "Comic", fr: "BD", ru: "Комикс" },
   libBadgeStory: { bg: "Приказка", en: "Story", de: "Geschichte", fr: "Histoire", ru: "Сказка" },
   libFor: { bg: "за", en: "for", de: "für", fr: "pour", ru: "для" },
+  libCode: { bg: "Семеен код", en: "Family code", de: "Familiencode", fr: "Code famille", ru: "Семейный код" },
+  libCopyCode: { bg: "Копирай кода", en: "Copy code", de: "Code kopieren", fr: "Copier le code", ru: "Копировать код" },
+  libCodeHint: { bg: "Запази този код — с него виждаш историите си на всяко устройство.", en: "Keep this code — use it to see your stories on any device.", de: "Bewahre diesen Code auf — damit siehst du deine Geschichten auf jedem Gerät.", fr: "Garde ce code — il te permet de voir tes histoires sur tout appareil.", ru: "Сохрани этот код — с ним ты увидишь свои истории на любом устройстве." },
+  libRestore: { bg: "Друго устройство", en: "Other device", de: "Anderes Gerät", fr: "Autre appareil", ru: "Другое устройство" },
+  libLoad: { bg: "Зареди", en: "Load", de: "Laden", fr: "Charger", ru: "Загрузить" },
 
   // ---- Themes ----
   thDragon: { bg: "Дракони", en: "Dragons", de: "Drachen", fr: "Dragons", ru: "Драконы" },
