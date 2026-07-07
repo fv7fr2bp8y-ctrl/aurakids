@@ -33,8 +33,8 @@ const DOOR_PROMPTS = {
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const DOOR_COVERS = {
-  story: `${ASSETS}/door-story.png`,
-  comic: `${ASSETS}/door-comic.png`,
+  story: `${ASSETS}/door-story-card.png`,
+  comic: `${ASSETS}/door-comic-card.png`,
 };
 
 function DoorImage({ kind }: { kind: "story" | "comic" }) {

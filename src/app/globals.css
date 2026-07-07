@@ -222,8 +222,8 @@ svg { background: transparent; }
 .prose { font-family:var(--font-story);font-size:17px;line-height:1.9;color:#2A2A4A; }
 .prose p { margin-bottom:1.1em; }
 .prose .drop::first-letter { font-size:3.1em;float:left;line-height:0.84;padding:4px 9px 0 0;color:var(--ak-purple-mid);font-weight:700; }
-.player { position:sticky;bottom:0;z-index:20;padding:18px 24px 24px;
-  background:rgba(255,248,240,0.9);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,0.05); }
+.player { position:sticky;bottom:0;z-index:20;padding:14px 24px calc(18px + env(safe-area-inset-bottom));
+  background:rgba(255,248,240,0.92);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,0.05); }
 .player-inner { max-width:480px;margin:0 auto; }
 .player-row { display:flex;align-items:center;gap:14px; }
 .playbtn { width:52px;height:52px;border-radius:50%;flex:0 0 auto;border:none;cursor:pointer;
@@ -290,7 +290,7 @@ svg { background: transparent; }
   background:linear-gradient(180deg,transparent,rgba(15,5,32,0.6));font-size:12.5px;font-style:italic;color:rgba(255,255,255,0.9);text-align:center; }
 
 /* voice picker (bottom-right of reader) */
-.voicepick { position:fixed;right:16px;bottom:96px;z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:8px; }
+.voicepick { position:fixed;right:16px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:8px; }
 .voicepick-toggle { display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--radius-pill);
   background:rgba(59,26,107,0.92);color:#fff;border:1px solid rgba(255,255,255,0.16);font-size:13px;font-weight:600;
   cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.35);backdrop-filter:blur(10px); }
@@ -370,12 +370,9 @@ svg { background: transparent; }
   font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }
 
 /* door images */
-.door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:164px;overflow:hidden;
+.door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:130px;overflow:hidden;
   border-radius:calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0;
   background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
-/* keep each door's subject in frame instead of a bad centre crop */
-.door-story .door-img img { object-position: 62% 58%; }
-.door-comic .door-img img { object-position: 50% 34%; }
 .app-door { overflow:hidden; }
 
 /* theme tile covers */
