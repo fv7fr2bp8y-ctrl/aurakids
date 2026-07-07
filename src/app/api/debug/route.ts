@@ -8,8 +8,43 @@ export async function GET() {
   checks.OPENAI_API_KEY = process.env.OPENAI_API_KEY ? "SET" : "MISSING";
   checks.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ? "SET" : "MISSING";
   checks.GEMINI_API_KEY = process.env.GEMINI_API_KEY ? "SET" : "MISSING";
+  checks.GOOGLE_API_KEY = process.env.GOOGLE_API_KEY ? "SET" : "MISSING";
+  checks.ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ? "SET" : "MISSING";
   checks.SUPABASE_URL = process.env.SUPABASE_URL ? "SET" : "MISSING";
   checks.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ? "SET" : "MISSING";
+
+  // ---- TTS provider live checks ----
+  const gKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (gKey) {
+    try {
+      const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: { text: "здравей" },
+          voice: { languageCode: "bg-BG", name: "bg-BG-Chirp3-HD-Aoede" },
+          audioConfig: { audioEncoding: "MP3" },
+        }),
+      });
+      checks.google_cloud_tts = r.ok ? "OK — got audio" : `FAILED ${r.status} — ${(await r.text()).slice(0, 300)}`;
+    } catch (e: unknown) {
+      checks.google_cloud_tts = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
+    }
+  } else {
+    checks.google_cloud_tts = "SKIP — no GOOGLE_API_KEY/GEMINI_API_KEY";
+  }
+
+  const elKey = process.env.ELEVENLABS_API_KEY;
+  if (elKey) {
+    try {
+      const r = await fetch("https://api.elevenlabs.io/v1/user", { headers: { "xi-api-key": elKey } });
+      checks.elevenlabs = r.ok ? "OK — key valid" : `FAILED ${r.status} — ${(await r.text()).slice(0, 200)}`;
+    } catch (e: unknown) {
+      checks.elevenlabs = `EXCEPTION — ${e instanceof Error ? e.message : String(e)}`;
+    }
+  } else {
+    checks.elevenlabs = "SKIP — no ELEVENLABS_API_KEY";
+  }
 
   // Test Supabase
   try {
