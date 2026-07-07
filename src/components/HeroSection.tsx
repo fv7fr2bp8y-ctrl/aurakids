@@ -65,6 +65,40 @@ function DoorImage({ kind }: { kind: "story" | "comic" }) {
   );
 }
 
+function LangDropdown({ lang, onLangChange }: { lang: string; onLangChange: (l: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const cur = LANGS.find((l) => l.id === lang) || LANGS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <div className="lang-dd" onClick={(e) => e.stopPropagation()}>
+      <button className="lang-trigger" onClick={() => setOpen((o) => !o)} aria-label="Език">
+        <span style={{ fontSize: 19 }}>{cur.flag}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
+          strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="lang-menu">
+          {LANGS.map((l) => (
+            <button key={l.id} className={`lang-item ${l.id === lang ? "on" : ""}`}
+              onClick={() => { onLangChange(l.id); setOpen(false); }}>
+              <span style={{ fontSize: 18 }}>{l.flag}</span> {l.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary }: HeroSectionProps) {
 
   return (
@@ -77,21 +111,13 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         {/* Nav */}
         <div className="home-nav">
           <div className="brandrow">
-            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={44} height={44} unoptimized
+            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={56} height={56} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span>{soleFormat && (
               <span className="wm-sub">{t(lang, soleFormat === "comic" ? "appTagComic" : "appTagStory")}</span>
             )}</span>
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {LANGS.map((l) => (
-              <button key={l.id} onClick={() => onLangChange(l.id)} title={l.label}
-                style={{ fontSize: 17, background: "none", border: "none", cursor: "pointer",
-                  opacity: lang === l.id ? 1 : 0.4, transform: lang === l.id ? "scale(1.2)" : "none", transition: "all .2s" }}>
-                {l.flag}
-              </button>
-            ))}
-          </div>
+          <LangDropdown lang={lang} onLangChange={onLangChange} />
         </div>
 
         {/* Body */}

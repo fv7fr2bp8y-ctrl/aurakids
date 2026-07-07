@@ -120,8 +120,24 @@ svg { background: transparent; }
 /* ============ HOME ============ */
 .home-hero-bg { background: var(--grad-hero); }
 .home-nav { display:flex;align-items:center;justify-content:space-between;padding:24px 0 8px; }
-.brandrow { display:flex;align-items:center;gap:10px; }
-.brandrow .wm { font-weight:800;font-size:20px;color:#fff;letter-spacing:-0.02em; }
+.brandrow { display:flex;align-items:center;gap:12px; }
+.brandrow .wm { font-weight:800;font-size:25px;color:#fff;letter-spacing:-0.02em; }
+
+/* language dropdown */
+.lang-dd { position:relative; }
+.lang-trigger { display:flex;align-items:center;gap:7px;height:40px;padding:0 12px;border-radius:999px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);color:#fff;cursor:pointer;
+  backdrop-filter:blur(12px);transition:background .2s; }
+.lang-trigger:hover { background:rgba(255,255,255,0.14); }
+.lang-menu { position:absolute;top:48px;right:0;z-index:30;min-width:168px;padding:6px;
+  background:rgba(30,12,58,0.96);border:1px solid rgba(255,255,255,0.14);border-radius:14px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.45);backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;gap:2px;animation:rise .18s ease; }
+.lang-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border:none;cursor:pointer;
+  background:transparent;color:rgba(255,255,255,0.8);font-family:inherit;font-size:14.5px;font-weight:600;
+  border-radius:10px;text-align:left;transition:background .15s; }
+.lang-item:hover { background:rgba(255,255,255,0.08);color:#fff; }
+.lang-item.on { background:rgba(255,217,61,0.14);color:#fff; }
 .brandrow .wm-kids { background:linear-gradient(90deg,#FF6B6B,#FFC93C);-webkit-background-clip:text;background-clip:text;color:transparent; }
 .pillbtn { padding:8px 16px;border-radius:var(--radius-pill);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:13px;font-weight:600;cursor:pointer; }
 .hero-h1 { font-size:clamp(38px,9vw,56px);font-weight:800;line-height:1.06;letter-spacing:-0.02em;color:#fff;margin:18px 0 14px; }
@@ -354,9 +370,12 @@ svg { background: transparent; }
   font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }
 
 /* door images */
-.door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:130px;overflow:hidden;
+.door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:164px;overflow:hidden;
   border-radius:calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0;
   background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }
+/* keep each door's subject in frame instead of a bad centre crop */
+.door-story .door-img img { object-position: 62% 58%; }
+.door-comic .door-img img { object-position: 50% 34%; }
 .app-door { overflow:hidden; }
 
 /* theme tile covers */
