@@ -23,6 +23,17 @@ interface BrandInfo {
   iconVariant: string; // query passed to /api/icon (?app=…)
 }
 
+// Runtime mode: on the combined deployment the path decides the product
+// (/prikazki → story, /komiksi → comic). Falls back to the build-time APP.
+export function runtimeMode(): AppMode {
+  if (typeof window !== "undefined") {
+    const p = window.location.pathname;
+    if (p.startsWith("/komiksi")) return "comic";
+    if (p.startsWith("/prikazki")) return "story";
+  }
+  return APP;
+}
+
 export const BRAND: BrandInfo = {
   story: { name: "AuraKids Приказки", short: "Приказки", iconVariant: "story" },
   comic: { name: "AuraKids Комикси", short: "Комикси", iconVariant: "comic" },

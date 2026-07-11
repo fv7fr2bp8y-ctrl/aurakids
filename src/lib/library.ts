@@ -2,7 +2,7 @@
 // a cloud copy keyed by a "family code" so it survives across devices.
 import type { ComicData } from "@/components/ComicDisplay";
 import type { StoryData } from "@/components/StoryGenerator";
-import { APP } from "./appConfig";
+import { runtimeMode } from "./appConfig";
 
 export interface LibraryItem {
   id: string;
@@ -15,10 +15,10 @@ export interface LibraryItem {
   data: ComicData | StoryData;
 }
 
-// Each dedicated build keeps its own library; the combined app keeps the shared one.
-const KEY = APP === "story" ? "ak-library-story" : APP === "comic" ? "ak-library-comic" : "ak-library";
+// Each product keeps its own library (by build or by /prikazki|/komiksi path).
+function scope() { return runtimeMode(); }
+function libKey() { const m = scope(); return m === "story" ? "ak-library-story" : m === "comic" ? "ak-library-comic" : "ak-library"; }
 const CODE_KEY = "ak-family-code";
-const SCOPE = APP; // story | comic | both — keeps builds' items separate within one code
 
 // ---- Family code (the key to the cloud library) ----
 export function getFamilyCode(): string {
@@ -39,20 +39,17 @@ export function setFamilyCode(code: string) {
   if (typeof window !== "undefined") localStorage.setItem(CODE_KEY, code.trim().toUpperCase());
 }
 
-// The cloud file mixes both builds; tag each item with its scope so we can filter.
-function scopedId(code: string) { return code; }
-
 export function getLibrary(): LibraryItem[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
+    return JSON.parse(localStorage.getItem(libKey()) || "[]");
   } catch {
     return [];
   }
 }
 
 function writeLocal(items: LibraryItem[]) {
-  try { localStorage.setItem(KEY, JSON.stringify(items.slice(0, 50))); } catch { /* full */ }
+  try { localStorage.setItem(libKey(), JSON.stringify(items.slice(0, 50))); } catch { /* full */ }
 }
 
 export function saveToLibrary(item: Omit<LibraryItem, "id" | "date">) {
@@ -60,24 +57,24 @@ export function saveToLibrary(item: Omit<LibraryItem, "id" | "date">) {
   const items = [full, ...getLibrary()];
   writeLocal(items);
   // Fire-and-forget cloud sync.
-  const code = getFamilyCode();
   fetch("/api/library", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: scopedId(code), item: { ...full, scope: SCOPE } }),
+    body: JSON.stringify({ code: getFamilyCode(), item: { ...full, scope: scope() } }),
   }).catch(() => {});
 }
 
 // Pull the cloud library for this code and merge into local (used on load and
-// when restoring on a new device). Returns the merged list for this build.
+// when restoring on a new device). Returns the merged list for this product.
 export async function syncLibrary(code?: string): Promise<LibraryItem[]> {
   const c = (code || getFamilyCode()).toUpperCase();
   if (code) setFamilyCode(c);
+  const s = scope();
   try {
     const res = await fetch(`/api/library?code=${encodeURIComponent(c)}`);
     const { items } = await res.json();
     const remote: (LibraryItem & { scope?: string })[] = Array.isArray(items) ? items : [];
-    const mine = remote.filter((i) => (i.scope ?? "both") === SCOPE || SCOPE === "both");
+    const mine = remote.filter((i) => (i.scope ?? "both") === s || s === "both");
     // Merge remote + local, dedupe by id, newest first.
     const byId = new Map<string, LibraryItem>();
     for (const i of [...mine, ...getLibrary()]) byId.set(i.id, i);

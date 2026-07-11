@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LANGS, t } from "@/lib/i18n";
 import { Library as LibraryIcon } from "./Icons";
-import { soleFormat } from "@/lib/appConfig";
+import { soleFormat as buildSoleFormat } from "@/lib/appConfig";
 
 interface HeroSectionProps {
   lang: string;
@@ -12,6 +12,7 @@ interface HeroSectionProps {
   onStartStory: () => void;
   onStartComic: () => void;
   onOpenLibrary: () => void;
+  soleFormat?: "story" | "comic" | null;
 }
 
 function Stars5() {
@@ -99,7 +100,8 @@ function LangDropdown({ lang, onLangChange }: { lang: string; onLangChange: (l: 
   );
 }
 
-export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary }: HeroSectionProps) {
+export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary, soleFormat: soleProp }: HeroSectionProps) {
+  const soleFormat = soleProp !== undefined ? soleProp : buildSoleFormat;
 
   return (
     <section className="ak-screen home-hero-bg">
