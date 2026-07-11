@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import OpenAI from "openai";
+import { requireAdmin } from "@/lib/adminAuth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   const checks: Record<string, string> = {};
 
   checks.OPENAI_API_KEY = process.env.OPENAI_API_KEY ? "SET" : "MISSING";

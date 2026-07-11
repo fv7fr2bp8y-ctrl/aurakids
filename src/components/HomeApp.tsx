@@ -50,10 +50,15 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
     );
   }
 
+  // On the combined home the two doors lead to the dedicated apps, so an
+  // install from there picks up the right PWA (name, icon, scope).
+  const goStory = isBoth ? () => { window.location.href = "/prikazki"; } : () => setMode("story");
+  const goComic = isBoth ? () => { window.location.href = "/komiksi"; } : () => setMode("comic");
+
   return (
     <main className="flex flex-col min-h-screen">
       <HeroSection lang={lang} onLangChange={changeLang} soleFormat={sole}
-        onStartStory={() => setMode("story")} onStartComic={() => setMode("comic")}
+        onStartStory={goStory} onStartComic={goComic}
         onOpenLibrary={() => setMode("library")} />
       {isBoth && lang === "bg" && (
         <>

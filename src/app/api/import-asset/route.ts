@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveImageToStorage } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export const maxDuration = 60;
 
@@ -16,6 +17,8 @@ async function importAsset(id: string, name: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   const p = req.nextUrl.searchParams;
   try {
     return await importAsset(p.get("id") || "", p.get("name") || "");
@@ -25,6 +28,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   try {
     const { id, name } = await req.json();
     return await importAsset(id, name);

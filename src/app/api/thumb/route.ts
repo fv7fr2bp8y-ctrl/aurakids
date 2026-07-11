@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { requireAdmin } from "@/lib/adminAuth";
 
 // Small helper: returns a tiny JPEG (base64) of a story-images asset, so the
 // image can be inspected without downloading the full-size file. Name-restricted
@@ -9,6 +10,8 @@ const BASE = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   try {
     const name = req.nextUrl.searchParams.get("name") || "";
     if (!/^[\w.-]{1,80}\.(png|jpg|jpeg|webp)$/i.test(name)) {

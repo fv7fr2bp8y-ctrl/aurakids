@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/adminAuth";
 
 // Lightweight voice/TTS diagnostic — only checks the TTS providers so the
 // response is fast. Reports which key is present and the live API result.
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   const out: Record<string, string> = {};
   const gKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
