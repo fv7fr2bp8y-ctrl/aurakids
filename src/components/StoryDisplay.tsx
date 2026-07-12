@@ -174,7 +174,9 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
         </div>
 
         <div className="endcard">
-          <div className="ee">🌟</div>
+          <div className="ee" style={{ color: "var(--ak-gold)", display: "flex", justifyContent: "center" }}>
+            <Sparkle size={40} />
+          </div>
           <h4>{t(lang, "theEnd")}</h4>
           <p>{t(lang, "endText")} {story.childName}.</p>
           <button className="cta" onClick={onBack}><Sparkle size={18} /> {t(lang, "newStoryBtn")}</button>

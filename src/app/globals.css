@@ -141,6 +141,8 @@ svg { background: transparent; }
 .brandrow .wm-kids { background:linear-gradient(90deg,#FF6B6B,#FFC93C);-webkit-background-clip:text;background-clip:text;color:transparent; }
 .pillbtn { padding:8px 16px;border-radius:var(--radius-pill);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:13px;font-weight:600;cursor:pointer; }
 .hero-h1 { font-size:clamp(38px,9vw,56px);font-weight:800;line-height:1.06;letter-spacing:-0.02em;color:#fff;margin:18px 0 14px; }
+/* dedicated app: tighter headline so the door + CTA sit above the fold */
+.hero-h1.solo { font-size:clamp(30px,7.5vw,42px);margin:14px 0 10px; }
 .hero-sub { font-size:16px;line-height:1.6;color:rgba(255,255,255,0.66);max-width:340px; }
 .hero-illus { position:relative;height:300px;border-radius:var(--radius-xl);margin:24px 0 22px;overflow:hidden;
   background:radial-gradient(120% 120% at 50% 20%,#7b3fd6,#3B1A6B 60%,#1A0533);
@@ -197,10 +199,10 @@ svg { background: transparent; }
 /* loading overlay */
 .loading { position:fixed;inset:0;z-index:80;background:var(--grad-hero);
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;animation:rise .4s ease; }
-.loading .orb { width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+.orb { width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:56px;background:radial-gradient(circle at 40% 35%,#7b3fd6,#3B1A6B);
   box-shadow:0 0 60px rgba(155,111,232,0.6);margin-bottom:30px;animation:floaty 4s ease-in-out infinite;position:relative; }
-.loading .ring { position:absolute;inset:-12px;border-radius:50%;border:2px solid transparent;
+.orb .ring { position:absolute;inset:-12px;border-radius:50%;border:2px solid transparent;
   border-top-color:var(--ak-gold);border-right-color:var(--ak-coral);animation:spin 1.4s linear infinite; }
 .loading h3 { font-size:23px;font-weight:800;color:#fff;letter-spacing:-0.01em;margin-bottom:10px; }
 .loading p { font-size:14px;color:rgba(255,255,255,0.55);max-width:260px;line-height:1.5; }
@@ -360,7 +362,10 @@ svg { background: transparent; }
 .door-solo .door-img { width:100%;height:210px;margin:0 0 4px; }
 .door-solo .door-title { font-size:22px;padding:0 18px; }
 .door-solo .door-desc { font-size:13.5px;padding:0 18px; }
-.door-solo .door-cta { font-size:15px;padding:0 18px 16px; }
+/* the door's CTA is a real gradient button, not a text link */
+.door-solo .door-cta { display:flex;align-items:center;justify-content:center;align-self:stretch;
+  margin:12px 18px 18px;height:52px;border-radius:14px;font-size:16.5px;font-weight:700;
+  background:var(--grad-accent);color:var(--ak-purple-deep);box-shadow:var(--shadow-cta); }
 .brandrow .wm-sub { display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;
   font-size:12px;font-weight:700;color:var(--ak-purple-night);background:var(--grad-accent);
   vertical-align:middle;-webkit-text-fill-color:var(--ak-purple-night); }

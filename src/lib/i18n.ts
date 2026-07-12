@@ -27,6 +27,8 @@ const D: Dict = {
   doorComicTitle: { bg: "Комикс студио", en: "Comic Studio", de: "Comic-Studio", fr: "Studio BD", ru: "Комикс-студия" },
   doorComicDesc: { bg: "Цели комикс страници с реплики и екшън", en: "Full comic pages with dialogue and action", de: "Ganze Comicseiten mit Dialogen und Action", fr: "Des pages de BD complètes avec dialogues et action", ru: "Целые страницы комиксов с репликами и экшеном" },
   doorComicCta: { bg: "Нарисувай →", en: "Draw →", de: "Zeichnen →", fr: "Dessiner →", ru: "Нарисовать →" },
+  doorStoryCtaFull: { bg: "Създай приказка", en: "Create a story", de: "Geschichte erstellen", fr: "Créer une histoire", ru: "Создать сказку" },
+  doorComicCtaFull: { bg: "Нарисувай комикс", en: "Draw a comic", de: "Comic zeichnen", fr: "Dessiner une BD", ru: "Нарисовать комикс" },
   micro1: { bg: "Безплатно", en: "Free", de: "Kostenlos", fr: "Gratuit", ru: "Бесплатно" },
   micro2: { bg: "Готово за около минута", en: "Ready in about a minute", de: "Fertig in etwa einer Minute", fr: "Prêt en une minute environ", ru: "Готово примерно за минуту" },
   micro3: { bg: "Запазена завинаги", en: "Saved forever", de: "Für immer gespeichert", fr: "Gardée pour toujours", ru: "Сохранится навсегда" },

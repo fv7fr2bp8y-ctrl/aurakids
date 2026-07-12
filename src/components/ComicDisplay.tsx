@@ -91,7 +91,9 @@ export default function ComicDisplay({ comic, lang: langProp, onBack, onHome }: 
       {/* End */}
       <div className="ak-col" style={{ paddingBottom: 48 }}>
         <div className="endcard" style={{ display: "block" }}>
-          <div className="ee">💥</div>
+          <div className="ee" style={{ color: "var(--ak-coral)", display: "flex", justifyContent: "center" }}>
+            <ComicIcon size={40} />
+          </div>
           <h4>{t(lang, "comicEnd")}</h4>
           <p>{t(lang, "comicEndText")} {comic.childName}.</p>
           <button className="cta" onClick={onBack}><ComicIcon size={18} /> {t(lang, "newComicBtn")}</button>

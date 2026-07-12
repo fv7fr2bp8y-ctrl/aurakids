@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LANGS, t } from "@/lib/i18n";
-import { Library as LibraryIcon } from "./Icons";
+import { Library as LibraryIcon, Sparkle, Comic as ComicIcon } from "./Icons";
 import { soleFormat as buildSoleFormat } from "@/lib/appConfig";
 
 interface HeroSectionProps {
@@ -128,7 +128,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
             {t(lang, "badge")}
           </span>
 
-          <h1 className="hero-h1" data-rise style={{ animationDelay: ".12s" }}>
+          <h1 className={`hero-h1 ${soleFormat ? "solo" : ""}`} data-rise style={{ animationDelay: ".12s" }}>
             {t(lang, "h1a")}<br />{t(lang, "h1b")}<br />
             <span className="shimmer">{t(lang, "h1c")}</span>
           </h1>
@@ -145,7 +145,10 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
                 <DoorImage kind={soleFormat} />
                 <span className="door-title">{t(lang, soleFormat === "comic" ? "doorComicTitle" : "doorStoryTitle")}</span>
                 <span className="door-desc">{t(lang, soleFormat === "comic" ? "doorComicDesc" : "doorStoryDesc")}</span>
-                <span className="door-cta">{t(lang, soleFormat === "comic" ? "doorComicCta" : "doorStoryCta")}</span>
+                <span className="door-cta">
+                  {soleFormat === "comic" ? <ComicIcon size={18} /> : <Sparkle size={18} />}
+                  &nbsp;{t(lang, soleFormat === "comic" ? "doorComicCtaFull" : "doorStoryCtaFull")}
+                </span>
               </button>
             </div>
           ) : (
