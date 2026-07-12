@@ -5,6 +5,32 @@ import { NextRequest, NextResponse } from "next/server";
 // (a one-time price created in the Stripe dashboard).
 const CODE = /^[A-Z0-9-]{8,40}$/;
 
+// GET = configuration self-check: verifies the key and price against Stripe
+// without creating anything. Exposes only booleans + the public price.
+export async function GET() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  const price = process.env.STRIPE_PRICE_ID;
+  if (!key || !price) {
+    return NextResponse.json({ configured: false, STRIPE_SECRET_KEY: key ? "SET" : "MISSING", STRIPE_PRICE_ID: price ? "SET" : "MISSING" });
+  }
+  try {
+    const res = await fetch(`https://api.stripe.com/v1/prices/${price}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    const p = await res.json();
+    if (!res.ok) return NextResponse.json({ configured: false, error: p?.error?.message || res.status });
+    return NextResponse.json({
+      configured: true,
+      livemode: p.livemode,
+      currency: p.currency,
+      amount: p.unit_amount != null ? p.unit_amount / 100 : null,
+      type: p.type,
+    });
+  } catch (e) {
+    return NextResponse.json({ configured: false, error: e instanceof Error ? e.message : "error" });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { code: raw } = await req.json();
