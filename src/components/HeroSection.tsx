@@ -37,7 +37,7 @@ const DOOR_PROMPTS = {
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const DOOR_COVERS = {
   story: `${ASSETS}/door-story-card.png`,
-  comic: `${ASSETS}/door-comic-card.png`,
+  comic: `${ASSETS}/door-comic.png`, // 00-original-reference — hero over comic panels
 };
 
 function DoorImage({ kind }: { kind: "story" | "comic" }) {
