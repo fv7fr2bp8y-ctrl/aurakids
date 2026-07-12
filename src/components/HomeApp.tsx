@@ -34,6 +34,10 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
   const genFormat: "story" | "comic" = sole ?? (mode === "comic" ? "comic" : "story");
   const startPrimary = () => setMode(sole ?? "story");
 
+  // Robust "go home" for the logo: reset SPA state AND scroll to top. Works
+  // from any screen (create flow, reader, demo).
+  const goHome = () => { setMode("home"); if (typeof window !== "undefined") window.scrollTo(0, 0); };
+
   if (mode === "library") {
     return (
       <main className="flex flex-col min-h-screen">
@@ -46,7 +50,7 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
     return (
       <main className="flex flex-col min-h-screen">
         <StoryGenerator format={genFormat} lang={lang} onLangChange={changeLang}
-          onBack={() => setMode("home")} onHome={() => setMode("home")} />
+          onBack={() => setMode("home")} onHome={goHome} />
       </main>
     );
   }
@@ -61,7 +65,7 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
       <HeroSection lang={lang} onLangChange={changeLang} soleFormat={sole}
         onStartStory={goStory} onStartComic={goComic}
         onOpenLibrary={() => setMode("library")}
-        onHome={() => { if (isBoth) window.location.href = "/"; else setMode("home"); }} />
+        onHome={goHome} />
       {isBoth && lang === "bg" && (
         <>
           <HowItWorks />
