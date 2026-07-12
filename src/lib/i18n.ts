@@ -65,6 +65,9 @@ const D: Dict = {
   demoGetApp: { bg: "📲 Вземи приложението", en: "📲 Get the app", de: "📲 App holen", fr: "📲 Obtenir l'app", ru: "📲 Получить приложение" },
   demoBack: { bg: "Обратно", en: "Back", de: "Zurück", fr: "Retour", ru: "Назад" },
   demoSoon: { bg: "Скоро в App Store и Google Play", en: "Coming soon to the App Store and Google Play", de: "Bald im App Store und bei Google Play", fr: "Bientôt sur l'App Store et Google Play", ru: "Скоро в App Store и Google Play" },
+  demoUnlockWeb: { bg: "Отключи пълен достъп", en: "Unlock full access", de: "Vollzugang freischalten", fr: "Débloquer l'accès complet", ru: "Открыть полный доступ" },
+  demoUnlockNote: { bg: "Еднократно плащане · важи на всички твои устройства", en: "One-time payment · works on all your devices", de: "Einmalige Zahlung · gilt auf allen deinen Geräten", fr: "Paiement unique · valable sur tous tes appareils", ru: "Разовый платёж · работает на всех твоих устройствах" },
+  payUnavailable: { bg: "Плащането не е достъпно в момента. Опитай пак след малко.", en: "Payment is unavailable right now. Please try again shortly.", de: "Zahlung derzeit nicht verfügbar. Versuch es gleich nochmal.", fr: "Paiement indisponible pour le moment. Réessaie bientôt.", ru: "Оплата сейчас недоступна. Попробуй чуть позже." },
   privacy: { bg: "Политика за поверителност", en: "Privacy Policy", de: "Datenschutz", fr: "Confidentialité", ru: "Политика конфиденциальности" },
 
   // ---- Loading ----

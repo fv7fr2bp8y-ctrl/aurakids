@@ -97,6 +97,33 @@ export async function putLibraryFile(code: string, items: unknown[]): Promise<bo
   }
 }
 
+// ---------- Paid unlock markers (per family code) ----------
+export async function markUnlocked(code: string): Promise<boolean> {
+  const sb = getSupabase();
+  if (!sb) return false;
+  try {
+    await ensureLibBucket(sb);
+    const body = new Blob([JSON.stringify({ unlocked: true, at: new Date().toISOString() })], { type: "application/json" });
+    const { error } = await sb.storage.from(LIB_BUCKET).upload(`unlocks/${code}.json`, body, {
+      contentType: "application/json", upsert: true,
+    });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function isCodeUnlocked(code: string): Promise<boolean> {
+  const sb = getSupabase();
+  if (!sb) return false;
+  try {
+    const { data, error } = await sb.storage.from(LIB_BUCKET).download(`unlocks/${code}.json`);
+    return !error && !!data;
+  } catch {
+    return false;
+  }
+}
+
 export async function getCachedAudio(fileName: string): Promise<string | null> {
   const sb = getSupabase();
   if (!sb) return null;

@@ -7,7 +7,8 @@ import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
-import { canGenerate, recordGeneration, initUnlock } from "@/lib/demo";
+import { canGenerate, recordGeneration, initUnlock, checkServerUnlock } from "@/lib/demo";
+import { getFamilyCode } from "@/lib/library";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -105,8 +106,33 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const [comicData, setComicData] = useState<ComicData | null>(null);
   const [error, setError] = useState("");
   const [demoBlocked, setDemoBlocked] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
 
-  useEffect(() => { initUnlock(); }, []);
+  useEffect(() => {
+    initUnlock();
+    // A paid family code unlocks any device it's restored on.
+    checkServerUnlock(getFamilyCode()).catch(() => {});
+  }, []);
+
+  const startCheckout = async () => {
+    setPaying(true);
+    setPayError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: getFamilyCode() }),
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      setPayError(t(lang, "payUnavailable"));
+    } catch {
+      setPayError(t(lang, "payUnavailable"));
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const prefetchRef = useRef<Promise<Record<string, unknown>> | null>(null);
   const prefetchKeyRef = useRef<string>("");
@@ -281,12 +307,17 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "demoTitle")}</h2>
           <p className="step-help" style={{ textAlign: "center", margin: "10px auto 28px", maxWidth: 320 }}>{t(lang, "demoBody")}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 340, margin: "0 auto", width: "100%" }}>
-            <a className="cta" href="#" onClick={(e) => e.preventDefault()} style={{ opacity: 0.6, pointerEvents: "none" }}>
-              {t(lang, "demoGetApp")}
-            </a>
+            <button className="cta" onClick={startCheckout} disabled={paying}>
+              <Sparkle size={18} /> {paying ? "…" : t(lang, "demoUnlockWeb")}
+            </button>
             <button className="cta ghost" onClick={onBack}>{t(lang, "demoBack")}</button>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>{t(lang, "demoSoon")}</p>
+          {payError && (
+            <p style={{ fontSize: 13, color: "#ff9a9a", marginTop: 14 }}>{payError}</p>
+          )}
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>
+            {t(lang, "demoUnlockNote")} · {t(lang, "demoSoon")}
+          </p>
         </div>
       </section>
     );

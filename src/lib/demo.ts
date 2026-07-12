@@ -41,3 +41,18 @@ export function recordGeneration(format: "story" | "comic") {
   try { localStorage.setItem(keyFor(format), String(demoUsed(format) + 1)); }
   catch { /* ignore */ }
 }
+
+// A paid unlock is stored server-side against the family code, so it follows
+// the family to any device (restore the code → unlocked). Called on app load.
+export async function checkServerUnlock(code: string): Promise<boolean> {
+  if (!code || isUnlocked()) return isUnlocked();
+  try {
+    const res = await fetch(`/api/unlocked?code=${encodeURIComponent(code)}`);
+    const { unlocked } = await res.json();
+    if (unlocked) {
+      localStorage.setItem(UNLOCK_KEY, "1");
+      return true;
+    }
+  } catch { /* offline — keep demo state */ }
+  return false;
+}
