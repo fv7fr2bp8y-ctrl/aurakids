@@ -50,6 +50,9 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/api/unlock?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/?canceled=1`,
       "metadata[code]": code,
+      // What shows on the buyer's bank statement (Latin, ≤22 chars).
+      "payment_intent_data[statement_descriptor]": "AURAKIDS",
+      "payment_intent_data[statement_descriptor_suffix]": "AURAKIDS",
       locale: "auto",
     });
 
