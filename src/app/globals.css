@@ -215,13 +215,14 @@ svg { background: transparent; }
 .orb .orbit i:nth-child(3) { top:50%;left:-4px;margin-top:-4.5px;margin-left:0;background:#7bd8ff;box-shadow:0 0 10px #7bd8ff; }
 /* rising themed magic dust */
 .dust { position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0; }
-.dust .dot-glyph { position:absolute;bottom:-8%;opacity:0;filter:drop-shadow(0 0 6px rgba(255,217,61,0.35));
-  animation:dustRise linear infinite; }
+.dust .dot-glyph { position:absolute;bottom:-4%;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,#fff 0%,var(--ak-gold) 60%,transparent 100%);
+  box-shadow:0 0 8px rgba(255,217,61,0.6);animation:dustRise linear infinite; }
 @keyframes dustRise {
-  0%{opacity:0;transform:translateY(0) scale(.6) rotate(0)}
-  12%{opacity:.9}
-  80%{opacity:.7}
-  100%{opacity:0;transform:translateY(-108vh) scale(1.1) rotate(40deg)} }
+  0%{opacity:0;transform:translateY(0) scale(.5)}
+  12%{opacity:.85}
+  80%{opacity:.55}
+  100%{opacity:0;transform:translateY(-108vh) scale(1.1)} }
 /* progress bar filling toward completion */
 .load-bar { position:relative;width:230px;max-width:70vw;height:7px;border-radius:99px;margin-top:22px;
   background:rgba(255,255,255,0.12);overflow:hidden;z-index:1; }
