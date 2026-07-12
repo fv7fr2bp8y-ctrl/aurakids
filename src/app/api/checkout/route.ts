@@ -25,6 +25,7 @@ export async function GET() {
       currency: p.currency,
       amount: p.unit_amount != null ? p.unit_amount / 100 : null,
       type: p.type,
+      webhook: process.env.STRIPE_WEBHOOK_SECRET ? "SET" : "MISSING",
     });
   } catch (e) {
     return NextResponse.json({ configured: false, error: e instanceof Error ? e.message : "error" });
