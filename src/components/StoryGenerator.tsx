@@ -23,6 +23,7 @@ const STYLE_IMG: Record<string, string> = {
   pixar: `${ASSETS}/style-pixar.png`,
   cartoon: `${ASSETS}/style-cartoon.png`,
   manga: `${ASSETS}/style-manga.png`,
+  retro: `${ASSETS}/style-retro.png`,
 };
 
 interface StoryGeneratorProps {
