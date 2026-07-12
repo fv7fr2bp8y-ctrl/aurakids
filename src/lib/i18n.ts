@@ -63,6 +63,7 @@ const D: Dict = {
   demoGetApp: { bg: "📲 Вземи приложението", en: "📲 Get the app", de: "📲 App holen", fr: "📲 Obtenir l'app", ru: "📲 Получить приложение" },
   demoBack: { bg: "Обратно", en: "Back", de: "Zurück", fr: "Retour", ru: "Назад" },
   demoSoon: { bg: "Скоро в App Store и Google Play", en: "Coming soon to the App Store and Google Play", de: "Bald im App Store und bei Google Play", fr: "Bientôt sur l'App Store et Google Play", ru: "Скоро в App Store и Google Play" },
+  privacy: { bg: "Политика за поверителност", en: "Privacy Policy", de: "Datenschutz", fr: "Confidentialité", ru: "Политика конфиденциальности" },
 
   // ---- Loading ----
   loadStory: { bg: "Приказката се ражда…", en: "The story is being born…", de: "Die Geschichte entsteht…", fr: "L'histoire prend vie…", ru: "Сказка рождается…" },

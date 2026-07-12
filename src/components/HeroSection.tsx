@@ -180,6 +180,10 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
             <Stars5 />
             <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> {t(lang, "rating")}</span>
           </div>
+
+          <a href="/privacy" style={{ display: "block", marginTop: 22, fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}>
+            {t(lang, "privacy")}
+          </a>
         </div>
       </div>
     </section>

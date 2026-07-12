@@ -14,6 +14,9 @@ export default function Footer() {
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
           © 2025 AuraKids · aurakids.fun · Всички права запазени
         </p>
+        <a href="/privacy" className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+          Политика за поверителност
+        </a>
       </div>
     </footer>
   );

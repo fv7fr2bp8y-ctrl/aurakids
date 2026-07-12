@@ -101,4 +101,4 @@ npx cap open ios        # отваря Xcode → Archive → Distribute
 - [ ] `.aab` × 2 качени в Play
 - [ ] `.ipa` × 2 качени в App Store Connect
 - [ ] Листинги от `store/listings.md`, възрастов рейтинг 4+, категория Kids/Education
-- [ ] Privacy policy URL (магазините го изискват за детски приложения)
+- [x] Privacy policy URL: **https://aurakids.fun/privacy** (BG + EN, готова)
