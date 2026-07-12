@@ -146,11 +146,22 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childName, selectedTheme, customTheme, selectedAge]);
 
-  // Loading checklist animation
+  // Loading checklist: earlier steps get checked, the current one keeps a
+  // spinner until generation really finishes (story ~25s, comic ~2-3min).
   useEffect(() => {
     if (!isLoading) return;
     setLoadStep(0);
-    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), format === "comic" ? 30000 : 2200);
+    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), format === "comic" ? 35000 : 7000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
+  // Rotating magic one-liners to keep the wait alive.
+  const [tipIdx, setTipIdx] = useState(0);
+  useEffect(() => {
+    if (!isLoading) return;
+    setTipIdx(0);
+    const t = setInterval(() => setTipIdx((i) => i + 1), 5500);
     return () => clearInterval(t);
   }, [isLoading]);
 
@@ -451,6 +462,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
       {/* Loading overlay */}
       {isLoading && (
         <div className="loading">
+          <div className="stars" />
+          <div className="glow" style={{ width: 260, height: 260, background: "rgba(255,107,107,0.15)", top: "8%", right: "-15%" }} />
+          <div className="glow" style={{ width: 220, height: 220, background: "rgba(155,111,232,0.22)", bottom: "10%", left: "-12%" }} />
           <div className="orb">
             <span className="ring" />
             <Sparkle size={46} className="text-white" />
@@ -459,11 +473,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           <p>{t(lang, "loadSub")}</p>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
-              <div key={label} className={i <= loadStep ? "done" : ""}>
-                <span className="mk">{i <= loadStep && <Check size={13} />}</span> {label}
+              <div key={label} className={i < loadStep ? "done" : i === loadStep ? "active" : ""}>
+                <span className="mk">{i < loadStep && <Check size={13} />}</span> {label}
               </div>
             ))}
           </div>
+          <p className="load-tip" key={tipIdx}>
+            {t(lang, (format === "comic" ? ["lctip1", "lctip2", "lctip3", "lctip4"] : ["ltip1", "ltip2", "ltip3", "ltip4"])[tipIdx % 4])}
+          </p>
         </div>
       )}
     </section>

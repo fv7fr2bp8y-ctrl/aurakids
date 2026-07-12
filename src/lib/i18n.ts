@@ -106,6 +106,16 @@ const D: Dict = {
   stManga: { bg: "Манга", en: "Manga", de: "Manga", fr: "Manga", ru: "Манга" },
   stMangaD: { bg: "Големи очи, екшън", en: "Big eyes, action", de: "Große Augen, Action", fr: "Grands yeux, action", ru: "Большие глаза, экшен" },
 
+  // ---- Loading tips (rotate while generating) ----
+  ltip1: { bg: "Звездите шепнат името на героя…", en: "The stars are whispering the hero's name…", de: "Die Sterne flüstern den Namen des Helden…", fr: "Les étoiles chuchotent le nom du héros…", ru: "Звёзды шепчут имя героя…" },
+  ltip2: { bg: "Луната си наглася възглавницата, за да слуша…", en: "The moon is fluffing its pillow to listen…", de: "Der Mond richtet sein Kissen zum Zuhören…", fr: "La lune arrange son oreiller pour écouter…", ru: "Луна взбивает подушку, чтобы послушать…" },
+  ltip3: { bg: "Четка от лунни лъчи рисува небето…", en: "A brush of moonbeams is painting the sky…", de: "Ein Pinsel aus Mondstrahlen malt den Himmel…", fr: "Un pinceau de rayons de lune peint le ciel…", ru: "Кисть из лунных лучей рисует небо…" },
+  ltip4: { bg: "Разказвачът си прочиства гърлото… кхъм-кхъм.", en: "The narrator is clearing their throat… ahem.", de: "Der Erzähler räuspert sich… ähem.", fr: "Le conteur s'éclaircit la voix… hum hum.", ru: "Рассказчик прочищает горло… кхм-кхм." },
+  lctip1: { bg: "Героят пробва пелерината си…", en: "The hero is trying on their cape…", de: "Der Held probiert seinen Umhang an…", fr: "Le héros essaie sa cape…", ru: "Герой примеряет плащ…" },
+  lctip2: { bg: "БУМ! ФИУУ! Звуковите ефекти се загряват…", en: "BOOM! WHOOSH! The sound effects are warming up…", de: "BUMM! WUSCH! Die Soundeffekte wärmen sich auf…", fr: "BOUM ! WOUSH ! Les onomatopées s'échauffent…", ru: "БУМ! ВЖУХ! Звуковые эффекты разминаются…" },
+  lctip3: { bg: "Мастилото на страница 3 още съхне…", en: "The ink on page 3 is still drying…", de: "Die Tinte auf Seite 3 trocknet noch…", fr: "L'encre de la page 3 sèche encore…", ru: "Чернила на странице 3 ещё сохнут…" },
+  lctip4: { bg: "Спътникът пак направи беля… разчистваме.", en: "The sidekick made a mess again… cleaning up.", de: "Der Gefährte hat wieder Unsinn gemacht… wir räumen auf.", fr: "L'acolyte a encore fait une bêtise… on nettoie.", ru: "Напарник снова натворил дел… убираем." },
+
   // ---- Comic generating checklist ----
   cls1: { bg: "Историята се пише", en: "Writing the story", de: "Die Geschichte wird geschrieben", fr: "L'histoire s'écrit", ru: "История пишется" },
   cls2: { bg: "Героят се рисува", en: "Drawing the hero", de: "Der Held wird gezeichnet", fr: "Le héros se dessine", ru: "Герой рисуется" },
