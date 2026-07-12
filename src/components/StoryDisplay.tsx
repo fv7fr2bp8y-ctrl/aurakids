@@ -183,32 +183,14 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
         </div>
       </div>
 
-      {/* Voice picker — bottom right */}
-      <div className="voicepick">
-        {voiceMenu && (
-          <div className="voicepick-menu">
-            {VOICES.map((v) => (
-              <button key={v.id} className={v.id === voice ? "on" : ""}
-                onClick={() => { setVoice(v.id); setVoiceMenu(false); }}>
-                <span>{v.name}</span>
-                <span className="vdesc">{v.desc}</span>
-              </button>
-            ))}
-          </div>
-        )}
-        <button className="voicepick-toggle" onClick={() => setVoiceMenu((m) => !m)}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
-          </svg>
-          {t(lang, "voiceLabel")}: {voiceName}
-        </button>
-      </div>
-
-      {/* Sticky audio player */}
+      {/* Sticky audio player — voice pinned right beside the play button */}
       <div className="player">
         <div className="player-inner">
           <div className="player-row">
-            <button className="playbtn" onClick={() => speak(fullStoryText, voice, lang)} disabled={ttsStatus === "loading"}>
+            <button className={`playbtn ${ttsStatus === "playing" ? "on" : ""}`}
+              onClick={() => speak(fullStoryText, voice, lang)} disabled={ttsStatus === "loading"}
+              aria-label={t(lang, "tapToListen")}>
+              {ttsStatus === "playing" && <span className="playbtn-pulse" />}
               {ttsStatus === "loading" ? (
                 <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -221,8 +203,36 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
               )}
             </button>
             <div className="player-meta">
-              <div className="ptitle">{t(lang, "readBy")} {voiceName}</div>
-              <div className="ptime">{ttsStatus === "playing" ? t(lang, "playing") : t(lang, "tapToListen")}</div>
+              <div className="ptitle">{story.title}</div>
+              <div className="ptime">{ttsStatus === "playing" ? t(lang, "playing") : ttsStatus === "loading" ? t(lang, "loadSub") : t(lang, "tapToListen")}</div>
+            </div>
+
+            {/* Voice chip pinned to the play button */}
+            <div className="voicechip-wrap">
+              {voiceMenu && (
+                <>
+                  <div className="voicechip-backdrop" onClick={() => setVoiceMenu(false)} />
+                  <div className="voicechip-menu">
+                    {VOICES.map((v) => (
+                      <button key={v.id} className={v.id === voice ? "on" : ""}
+                        onClick={() => { setVoice(v.id); setVoiceMenu(false); }}>
+                        <span className="vname">{v.name}</span>
+                        <span className="vdesc">{v.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              <button className="voicechip" onClick={() => setVoiceMenu((m) => !m)} aria-label={t(lang, "voiceLabel")}>
+                <svg className="voicechip-eq" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
+                </svg>
+                <span className="voicechip-name">{voiceName}</span>
+                <svg className="voicechip-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: voiceMenu ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
