@@ -515,12 +515,31 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <div className="stars" />
           <div className="glow" style={{ width: 260, height: 260, background: "rgba(255,107,107,0.15)", top: "8%", right: "-15%" }} />
           <div className="glow" style={{ width: 220, height: 220, background: "rgba(155,111,232,0.22)", bottom: "10%", left: "-12%" }} />
+          {/* Themed magic dust drifting upward behind the orb */}
+          <div className="dust" aria-hidden>
+            {(format === "comic"
+              ? ["💥", "⚡", "💫", "✦", "🦸", "★", "💢", "✧", "⭐", "✨", "💥", "✦"]
+              : ["✨", "🌙", "⭐", "✦", "📖", "★", "✧", "💫", "🌟", "✨", "☁️", "✦"]
+            ).map((g, i) => (
+              <span key={i} className="dot-glyph" style={{
+                left: `${(i * 8.3 + 4) % 100}%`,
+                fontSize: `${11 + (i % 4) * 5}px`,
+                animationDelay: `${(i % 6) * 0.7}s`,
+                animationDuration: `${6 + (i % 5)}s`,
+              }}>{g}</span>
+            ))}
+          </div>
           <div className="orb">
             <span className="ring" />
+            <span className="orbit"><i /><i /><i /></span>
             <Sparkle size={46} className="text-white" />
           </div>
           <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
           <p>{t(lang, "loadSub")}</p>
+          {/* Live progress toward completion */}
+          <div className="load-bar" aria-hidden>
+            <span style={{ width: `${Math.round(((loadStep + 1) / LOAD_STEPS.length) * 92) + 4}%` }} />
+          </div>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
               <div key={label} className={i < loadStep ? "done" : i === loadStep ? "active" : ""}>
