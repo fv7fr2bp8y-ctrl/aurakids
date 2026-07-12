@@ -108,11 +108,20 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const [demoBlocked, setDemoBlocked] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
+  const [priceLabel, setPriceLabel] = useState("");
 
   useEffect(() => {
     initUnlock();
     // A paid family code unlocks any device it's restored on.
     checkServerUnlock(getFamilyCode()).catch(() => {});
+    // Live price from Stripe → shown on the unlock button.
+    fetch("/api/checkout").then((r) => r.json()).then((d) => {
+      if (d?.configured && d.amount != null) {
+        const sym = d.currency === "eur" ? "€" : d.currency === "bgn" ? " лв" : ` ${String(d.currency).toUpperCase()}`;
+        const amt = Number(d.amount).toFixed(2).replace(/\.00$/, "");
+        setPriceLabel(d.currency === "bgn" ? `${amt}${sym}` : `${sym}${amt}`);
+      }
+    }).catch(() => {});
   }, []);
 
   const startCheckout = async () => {
@@ -308,7 +317,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           <p className="step-help" style={{ textAlign: "center", margin: "10px auto 28px", maxWidth: 320 }}>{t(lang, "demoBody")}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 340, margin: "0 auto", width: "100%" }}>
             <button className="cta" onClick={startCheckout} disabled={paying}>
-              <Sparkle size={18} /> {paying ? "…" : t(lang, "demoUnlockWeb")}
+              <Sparkle size={18} /> {paying ? "…" : `${t(lang, "demoUnlockWeb")}${priceLabel ? ` — ${priceLabel}` : ""}`}
             </button>
             <button className="cta ghost" onClick={onBack}>{t(lang, "demoBack")}</button>
           </div>
