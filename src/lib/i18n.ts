@@ -69,6 +69,8 @@ const D: Dict = {
   demoUnlockNote: { bg: "Еднократно плащане · важи на всички твои устройства", en: "One-time payment · works on all your devices", de: "Einmalige Zahlung · gilt auf allen deinen Geräten", fr: "Paiement unique · valable sur tous tes appareils", ru: "Разовый платёж · работает на всех твоих устройствах" },
   payUnavailable: { bg: "Плащането не е достъпно в момента. Опитай пак след малко.", en: "Payment is unavailable right now. Please try again shortly.", de: "Zahlung derzeit nicht verfügbar. Versuch es gleich nochmal.", fr: "Paiement indisponible pour le moment. Réessaie bientôt.", ru: "Оплата сейчас недоступна. Попробуй чуть позже." },
   privacy: { bg: "Политика за поверителност", en: "Privacy Policy", de: "Datenschutz", fr: "Confidentialité", ru: "Политика конфиденциальности" },
+  shareBtn: { bg: "Сподели", en: "Share", de: "Teilen", fr: "Partager", ru: "Поделиться" },
+  shareText: { bg: "Направи на детето си приказка, в която то е героят — с илюстрации и глас. Пробвай AuraKids!", en: "Make your child a story where they're the hero — with pictures and voice. Try AuraKids!", de: "Mach deinem Kind eine Geschichte, in der es der Held ist — mit Bildern und Stimme. Probier AuraKids!", fr: "Crée à ton enfant une histoire où il est le héros — avec images et voix. Essaie AuraKids !", ru: "Создай ребёнку сказку, где он герой — с картинками и голосом. Попробуй AuraKids!" },
 
   // ---- Loading ----
   loadStory: { bg: "Приказката се ражда…", en: "The story is being born…", de: "Die Geschichte entsteht…", fr: "L'histoire prend vie…", ru: "Сказка рождается…" },

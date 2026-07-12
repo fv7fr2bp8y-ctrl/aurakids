@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LANGS, t } from "@/lib/i18n";
-import { Library as LibraryIcon, Sparkle, Comic as ComicIcon } from "./Icons";
+import { Library as LibraryIcon, Sparkle, Comic as ComicIcon, Share as ShareIcon } from "./Icons";
 import { soleFormat as buildSoleFormat } from "@/lib/appConfig";
+import { shareApp } from "@/lib/share";
 
 interface HeroSectionProps {
   lang: string;
@@ -12,6 +13,7 @@ interface HeroSectionProps {
   onStartStory: () => void;
   onStartComic: () => void;
   onOpenLibrary: () => void;
+  onHome?: () => void;
   soleFormat?: "story" | "comic" | null;
 }
 
@@ -100,8 +102,15 @@ function LangDropdown({ lang, onLangChange }: { lang: string; onLangChange: (l: 
   );
 }
 
-export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary, soleFormat: soleProp }: HeroSectionProps) {
+export default function HeroSection({ lang, onLangChange, onStartStory, onStartComic, onOpenLibrary, onHome, soleFormat: soleProp }: HeroSectionProps) {
   const soleFormat = soleProp !== undefined ? soleProp : buildSoleFormat;
+  const [shared, setShared] = useState("");
+
+  const doShare = async () => {
+    const title = soleFormat === "comic" ? t(lang, "doorComicTitle") : t(lang, "doorStoryTitle");
+    const res = await shareApp(`AuraKids · ${title}`, t(lang, "shareText"));
+    if (res) { setShared(res); setTimeout(() => setShared(""), 1800); }
+  };
 
   return (
     <section className="ak-screen home-hero-bg">
@@ -112,14 +121,20 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
       <div className="ak-col">
         {/* Nav */}
         <div className="home-nav">
-          <div className="brandrow">
+          <button className="brandrow" onClick={onHome} aria-label="Начало"
+            style={{ background: "none", border: "none", cursor: onHome ? "pointer" : "default", padding: 0 }}>
             <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={56} height={56} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span>{soleFormat && (
               <span className="wm-sub">{t(lang, soleFormat === "comic" ? "appTagComic" : "appTagStory")}</span>
             )}</span>
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button className="iconbtn" onClick={doShare} title={t(lang, "shareBtn")}>
+              {shared ? <span style={{ fontSize: 15 }}>✓</span> : <ShareIcon size={17} />}
+            </button>
+            <LangDropdown lang={lang} onLangChange={onLangChange} />
           </div>
-          <LangDropdown lang={lang} onLangChange={onLangChange} />
         </div>
 
         {/* Body */}

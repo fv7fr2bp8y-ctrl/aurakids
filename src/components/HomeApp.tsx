@@ -45,7 +45,8 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
   if (mode !== "home") {
     return (
       <main className="flex flex-col min-h-screen">
-        <StoryGenerator format={genFormat} lang={lang} onLangChange={changeLang} onBack={() => setMode("home")} />
+        <StoryGenerator format={genFormat} lang={lang} onLangChange={changeLang}
+          onBack={() => setMode("home")} onHome={() => setMode("home")} />
       </main>
     );
   }
@@ -59,7 +60,8 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
     <main className="flex flex-col min-h-screen">
       <HeroSection lang={lang} onLangChange={changeLang} soleFormat={sole}
         onStartStory={goStory} onStartComic={goComic}
-        onOpenLibrary={() => setMode("library")} />
+        onOpenLibrary={() => setMode("library")}
+        onHome={() => { if (isBoth) window.location.href = "/"; else setMode("home"); }} />
       {isBoth && lang === "bg" && (
         <>
           <HowItWorks />

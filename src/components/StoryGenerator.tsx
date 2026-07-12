@@ -30,6 +30,7 @@ interface StoryGeneratorProps {
   lang: string;
   onLangChange: (l: string) => void;
   onBack: () => void;
+  onHome?: () => void;
 }
 
 const THEMES = [
@@ -92,7 +93,7 @@ export interface StoryData {
   language?: string;
 }
 
-export default function StoryGenerator({ format, lang, onLangChange, onBack }: StoryGeneratorProps) {
+export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome }: StoryGeneratorProps) {
   const [step, setStep] = useState(1);
   const [childName, setChildName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
@@ -347,7 +348,12 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
           </div>
-          <span className="step-count">{step} / 3</span>
+          {onHome && (
+            <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
+              <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={32} height={32} unoptimized
+                style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", display: "block" }} />
+            </button>
+          )}
         </div>
 
         <div className="create-body">

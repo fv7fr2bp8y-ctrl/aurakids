@@ -40,6 +40,16 @@ export function Library({ size = 18, className }: IconProps) {
   );
 }
 
+export function Share({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
 export function Check({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
