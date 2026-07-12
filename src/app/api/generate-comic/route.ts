@@ -46,6 +46,7 @@ const ART_STYLES: Record<string, string> = {
   pixar: "photorealistic 3D render in the style of a modern Pixar animated film, cinematic lighting, rich detailed environments, expressive adorable characters, vibrant saturated colors",
   cartoon: "classic European cartoon comic style (Asterix / Spirou school): bold playful linework, exaggerated funny expressions and poses, bright flat colors with simple shading, lively chaotic energy, big noses and expressive silhouettes",
   manga: "colorful modern manga / anime style: large expressive eyes, dynamic speed lines and dramatic angles, cel-shaded vibrant colors, emotional close-ups, action-packed energy",
+  retro: "classic vintage American comic book style (Silver Age superhero comics): bold black ink outlines, Ben-Day halftone dot shading, punchy saturated primary colors, dramatic dynamic poses with motion lines, retro print texture",
 };
 
 async function generatePage(page: PageScript, characterDesc: string, pageNum: number, artStyle: string): Promise<string | null> {

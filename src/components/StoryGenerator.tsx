@@ -52,16 +52,18 @@ const THEME_COVERS: Record<string, string> = {
   superhero: "A heroic cape fluttering over a vibrant city skyline at sunset, comic-style energy, bold dynamic composition",
   fairy: "A tiny fairy village inside glowing flowers with sparkling magic dust and butterfly wings, dreamy pastel light",
   custom: "A magical glowing door standing alone in a starfield, slightly open with golden light and question-mark shaped sparkles spilling out, mysterious and inviting",
+  retro: "A brave kid superhero mid-action in a classic vintage American comic book style: bold black ink outlines, Ben-Day halftone dots, punchy primary colors, dynamic pose with motion lines, retro comic energy",
 };
 
 function TileImage({ id, src }: { id?: string; src?: string }) {
-  // Prefer a fixed brand-kit image; fall back to generating one only if it fails.
+  // Prefer a fixed brand-kit image; generate from a prompt when there isn't one.
   const fixed = src || (id ? WORLD_IMG[id] : undefined);
   const [url, setUrl] = useState<string | null>(fixed ?? null);
   const [failed, setFailed] = useState(false);
+  const needsGen = !fixed || failed;
 
   useEffect(() => {
-    if (!failed) return;
+    if (!needsGen) return;
     const prompt = id ? THEME_COVERS[id] : undefined;
     if (!prompt) return;
     fetch("/api/generate-image", {
@@ -72,7 +74,7 @@ function TileImage({ id, src }: { id?: string; src?: string }) {
       .then((r) => r.json())
       .then((d) => d.url && setUrl(d.url))
       .catch(() => {});
-  }, [id, failed]);
+  }, [id, needsGen]);
 
   return (
     <div className="tile-img">
@@ -462,10 +464,11 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                     { id: "pixar", lk: "stPixar", dk: "stPixarD" },
                     { id: "cartoon", lk: "stCartoon", dk: "stCartoonD" },
                     { id: "manga", lk: "stManga", dk: "stMangaD" },
+                    { id: "retro", lk: "stRetro", dk: "stRetroD" },
                   ] as const).map((st) => (
                     <button key={st.id} className={`tile tile-cover ${artStyle === st.id ? "sel-gold" : ""}`}
                       onClick={() => setArtStyle(st.id)}>
-                      <TileImage src={STYLE_IMG[st.id]} />
+                      <TileImage id={STYLE_IMG[st.id] ? undefined : st.id} src={STYLE_IMG[st.id]} />
                       <span className="tlabel">{t(lang, st.lk)}</span>
                       <span className="tdesc">{t(lang, st.dk)}</span>
                     </button>

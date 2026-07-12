@@ -110,6 +110,8 @@ const D: Dict = {
   stCartoonD: { bg: "Смешен, като Астерикс", en: "Funny, like Asterix", de: "Lustig, wie Asterix", fr: "Drôle, comme Astérix", ru: "Смешной, как Астерикс" },
   stManga: { bg: "Манга", en: "Manga", de: "Manga", fr: "Manga", ru: "Манга" },
   stMangaD: { bg: "Големи очи, екшън", en: "Big eyes, action", de: "Große Augen, Action", fr: "Grands yeux, action", ru: "Большие глаза, экшен" },
+  stRetro: { bg: "Класически комикс", en: "Classic comic", de: "Klassischer Comic", fr: "BD classique", ru: "Классический комикс" },
+  stRetroD: { bg: "Ретро, ярки контури", en: "Retro, bold ink", de: "Retro, kräftige Linien", fr: "Rétro, encre marquée", ru: "Ретро, яркие контуры" },
 
   // ---- Loading tips (rotate while generating) ----
   ltip1: { bg: "Звездите шепнат името на героя…", en: "The stars are whispering the hero's name…", de: "Die Sterne flüstern den Namen des Helden…", fr: "Les étoiles chuchotent le nom du héros…", ru: "Звёзды шепчут имя героя…" },
