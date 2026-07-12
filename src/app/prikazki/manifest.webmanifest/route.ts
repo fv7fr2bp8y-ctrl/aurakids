@@ -3,9 +3,11 @@ import { NextResponse } from "next/server";
 // Standalone PWA manifest for the Bedtime Stories app (installs from /prikazki).
 export function GET() {
   return NextResponse.json({
+    id: "/prikazki",
     name: "AuraKids Приказки",
     short_name: "Приказки",
     description: "Вечерни приказки с името на твоето дете — с илюстрации и глас.",
+    categories: ["education", "kids", "entertainment"],
     start_url: "/prikazki",
     scope: "/prikazki",
     display: "standalone",
