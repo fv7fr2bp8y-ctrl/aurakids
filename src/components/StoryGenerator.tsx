@@ -7,6 +7,7 @@ import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
+import { canGenerate, recordGeneration, initUnlock } from "@/lib/demo";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -103,6 +104,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const [storyData, setStoryData] = useState<StoryData | null>(null);
   const [comicData, setComicData] = useState<ComicData | null>(null);
   const [error, setError] = useState("");
+  const [demoBlocked, setDemoBlocked] = useState(false);
+
+  useEffect(() => { initUnlock(); }, []);
 
   const prefetchRef = useRef<Promise<Record<string, unknown>> | null>(null);
   const prefetchKeyRef = useRef<string>("");
@@ -158,6 +162,8 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
   const handleNext = () => {
     if (!canProceed) return;
     if (step < 3) { setStep(step + 1); return; }
+    // Web demo: one story + one comic, then upsell the full app.
+    if (!canGenerate(format)) { setDemoBlocked(true); return; }
     handleGenerate();
   };
 
@@ -188,6 +194,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
         if (comic.error) throw new Error(String(comic.error));
         const comicData: ComicData = { childName: childName.trim(), title: comic.title, pages: comic.pages };
         saveToLibrary({ type: "comic", title: comic.title, childName: childName.trim(), lang, cover: comic.pages[0]?.url ?? null, data: comicData });
+        recordGeneration("comic");
         setComicData(comicData);
         return;
       }
@@ -235,6 +242,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
       (warmups[0] ?? Promise.resolve(null)).then((cover) => {
         saveToLibrary({ type: "story", title: storyResult.title, childName: storyResult.childName, lang, cover, data: storyResult });
       });
+      recordGeneration("story");
       setStoryData(storyResult);
     } catch {
       setError(t(lang, format === "comic" ? "errComic" : "errStory"));
@@ -249,6 +257,28 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack }: S
 
   if (storyData) {
     return <StoryDisplay story={storyData} lang={lang} onBack={() => { setStoryData(null); setStep(1); }} onHome={onBack} />;
+  }
+
+  if (demoBlocked) {
+    return (
+      <section className="ak-screen home-hero-bg">
+        <div className="stars" />
+        <div className="ak-col" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", paddingTop: 40, paddingBottom: 40 }}>
+          <div className="orb" style={{ margin: "0 auto 26px" }}>
+            {format === "comic" ? <ComicIcon size={44} className="text-white" /> : <Sparkle size={46} className="text-white" />}
+          </div>
+          <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "demoTitle")}</h2>
+          <p className="step-help" style={{ textAlign: "center", margin: "10px auto 28px", maxWidth: 320 }}>{t(lang, "demoBody")}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 340, margin: "0 auto", width: "100%" }}>
+            <a className="cta" href="#" onClick={(e) => e.preventDefault()} style={{ opacity: 0.6, pointerEvents: "none" }}>
+              {t(lang, "demoGetApp")}
+            </a>
+            <button className="cta ghost" onClick={onBack}>{t(lang, "demoBack")}</button>
+          </div>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>{t(lang, "demoSoon")}</p>
+        </div>
+      </section>
+    );
   }
 
   return (

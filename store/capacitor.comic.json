@@ -1,0 +1,11 @@
+{
+  "appId": "fun.aurakids.comics",
+  "appName": "AuraKids Комикси",
+  "webDir": "public",
+  "server": {
+    "url": "https://aurakids.fun/komiksi?full=1",
+    "cleartext": false
+  },
+  "backgroundColor": "#1A0533",
+  "ios": { "contentInset": "always", "backgroundColor": "#1A0533" }
+}
