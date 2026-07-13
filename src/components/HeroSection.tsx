@@ -123,7 +123,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         <div className="home-nav">
           <button className="brandrow" onClick={onHome} aria-label="Начало"
             style={{ background: "none", border: "none", cursor: onHome ? "pointer" : "default", padding: 0 }}>
-            <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={56} height={56} unoptimized
+            <Image src={`${ASSETS}/logo-mark-v2.png`} alt="AuraKids" width={56} height={56} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span>{soleFormat && (
               <span className="wm-sub">{t(lang, soleFormat === "comic" ? "appTagComic" : "appTagStory")}</span>

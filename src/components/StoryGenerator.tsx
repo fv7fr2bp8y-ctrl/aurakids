@@ -352,7 +352,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           </div>
           {onHome && (
             <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
-              <Image src={`${ASSETS}/logo-mark-256.png`} alt="AuraKids" width={32} height={32} unoptimized
+              <Image src={`${ASSETS}/logo-mark-v2.png`} alt="AuraKids" width={32} height={32} unoptimized
                 style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", display: "block" }} />
             </button>
           )}

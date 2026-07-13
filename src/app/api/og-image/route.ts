@@ -4,7 +4,7 @@ import { getCachedImage } from "@/lib/supabase";
 export const maxDuration = 10;
 
 export async function GET() {
-  const logoUrl = await getCachedImage("logo-concept-portal-world-v1.png");
+  const logoUrl = await getCachedImage("logo-mark-v2.png");
 
   const logoImg = logoUrl
     ? `<image href="${logoUrl}" x="80" y="160" width="260" height="260" />`
