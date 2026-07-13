@@ -9,6 +9,7 @@ import { saveToLibrary } from "@/lib/library";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
 import { canGenerate, recordGeneration, initUnlock, checkServerUnlock } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
+import { isNameClean } from "@/lib/nameFilter";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -100,7 +101,6 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const [step, setStep] = useState(1);
   const [childName, setChildName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
-  const [customTheme, setCustomTheme] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
   const [artStyle, setArtStyle] = useState("pixar");
   const [s3Tab, setS3Tab] = useState<"world" | "style">("world");
@@ -157,9 +157,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     : [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
 
   const activeTheme = selectedTheme === "custom"
-    ? (customTheme.trim()
-        ? { label: customTheme.trim(), description: customTheme.trim() }
-        : { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" })
+    ? { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" }
     : (() => { const th = THEMES.find((x) => x.id === selectedTheme); return th ? { label: t(lang, th.lk), description: th.description } : undefined; })();
 
   // Speculative pre-fetch once all fields ready
@@ -183,7 +181,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     }, 600);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [childName, selectedTheme, customTheme, selectedAge]);
+  }, [childName, selectedTheme, selectedAge]);
 
   // Loading checklist: earlier steps get checked, the current one keeps a
   // spinner until generation really finishes (story ~25s, comic ~2-3min).
@@ -204,8 +202,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     return () => clearInterval(t);
   }, [isLoading]);
 
+  const nameOk = isNameClean(childName);
   const canProceed =
-    (step === 1 && !!childName.trim()) ||
+    (step === 1 && !!childName.trim() && nameOk) ||
     (step === 2 && !!selectedAge) ||
     (step === 3 && !!selectedTheme);
 
@@ -376,6 +375,11 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleNext()}
               />
+              {!nameOk && (
+                <p style={{ marginTop: 10, fontSize: 13.5, fontWeight: 600, color: "var(--ak-coral)" }}>
+                  {t(lang, "nameNotAllowed")}
+                </p>
+              )}
               <p className="step-help" style={{ margin: "22px 0 10px" }}>{t(lang, "langQ")}</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {LANGS.map((l) => (
@@ -445,19 +449,6 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                       </span>
                     </button>
                   </div>
-
-                  {selectedTheme === "custom" && (
-                    <input
-                      className={`tinput ${customTheme.trim() ? "filled" : ""}`}
-                      style={{ marginTop: 14, fontSize: 16 }}
-                      type="text"
-                      value={customTheme}
-                      onChange={(e) => setCustomTheme(e.target.value)}
-                      placeholder={t(lang, "newWorldPh")}
-                      maxLength={60}
-                      autoFocus
-                    />
-                  )}
                 </>
               ) : (
                 <div className="theme-grid">
