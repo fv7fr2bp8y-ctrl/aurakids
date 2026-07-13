@@ -43,17 +43,13 @@ export async function GET(req: NextRequest) {
         .toBuffer());
     }
 
-    const fit = "cover" as const;
-
     let out: Buffer;
     if (padded) {
       const inner = Math.round(size * 0.78);
-      const art = await sharp(input).resize(inner, inner, { fit, background: BG }).png().toBuffer();
+      const art = await sharp(input).resize(inner, inner, { fit: "cover" }).png().toBuffer();
       out = await sharp({ create: { width: size, height: size, channels: 4, background: BG } })
         .composite([{ input: art, gravity: "centre" }])
         .png().toBuffer();
-    } else if (fit === "contain") {
-      out = await sharp(input).resize(size, size, { fit: "contain", background: BG }).flatten({ background: BG }).png().toBuffer();
     } else {
       out = await sharp(input).resize(size, size, { fit: "cover" }).png().toBuffer();
     }
