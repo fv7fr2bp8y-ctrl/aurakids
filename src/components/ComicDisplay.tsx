@@ -74,8 +74,11 @@ export default function ComicDisplay({ comic, lang: langProp, onBack, onHome }: 
       <div className="comic-swipe" ref={trackRef} onScroll={onScroll}>
         {comic.pages.map((page, i) => (
           <div key={i} className="comic-page">
-            <Image src={page.url} alt={page.pageTitle} width={1024} height={1536}
-              className="w-full h-auto" unoptimized priority={i === 0} />
+            <div className="comic-page-img">
+              <span className="comic-page-num">{i + 1}</span>
+              <Image src={page.url} alt={page.pageTitle} width={1024} height={1536}
+                className="w-full h-auto" unoptimized priority={i === 0} />
+            </div>
             <div className="page-story">{page.text}</div>
           </div>
         ))}

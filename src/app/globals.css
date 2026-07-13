@@ -391,10 +391,16 @@ svg { background: transparent; }
 .caption-box { margin:12px 14px 14px;padding:9px 13px;background:var(--ak-gold);border:2.5px solid var(--ak-purple-night);
   border-radius:10px;font-size:13.5px;font-style:italic;font-weight:600;color:var(--ak-purple-night);line-height:1.45;transform:rotate(-0.5deg); }
 
-/* full comic pages */
-.comic-page { flex:0 0 min(92vw, 480px);scroll-snap-align:center;border-radius:var(--radius-xl);overflow:hidden;
-  border:3px solid var(--ak-purple-night);box-shadow:var(--shadow-card);background:#fff; }
-.comic-page img { display:block; }
+/* full comic pages — bordered art card + separate serif narration card */
+.comic-page { flex:0 0 min(84vw, 320px);scroll-snap-align:center;display:flex;flex-direction:column;gap:10px; }
+.comic-page-img { position:relative;border:3px solid var(--ak-purple-night);border-radius:10px;overflow:hidden;
+  background:#3B1A6B;box-shadow:var(--shadow-card); }
+.comic-page-img img { display:block;width:100%;height:auto; }
+.comic-page-num { position:absolute;top:10px;left:10px;z-index:5;width:26px;height:26px;border-radius:6px;
+  background:var(--ak-purple-night);color:#fff;font-weight:800;font-size:13px;
+  display:flex;align-items:center;justify-content:center; }
+.page-story { padding:12px 14px;background:#fff;border:1px solid rgba(26,5,51,0.08);border-radius:12px;
+  font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.7;color:#2A2A4A; }
 
 /* app doors — two entrances on home */
 .app-door { display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;
@@ -423,10 +429,6 @@ svg { background: transparent; }
 .brandrow .wm-sub { display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;
   font-size:12px;font-weight:700;color:var(--ak-purple-night);background:var(--grad-accent);
   vertical-align:middle;-webkit-text-fill-color:var(--ak-purple-night); }
-
-/* narration under each comic page */
-.page-story { padding:16px 18px 18px;background:#fff;border-top:3px solid var(--ak-purple-night);
-  font-family:var(--font-story);font-size:15.5px;line-height:1.7;color:#2A2A4A; }
 
 /* door images */
 .door-img { position:relative;width:calc(100% + 32px);margin:-18px -16px 10px;height:130px;overflow:hidden;
