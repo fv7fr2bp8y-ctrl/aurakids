@@ -34,6 +34,20 @@ export async function GET(req: NextRequest) {
     // All brand icons ship as a rounded purple square on a white/black sheet.
     // Trim the margin, then crop past the rounded corners so the artwork
     // fills the whole canvas — the OS applies its own corner mask.
+    // The favicon star instead gets trimmed and set on the brand purple.
+    if (app === "favicon") {
+      // unflatten(): white pixels → transparent, so only the star lands on the purple
+      const trimmed = await sharp(input).trim({ threshold: 25 }).unflatten().toBuffer();
+      const inner = Math.round(size * 0.74);
+      const art = await sharp(trimmed).resize(inner, inner, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png().toBuffer();
+      const out = await sharp({ create: { width: size, height: size, channels: 4, background: BG } })
+        .composite([{ input: art, gravity: "centre" }])
+        .png().toBuffer();
+      return new NextResponse(new Uint8Array(out), {
+        headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=604800, immutable" },
+      });
+    }
     {
       const trimmed = sharp(input).trim({ threshold: 25 });
       const meta = await trimmed.toBuffer({ resolveWithObject: true });

@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: `/api/icon?size=32&app=favicon&v=5`, sizes: "32x32", type: "image/png" },
+      { url: `/api/icon?size=32&app=favicon&v=6`, sizes: "32x32", type: "image/png" },
       { url: `/api/icon?size=192&app=${IV}&v=5`, sizes: "192x192", type: "image/png" },
       { url: `/api/icon?size=512&app=${IV}&v=5`, sizes: "512x512", type: "image/png" },
     ],
