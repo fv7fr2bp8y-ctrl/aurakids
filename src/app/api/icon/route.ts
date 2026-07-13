@@ -38,9 +38,9 @@ export async function GET(req: NextRequest) {
       const meta = await trimmed.toBuffer({ resolveWithObject: true });
       const { width: tw, height: th } = meta.info;
       const cut = Math.round(Math.min(tw, th) * 0.075);
-      input = await sharp(meta.data)
+      input = Buffer.from(await sharp(meta.data)
         .extract({ left: cut, top: cut, width: tw - cut * 2, height: th - cut * 2 })
-        .toBuffer();
+        .toBuffer());
     }
 
     // The comic logo may not be perfectly square, so contain it on the brand
