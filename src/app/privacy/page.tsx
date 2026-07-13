@@ -57,7 +57,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Контакт">
-        Въпроси относно поверителността: <a href="mailto:support@aurakids.fun" style={{ color: "#FFD93D" }}>support@aurakids.fun</a>
+        Въпроси относно поверителността: <a href="mailto:privacy@aurakids.fun" style={{ color: "#FFD93D" }}>privacy@aurakids.fun</a>
       </Section>
 
       <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.12)", margin: "40px 0" }} />
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
       </Section>
       <Section title="Your rights & contact">
         You may access, correct or delete your data. Contact{" "}
-        <a href="mailto:support@aurakids.fun" style={{ color: "#FFD93D" }}>support@aurakids.fun</a>.
+        <a href="mailto:privacy@aurakids.fun" style={{ color: "#FFD93D" }}>privacy@aurakids.fun</a>.
       </Section>
     </main>
   );
