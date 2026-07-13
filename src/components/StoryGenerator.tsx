@@ -521,7 +521,12 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <div className="orb">
             <span className="ring" />
             <span className="orbit"><i /><i /><i /></span>
-            <Sparkle size={46} className="text-white" />
+            {(WORLD_IMG[selectedTheme] || (format === "comic" ? STYLE_IMG[artStyle] : undefined)) ? (
+              <Image className="orb-img" src={WORLD_IMG[selectedTheme] || STYLE_IMG[artStyle]}
+                alt="" width={140} height={140} unoptimized />
+            ) : (
+              <Sparkle size={46} className="text-white" />
+            )}
           </div>
           <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
           <p>{t(lang, "loadSub")}</p>
