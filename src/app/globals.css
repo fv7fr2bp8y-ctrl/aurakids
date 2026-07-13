@@ -218,6 +218,9 @@ svg { background: transparent; }
 /* sparkle dots orbiting the orb */
 .orb .orb-img { position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);
   border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2); }
+/* transparent mascot sits inside the orb, purple showing through — no crop border */
+.orb .orb-mascot { inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);
+  object-fit:contain;border:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
 .orb .orbit { position:absolute;inset:-12px;animation:spin 6s linear infinite; }
 .orb .orbit i { position:absolute;top:-4px;left:50%;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;
   background:var(--ak-gold);box-shadow:0 0 10px var(--ak-gold); }
