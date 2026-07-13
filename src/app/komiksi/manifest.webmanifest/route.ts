@@ -16,10 +16,10 @@ export function GET() {
     theme_color: "#1A0533",
     lang: "bg",
     icons: [
-      { src: "/api/icon?size=192&app=comic&v=3", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/api/icon?size=512&app=comic&v=3", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/api/icon?size=192&app=comic&padded=1&v=3", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/api/icon?size=512&app=comic&padded=1&v=3", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/api/icon?size=192&app=comic&v=4", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/api/icon?size=512&app=comic&v=4", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/api/icon?size=192&app=comic&padded=1&v=4", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/api/icon?size=512&app=comic&padded=1&v=4", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   }, { headers: { "Content-Type": "application/manifest+json" } });
 }

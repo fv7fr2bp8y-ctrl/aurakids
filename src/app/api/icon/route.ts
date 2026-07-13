@@ -28,7 +28,20 @@ export async function GET(req: NextRequest) {
     let res = await fetch(source, { next: { revalidate: 604800 } });
     if (!res.ok && source !== SOURCES.both) res = await fetch(SOURCES.both, { next: { revalidate: 604800 } });
     if (!res.ok) return NextResponse.json({ error: "not found" }, { status: 502 });
-    const input = Buffer.from(await res.arrayBuffer());
+    let input = Buffer.from(await res.arrayBuffer());
+
+    // The brand icon ships as a rounded purple square on a white sheet. Trim
+    // the white margin, then crop past the rounded corners so the artwork
+    // fills the whole canvas — the OS applies its own corner mask.
+    if (app !== "comic") {
+      const trimmed = sharp(input).trim({ threshold: 25 });
+      const meta = await trimmed.toBuffer({ resolveWithObject: true });
+      const { width: tw, height: th } = meta.info;
+      const cut = Math.round(Math.min(tw, th) * 0.075);
+      input = await sharp(meta.data)
+        .extract({ left: cut, top: cut, width: tw - cut * 2, height: th - cut * 2 })
+        .toBuffer();
+    }
 
     // The comic logo may not be perfectly square, so contain it on the brand
     // background rather than cropping. The AuraKids mark is square → cover.
