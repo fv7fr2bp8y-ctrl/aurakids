@@ -381,13 +381,12 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                   {t(lang, "nameNotAllowed")}
                 </p>
               )}
-              <p className="step-help" style={{ margin: "22px 0 10px" }}>{t(lang, "langQ")}</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <p className="step-help" style={{ margin: "30px 0 12px" }}>{t(lang, "langQ")}</p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {LANGS.map((l) => (
-                  <button key={l.id} className={`chip ${lang === l.id ? "sel" : ""}`}
-                    style={{ padding: "10px 14px", fontSize: 14 }}
-                    onClick={() => onLangChange(l.id)}>
-                    {l.flag} {l.label}
+                  <button key={l.id} className={`lang-sq ${lang === l.id ? "sel" : ""}`}
+                    onClick={() => onLangChange(l.id)} aria-label={l.label} title={l.label}>
+                    {l.flag}
                   </button>
                 ))}
               </div>

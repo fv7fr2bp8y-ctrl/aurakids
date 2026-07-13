@@ -160,6 +160,12 @@ svg { background: transparent; }
 .progress-track { flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden; }
 .progress-fill { height:100%;border-radius:99px;background:var(--grad-accent);transition:width .5s var(--ease-out); }
 .progress-count { flex:none;font-size:13px;font-weight:600;color:rgba(255,255,255,0.6); }
+/* step-1 language selector — flag-only squares (design 1b) */
+.lang-sq { width:52px;height:52px;border-radius:16px;font-size:24px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);transition:all .2s var(--ease-out); }
+.lang-sq.sel { background:rgba(255,217,61,0.12);border:2px solid var(--ak-gold); }
+.lang-sq:active { transform:scale(.94); }
 .step-count { font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);min-width:34px;text-align:right; }
 .create-body { padding:26px 0 26px;display:flex;flex-direction:column; }
 .step-eyebrow { margin-bottom:10px;display:block; }
