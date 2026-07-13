@@ -12,7 +12,7 @@ export default function Footer() {
           Персонализирани приказки с изкуствен интелект — твоето дете е героят.
         </p>
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
-          © 2025 AuraKids · aurakids.fun · Всички права запазени
+          © 2026 AuraKids · aurakids.fun · Всички права запазени
         </p>
         <a href="/privacy" className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
           Политика за поверителност
