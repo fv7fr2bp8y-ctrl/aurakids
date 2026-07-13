@@ -34,9 +34,13 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
   const genFormat: "story" | "comic" = sole ?? (mode === "comic" ? "comic" : "story");
   const startPrimary = () => setMode(sole ?? "story");
 
-  // Robust "go home" for the logo: reset SPA state AND scroll to top. Works
-  // from any screen (create flow, reader, demo).
-  const goHome = () => { setMode("home"); if (typeof window !== "undefined") window.scrollTo(0, 0); };
+  // "Go home" for the logo. On a dedicated route (/prikazki, /komiksi) home is
+  // the portal, so navigate there; on the combined app just reset SPA state.
+  const goHome = () => {
+    if (forced) { window.location.href = "/"; return; }
+    setMode("home");
+    if (typeof window !== "undefined") window.scrollTo(0, 0);
+  };
 
   if (mode === "library") {
     return (
