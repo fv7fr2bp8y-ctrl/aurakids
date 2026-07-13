@@ -8,10 +8,10 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "AuraKids Комикси" },
   icons: {
     icon: [
-      { url: "/api/icon?size=32&app=comic", sizes: "32x32", type: "image/png" },
-      { url: "/api/icon?size=192&app=comic", sizes: "192x192", type: "image/png" },
+      { url: "/api/icon?size=32&app=comic&v=3", sizes: "32x32", type: "image/png" },
+      { url: "/api/icon?size=192&app=comic&v=3", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/api/icon?size=180&app=comic", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/api/icon?size=180&app=comic&v=3", sizes: "180x180", type: "image/png" }],
   },
 };
 

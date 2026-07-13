@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const LOGO = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images/logo-mark-v2.png";
+const LOGO = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images/logo-mark-v3.png";
 
 export default function AuraLogo({ size = 36 }: { size?: number }) {
   return (

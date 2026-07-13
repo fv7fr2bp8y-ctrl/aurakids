@@ -8,8 +8,8 @@ import sharp from "sharp";
 // Powers PWA icons, favicon and apple-touch-icon for each build.
 const BASE = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const SOURCES: Record<string, string> = {
-  both: `${BASE}/app-icon-v2.png`,
-  story: `${BASE}/app-icon-v2.png`,
+  both: `${BASE}/app-icon-v3.png`,
+  story: `${BASE}/app-icon-v3.png`,
   comic: `${BASE}/app-icon-comic.png`,
 };
 const BG = { r: 26, g: 5, b: 51, alpha: 1 }; // --ak-purple-night
