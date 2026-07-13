@@ -17,7 +17,8 @@ async function importAsset(id: string, name: string) {
 }
 
 export async function GET(req: NextRequest) {
-  // TEMP: guard disabled for a one-off logo import; re-enabled in the next commit.
+  const denied = requireAdmin(req);
+  if (denied) return denied;
   const p = req.nextUrl.searchParams;
   try {
     return await importAsset(p.get("id") || "", p.get("name") || "");
