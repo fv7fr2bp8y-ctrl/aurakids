@@ -8,9 +8,9 @@ import sharp from "sharp";
 // Powers PWA icons, favicon and apple-touch-icon for each build.
 const BASE = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const SOURCES: Record<string, string> = {
-  both: `${BASE}/app-icon-v3.png`,
-  story: `${BASE}/app-icon-v3.png`,
-  comic: `${BASE}/app-icon-comic.png`,
+  both: `${BASE}/app-icon-portal-v1.png`,
+  story: `${BASE}/app-icon-story-v1.png`,
+  comic: `${BASE}/app-icon-comic-v2.png`,
 };
 const BG = { r: 26, g: 5, b: 51, alpha: 1 }; // --ak-purple-night
 
@@ -30,10 +30,10 @@ export async function GET(req: NextRequest) {
     if (!res.ok) return NextResponse.json({ error: "not found" }, { status: 502 });
     let input = Buffer.from(await res.arrayBuffer());
 
-    // The brand icon ships as a rounded purple square on a white sheet. Trim
-    // the white margin, then crop past the rounded corners so the artwork
+    // All brand icons ship as a rounded purple square on a white/black sheet.
+    // Trim the margin, then crop past the rounded corners so the artwork
     // fills the whole canvas — the OS applies its own corner mask.
-    if (app !== "comic") {
+    {
       const trimmed = sharp(input).trim({ threshold: 25 });
       const meta = await trimmed.toBuffer({ resolveWithObject: true });
       const { width: tw, height: th } = meta.info;
@@ -43,9 +43,7 @@ export async function GET(req: NextRequest) {
         .toBuffer());
     }
 
-    // The comic logo may not be perfectly square, so contain it on the brand
-    // background rather than cropping. The AuraKids mark is square → cover.
-    const fit: "cover" | "contain" = app === "comic" ? "contain" : "cover";
+    const fit = "cover" as const;
 
     let out: Buffer;
     if (padded) {
