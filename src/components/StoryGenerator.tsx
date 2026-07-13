@@ -350,6 +350,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
           </div>
+          <span className="progress-count">{step} / 3</span>
           {onHome && (
             <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
               <Image src={`${ASSETS}/logo-mark-v4.png`} alt="AuraKids" width={32} height={32} unoptimized
