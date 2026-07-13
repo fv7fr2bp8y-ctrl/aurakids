@@ -13,6 +13,7 @@ type Dict = Record<string, Record<Lang, string>>;
 const D: Dict = {
   // ---- Hero / Home ----
   badge: { bg: "✨ Над 1 200 създадени приказки", en: "✨ Over 1,200 stories created", de: "✨ Über 1.200 Geschichten erstellt", fr: "✨ Plus de 1 200 histoires créées", ru: "✨ Более 1 200 созданных сказок" },
+  subPortal: { bg: "Избери какво приключение да създадем тази вечер.", en: "Choose what adventure we'll create tonight.", de: "Wähle, welches Abenteuer wir heute Abend erschaffen.", fr: "Choisis quelle aventure créer ce soir.", ru: "Выбери, какое приключение создадим сегодня." },
   h1a: { bg: "Само едно дете", en: "Only one child", de: "Nur ein Kind", fr: "Un seul enfant", ru: "Только один ребёнок" },
   h1b: { bg: "е героят.", en: "is the hero.", de: "ist der Held.", fr: "est le héros.", ru: "— герой." },
   h1c: { bg: "Твоето.", en: "Yours.", de: "Deins.", fr: "Le tien.", ru: "Твой." },

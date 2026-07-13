@@ -23,6 +23,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
   const [open, setOpen] = useState<LibraryItem | null>(null);
   const [code, setCode] = useState("");
   const [showSync, setShowSync] = useState(false);
+  const [showCode, setShowCode] = useState(false);
   const [restoreCode, setRestoreCode] = useState("");
   const [syncing, setSyncing] = useState(false);
 
@@ -58,10 +59,10 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
 
   const visible = filter === "all" ? items : items.filter((i) => i.type === filter);
 
-  const FILTERS: { id: Filter; lk: string }[] = [
+  const FILTERS: { id: Filter; lk: string; glyph?: string }[] = [
     { id: "all", lk: "libAll" },
-    { id: "comic", lk: "libComics" },
-    { id: "story", lk: "libStories" },
+    { id: "comic", lk: "libComics", glyph: "💥" },
+    { id: "story", lk: "libStories", glyph: "🌙" },
   ];
 
   return (
@@ -75,7 +76,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <div>
+          <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
               {t(lang, "libTitle")}
             </h1>
@@ -83,9 +84,16 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
               {items.length} {t(lang, "libCount")} · {t(lang, "libSub")}
             </p>
           </div>
+          {/* Cloud sync toggle — keeps the main layout matching the design */}
+          <button className="iconbtn" onClick={() => setShowCode((s) => !s)} title={t(lang, "libCode")}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+            </svg>
+          </button>
         </div>
 
-        {/* Family code / sync across devices */}
+        {/* Family code / sync across devices — hidden by default */}
+        {showCode && (
         <div className="lib-sync">
           <div className="lib-code-row">
             <span className="lib-code-label">{t(lang, "libCode")}</span>
@@ -108,13 +116,14 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
             </div>
           )}
         </div>
+        )}
 
         {/* Filter chips */}
         <div style={{ display: "flex", gap: 8, padding: "16px 0 18px" }}>
           {FILTERS.map((f) => (
             <button key={f.id} onClick={() => setFilter(f.id)}
               className={`lib-chip ${filter === f.id ? "on" : ""}`}>
-              {t(lang, f.lk)}
+              {f.glyph ? `${f.glyph} ` : ""}{t(lang, f.lk)}
             </button>
           ))}
         </div>

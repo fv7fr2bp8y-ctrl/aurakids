@@ -137,23 +137,22 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
           </div>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: "18px 0 40px" }}>
-          <span className="badge-chip" data-rise style={{ animationDelay: ".05s" }}>
-            {t(lang, "badge")}
-          </span>
+        {soleFormat ? (
+          /* Dedicated build: marketing hero + one big door */
+          <div style={{ padding: "18px 0 40px" }}>
+            <span className="badge-chip" data-rise style={{ animationDelay: ".05s" }}>
+              {t(lang, "badge")}
+            </span>
 
-          <h1 className={`hero-h1 ${soleFormat ? "solo" : ""}`} data-rise style={{ animationDelay: ".12s" }}>
-            {t(lang, "h1a")}<br />{t(lang, "h1b")}<br />
-            <span className="shimmer">{t(lang, "h1c")}</span>
-          </h1>
+            <h1 className="hero-h1 solo" data-rise style={{ animationDelay: ".12s" }}>
+              {t(lang, "h1a")}<br />{t(lang, "h1b")}<br />
+              <span className="shimmer">{t(lang, "h1c")}</span>
+            </h1>
 
-          <p className="hero-sub" data-rise style={{ animationDelay: ".2s" }}>
-            {soleFormat === "comic" ? t(lang, "subComic") : t(lang, "sub")}
-          </p>
+            <p className="hero-sub" data-rise style={{ animationDelay: ".2s" }}>
+              {soleFormat === "comic" ? t(lang, "subComic") : t(lang, "sub")}
+            </p>
 
-          {soleFormat ? (
-            /* Dedicated build: one big door for this app's format */
             <div data-rise style={{ animationDelay: ".28s", marginTop: 26 }}>
               <button className={`app-door door-${soleFormat} door-solo`}
                 onClick={soleFormat === "comic" ? onStartComic : onStartStory}>
@@ -166,44 +165,74 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
                 </span>
               </button>
             </div>
-          ) : (
-            <div data-rise style={{ animationDelay: ".28s", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 26 }}>
-              <button className="app-door door-story" onClick={onStartStory}>
-                <DoorImage kind="story" />
-                <span className="door-title">{t(lang, "doorStoryTitle")}</span>
-                <span className="door-desc">{t(lang, "doorStoryDesc")}</span>
-                <span className="door-cta">{t(lang, "doorStoryCta")}</span>
+
+            <button className="cta ghost" data-rise onClick={onOpenLibrary}
+              style={{ animationDelay: ".34s", marginTop: 14, height: 48 }}>
+              <LibraryIcon size={18} /> {t(lang, "libTitle")}
+            </button>
+
+            <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
+              <span>{t(lang, "micro1")}</span><span className="dot">·</span>
+              <span>{t(lang, "micro2")}</span><span className="dot">·</span>
+              <span>{t(lang, "micro3")}</span>
+            </div>
+
+            <div className="rating" data-rise style={{ animationDelay: ".46s" }}>
+              <Stars5 />
+              <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> {t(lang, "rating")}</span>
+            </div>
+
+            <a href="/privacy" style={{ display: "block", marginTop: 22, fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}>
+              {t(lang, "privacy")}
+            </a>
+          </div>
+        ) : (
+          /* Combined portal — matches the Comic Studio "Home" design 1:1 */
+          <div className="portal-body">
+            <h1 className="hero-h1 portal-h1" data-rise style={{ animationDelay: ".1s" }}>
+              {t(lang, "h1a")} {t(lang, "h1b")} <span className="shimmer">{t(lang, "h1c")}</span>
+            </h1>
+            <p className="hero-sub" data-rise style={{ animationDelay: ".18s" }}>
+              {t(lang, "subPortal")}
+            </p>
+
+            <div className="portal-doors" data-rise style={{ animationDelay: ".26s" }}>
+              <button className="portal-door" onClick={onStartStory}>
+                <div className="portal-door-img"><DoorImage kind="story" /><span className="portal-fade" /></div>
+                <div className="portal-door-foot">
+                  <div style={{ minWidth: 0 }}>
+                    <span className="door-title">{t(lang, "doorStoryTitle")}</span>
+                    <span className="door-desc" style={{ display: "block" }}>{t(lang, "doorStoryDesc")}</span>
+                  </div>
+                  <span className="portal-arrow"><ArrowRight /></span>
+                </div>
               </button>
-              <button className="app-door door-comic" onClick={onStartComic}>
-                <DoorImage kind="comic" />
-                <span className="door-title">{t(lang, "doorComicTitle")}</span>
-                <span className="door-desc">{t(lang, "doorComicDesc")}</span>
-                <span className="door-cta">{t(lang, "doorComicCta")}</span>
+              <button className="portal-door" onClick={onStartComic}>
+                <div className="portal-door-img"><DoorImage kind="comic" /><span className="portal-fade" /></div>
+                <div className="portal-door-foot">
+                  <div style={{ minWidth: 0 }}>
+                    <span className="door-title">{t(lang, "doorComicTitle")}</span>
+                    <span className="door-desc" style={{ display: "block" }}>{t(lang, "doorComicDesc")}</span>
+                  </div>
+                  <span className="portal-arrow"><ArrowRight /></span>
+                </div>
               </button>
             </div>
-          )}
 
-          <button className="cta ghost" data-rise onClick={onOpenLibrary}
-            style={{ animationDelay: ".34s", marginTop: 14, height: 48 }}>
-            <LibraryIcon size={18} /> {t(lang, "libTitle")}
-          </button>
-
-          <div className="micro" data-rise style={{ animationDelay: ".4s" }}>
-            <span>{t(lang, "micro1")}</span><span className="dot">·</span>
-            <span>{t(lang, "micro2")}</span><span className="dot">·</span>
-            <span>{t(lang, "micro3")}</span>
+            <button className="portal-lib" onClick={onOpenLibrary}>
+              <LibraryIcon size={16} /> {t(lang, "libTitle")}
+            </button>
           </div>
-
-          <div className="rating" data-rise style={{ animationDelay: ".46s" }}>
-            <Stars5 />
-            <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> {t(lang, "rating")}</span>
-          </div>
-
-          <a href="/privacy" style={{ display: "block", marginTop: 22, fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}>
-            {t(lang, "privacy")}
-          </a>
-        </div>
+        )}
       </div>
     </section>
+  );
+}
+
+function ArrowRight() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
   );
 }
