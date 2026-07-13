@@ -218,10 +218,6 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
                 </div>
               </button>
             </div>
-
-            <button className="portal-lib" onClick={onOpenLibrary}>
-              <LibraryIcon size={16} /> {t(lang, "libTitle")}
-            </button>
           </div>
         )}
       </div>

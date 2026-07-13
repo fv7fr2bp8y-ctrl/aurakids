@@ -439,10 +439,10 @@ svg { background: transparent; }
 .app-door { overflow:hidden; }
 
 /* ===== Combined portal (Home design 1a) ===== */
-.portal-body { display:flex;flex-direction:column;min-height:calc(100dvh - 108px);padding:20px 0 24px; }
-.portal-h1 { font-size:clamp(30px,8vw,38px);margin:8px 0 8px; }
-.portal-doors { display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;margin-top:22px; }
-.portal-door { position:relative;flex:1;min-height:150px;display:flex;flex-direction:column;
+.portal-body { display:flex;flex-direction:column;min-height:calc(100dvh - 96px);padding:16px 0 20px; }
+.portal-h1 { font-size:clamp(28px,7.5vw,36px);margin:6px 0 6px; }
+.portal-doors { display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;margin-top:18px; }
+.portal-door { position:relative;flex:1;min-height:230px;display:flex;flex-direction:column;
   border-radius:24px;overflow:hidden;cursor:pointer;font-family:inherit;text-align:left;
   background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(16px);
   box-shadow:0 8px 32px rgba(107,53,184,0.12);transition:transform .25s var(--ease-out),border-color .25s; }
