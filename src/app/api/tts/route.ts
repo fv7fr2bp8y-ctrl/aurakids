@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSameOrigin } from "@/lib/originCheck";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
@@ -116,6 +117,8 @@ async function callGemini(text: string, key: string, voice: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireSameOrigin(req);
+  if (denied) return denied;
   const { text, voice, language } = await req.json();
   if (!text?.trim()) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });

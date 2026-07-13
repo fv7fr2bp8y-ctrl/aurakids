@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSameOrigin } from "@/lib/originCheck";
 import { createHash } from "crypto";
 import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
@@ -75,6 +76,8 @@ async function generateImage(prompt: string): Promise<Buffer> {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireSameOrigin(req);
+  if (denied) return denied;
   const { prompt } = await req.json();
   if (!prompt?.trim()) {
     return NextResponse.json({ error: "Липсва prompt" }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSameOrigin } from "@/lib/originCheck";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createHash } from "crypto";
@@ -93,6 +94,8 @@ ${panelLines}`;
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireSameOrigin(req);
+  if (denied) return denied;
   try {
     const { childName, theme, age, language, artStyle } = await req.json();
 

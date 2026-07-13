@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSameOrigin } from "@/lib/originCheck";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
 
@@ -55,6 +56,8 @@ function pick<T>(arr: T[]): T {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireSameOrigin(req);
+  if (denied) return denied;
   try {
     const { childName, theme, themeName, age, language } = await req.json();
 
