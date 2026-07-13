@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
       { source: "/icon-192.png", destination: `/api/icon?size=192&app=${APP}` },
       { source: "/icon-512.png", destination: `/api/icon?size=512&app=${APP}` },
       { source: "/icon-maskable-512.png", destination: `/api/icon?size=512&padded=1&app=${APP}` },
-      { source: "/favicon.ico", destination: `/api/icon?size=32&app=${APP}&v=5` },
-      { source: "/favicon-32.png", destination: `/api/icon?size=32&app=${APP}` },
+      { source: "/favicon.ico", destination: "/api/icon?size=32&app=favicon&v=5" },
+      { source: "/favicon-32.png", destination: "/api/icon?size=32&app=favicon" },
       // Android TWA verification.
       { source: "/.well-known/assetlinks.json", destination: "/api/assetlinks" },
     ];

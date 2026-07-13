@@ -11,6 +11,7 @@ const SOURCES: Record<string, string> = {
   both: `${BASE}/app-icon-portal-v1.png`,
   story: `${BASE}/app-icon-story-v1.png`,
   comic: `${BASE}/app-icon-comic-v2.png`,
+  favicon: `${BASE}/favicon-star-v1.png`,
 };
 const BG = { r: 26, g: 5, b: 51, alpha: 1 }; // --ak-purple-night
 
