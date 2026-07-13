@@ -456,6 +456,8 @@ svg { background: transparent; }
 .portal-door:active { transform:scale(.985); }
 .portal-door-img { position:relative;flex:1;min-height:0;overflow:hidden;background:#1A0533; }
 .portal-door-img .door-img { position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:0; }
+.portal-door-img.pos-top img { object-position:center top !important; }
+.portal-door-img.pos-bottom img { object-position:center bottom !important; }
 .portal-fade { position:absolute;left:0;right:0;bottom:0;height:52px;pointer-events:none;
   background:linear-gradient(180deg,transparent,rgba(15,5,32,0.6)); }
 .portal-door-foot { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px; }

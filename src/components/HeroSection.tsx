@@ -198,7 +198,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
 
             <div className="portal-doors" data-rise style={{ animationDelay: ".26s" }}>
               <button className="portal-door" onClick={onStartStory}>
-                <div className="portal-door-img"><DoorImage kind="story" /><span className="portal-fade" /></div>
+                <div className="portal-door-img pos-top"><DoorImage kind="story" /><span className="portal-fade" /></div>
                 <div className="portal-door-foot">
                   <div style={{ minWidth: 0 }}>
                     <span className="door-title">{t(lang, "doorStoryTitle")}</span>
@@ -208,7 +208,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
                 </div>
               </button>
               <button className="portal-door" onClick={onStartComic}>
-                <div className="portal-door-img"><DoorImage kind="comic" /><span className="portal-fade" /></div>
+                <div className="portal-door-img pos-bottom"><DoorImage kind="comic" /><span className="portal-fade" /></div>
                 <div className="portal-door-foot">
                   <div style={{ minWidth: 0 }}>
                     <span className="door-title">{t(lang, "doorComicTitle")}</span>
