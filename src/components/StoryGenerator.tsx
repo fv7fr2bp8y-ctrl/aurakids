@@ -521,7 +521,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <div className="orb">
             <span className="ring" />
             <span className="orbit"><i /><i /><i /></span>
-            <Image className="orb-img orb-mascot" src={`${ASSETS}/${format === "comic" ? "orb-comic.png" : "orb-story.png"}`}
+            <Image className="orb-img orb-mascot" src={`${ASSETS}/orb-story.png`}
               alt="" width={150} height={150} unoptimized />
           </div>
           <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
