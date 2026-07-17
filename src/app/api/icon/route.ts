@@ -9,7 +9,7 @@ import sharp from "sharp";
 const BASE = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const SOURCES: Record<string, string> = {
   both: `${BASE}/app-icon-portal-v1.png`,
-  story: `${BASE}/app-icon-story-v1.png`,
+  story: `${BASE}/story-logo-v1.png`,
   comic: `${BASE}/logo-mark-v5.png`,
   favicon: `${BASE}/favicon-star-v1.png`,
 };
