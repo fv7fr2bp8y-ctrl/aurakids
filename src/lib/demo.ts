@@ -7,12 +7,23 @@ function keyFor(format: "story" | "comic") {
   return format === "comic" ? "ak-demo-comic" : "ak-demo-story";
 }
 
+// The paid store apps (Android TWA) launch with a document.referrer of
+// "android-app://fun.aurakids.stories" (or .comics). That's a signal the web
+// can't spoof, so treat any install running inside our TWA as fully unlocked —
+// the purchase happened on Google Play. Also honours a ?full=1 start_url.
+function isStoreApp(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    return /^android-app:\/\/fun\.aurakids\.(stories|comics)/.test(document.referrer || "");
+  } catch { return false; }
+}
+
 // Call once on load: a ?full=1 (store app) permanently unlocks this install.
 export function initUnlock() {
   if (typeof window === "undefined") return;
   try {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("full") === "1") localStorage.setItem(UNLOCK_KEY, "1");
+    if (params.get("full") === "1" || isStoreApp()) localStorage.setItem(UNLOCK_KEY, "1");
   } catch { /* ignore */ }
 }
 
@@ -20,6 +31,7 @@ export function isUnlocked(): boolean {
   if (typeof window === "undefined") return true; // SSR: don't gate
   try {
     if (localStorage.getItem(UNLOCK_KEY) === "1") return true;
+    if (isStoreApp()) { localStorage.setItem(UNLOCK_KEY, "1"); return true; }
     const p = new URLSearchParams(window.location.search);
     if (p.get("full") === "1") { localStorage.setItem(UNLOCK_KEY, "1"); return true; }
   } catch { /* ignore */ }
