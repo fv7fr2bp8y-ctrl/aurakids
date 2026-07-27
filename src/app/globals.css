@@ -264,9 +264,15 @@ svg { background: transparent; }
 
 /* ============ READER ============ */
 .reader-screen { background: var(--grad-story-bg); min-height:100vh; }
-.reader-illus { position:relative;height:340px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+.reader-illus { position:relative;height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;
   background:radial-gradient(120% 110% at 50% 20%,#9B6FE8,#6B35B8 55%,#3B1A6B); }
-.reader-illus .protect { position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,5,51,0.25) 0%,transparent 30%,transparent 60%,var(--ak-cream) 100%);pointer-events:none;z-index:2; }
+/* show the top of the art (character's face) instead of a centre crop */
+.reader-illus img { object-position:center 15% !important; }
+/* soft scrim under the header icons so they stay legible on any art */
+.reader-illus::after { content:"";position:absolute;top:0;left:0;right:0;height:96px;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(26,5,51,0.45),transparent); }
+.reader-illus .protect { position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,transparent 55%,rgba(255,248,240,0.4) 80%,var(--ak-cream) 100%); }
 .reader-topbar { position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0;max-width:480px;margin:0 auto; }
 .reader-content { padding:4px 26px 30px;margin-top:-26px;position:relative;z-index:5;max-width:480px;margin-left:auto;margin-right:auto; }
 .chapter-tag { font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ak-purple-mid); }
