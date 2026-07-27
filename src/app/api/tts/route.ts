@@ -116,6 +116,15 @@ async function callGemini(text: string, key: string, voice: string) {
   return null;
 }
 
+// Self-check: which TTS providers are configured (booleans only, no secrets).
+export async function GET() {
+  return NextResponse.json({
+    googleCloudTTS: !!process.env.GOOGLE_TTS_ACCESS_TOKEN,
+    elevenlabs: !!process.env.ELEVENLABS_API_KEY,
+    gemini: !!(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
+  });
+}
+
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
