@@ -194,16 +194,45 @@ export async function POST(req: NextRequest) {
     return new NextResponse(wavBuffer, { headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400" } });
   }
 
-  let part = await callGemini(trimmed, geminiKey, gVoice);
-  if (!part) part = await callGemini(trimmed, geminiKey, gVoice);
-  if (!part?.data) {
-    return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
+  // The Gemini preview TTS chokes on long input (returns no audio), so read the
+  // story in sentence-sized chunks and stitch the PCM into one WAV.
+  const chunks = chunkText(trimmed, 600);
+  const pcmParts: Uint8Array[] = [];
+  let rate = 24000;
+  for (const chunk of chunks) {
+    let part = await callGemini(chunk, geminiKey, gVoice);
+    if (!part) part = await callGemini(chunk, geminiKey, gVoice);
+    if (!part?.data) {
+      return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
+    }
+    rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
+    pcmParts.push(new Uint8Array(Buffer.from(part.data, "base64")));
   }
 
-  const rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
-  const pcm = new Uint8Array(Buffer.from(part.data, "base64"));
+  const total = pcmParts.reduce((n, p) => n + p.length, 0);
+  const pcm = new Uint8Array(total);
+  let off = 0;
+  for (const p of pcmParts) { pcm.set(p, off); off += p.length; }
   const wav = pcmToWav(pcm, rate);
   await saveAudioToStorage(fn, wav);
 
   return new NextResponse(wav, { headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400" } });
+}
+
+// Split text into chunks up to ~maxLen chars, breaking on sentence ends.
+function chunkText(text: string, maxLen: number): string[] {
+  const sentences = text.match(/[^.!?…]+[.!?…]*\s*/g) || [text];
+  const chunks: string[] = [];
+  let cur = "";
+  for (const s of sentences) {
+    if (cur.length + s.length > maxLen && cur) { chunks.push(cur.trim()); cur = ""; }
+    // a single sentence longer than maxLen: hard-split it
+    if (s.length > maxLen) {
+      for (let i = 0; i < s.length; i += maxLen) chunks.push(s.slice(i, i + maxLen).trim());
+    } else {
+      cur += s;
+    }
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  return chunks.filter(Boolean);
 }
