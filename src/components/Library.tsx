@@ -58,6 +58,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
   }
 
   const visible = filter === "all" ? items : items.filter((i) => i.type === filter);
+  const emptyKey = filter === "comic" ? "libEmptyComics" : filter === "story" ? "libEmptyStories" : "libEmpty";
 
   const FILTERS: { id: Filter; lk: string; glyph?: string }[] = [
     { id: "all", lk: "libAll" },
@@ -131,7 +132,7 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
         {/* Grid */}
         {visible.length === 0 ? (
           <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 14, padding: "60px 20px", lineHeight: 1.6 }}>
-            {t(lang, "libEmpty")}
+            {t(lang, emptyKey)}
           </p>
         ) : (
           <div className="lib-grid">

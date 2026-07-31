@@ -163,7 +163,7 @@ export default function StoryPreview({ onStart }: { onStart: () => void }) {
             Напиши приказката на моето дете
           </button>
           <p className="text-sm mt-4" style={{ color: "#9B8FC0" }}>
-            Безплатно · Готово за около минута · Запазена завинаги
+            Безплатно · Готово за около минута · Запазена в библиотеката
           </p>
         </div>
       </div>

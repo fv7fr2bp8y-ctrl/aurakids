@@ -77,7 +77,7 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
           <Testimonials />
         </>
       )}
-      <Footer />
+      <Footer lang={lang} />
     </main>
   );
 }

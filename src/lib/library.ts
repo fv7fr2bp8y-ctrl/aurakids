@@ -15,9 +15,17 @@ export interface LibraryItem {
   data: ComicData | StoryData;
 }
 
-// Each product keeps its own library (by build or by /prikazki|/komiksi path).
+// Older versions kept three separate local libraries: one for the portal and
+// one per dedicated product route. Read all compatible keys so a comic created
+// at /komiksi is also visible from the portal, and vice versa.
+const LIB_KEYS = {
+  both: "ak-library",
+  story: "ak-library-story",
+  comic: "ak-library-comic",
+} as const;
+
 function scope() { return runtimeMode(); }
-function libKey() { const m = scope(); return m === "story" ? "ak-library-story" : m === "comic" ? "ak-library-comic" : "ak-library"; }
+function libKey() { return LIB_KEYS[scope()]; }
 const CODE_KEY = "ak-family-code";
 
 // ---- Family code (the key to the cloud library) ----
@@ -41,11 +49,25 @@ export function setFamilyCode(code: string) {
 
 export function getLibrary(): LibraryItem[] {
   if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(libKey()) || "[]");
-  } catch {
-    return [];
+  const currentScope = scope();
+  const keys = currentScope === "both"
+    ? Object.values(LIB_KEYS)
+    : [LIB_KEYS[currentScope], LIB_KEYS.both];
+  const byId = new Map<string, LibraryItem>();
+
+  for (const key of keys) {
+    try {
+      const items = JSON.parse(localStorage.getItem(key) || "[]") as LibraryItem[];
+      for (const item of items) {
+        if (!item?.id || (currentScope !== "both" && item.type !== currentScope)) continue;
+        byId.set(item.id, item);
+      }
+    } catch {
+      // Ignore one damaged legacy key and keep the rest of the library usable.
+    }
   }
+
+  return Array.from(byId.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 function writeLocal(items: LibraryItem[]) {
@@ -74,7 +96,10 @@ export async function syncLibrary(code?: string): Promise<LibraryItem[]> {
     const res = await fetch(`/api/library?code=${encodeURIComponent(c)}`);
     const { items } = await res.json();
     const remote: (LibraryItem & { scope?: string })[] = Array.isArray(items) ? items : [];
-    const mine = remote.filter((i) => (i.scope ?? "both") === s || s === "both");
+    // Item type is the reliable compatibility signal. Old portal entries were
+    // stored with scope="both", which previously hid them from /prikazki and
+    // /komiksi even though their type was correct.
+    const mine = remote.filter((i) => s === "both" || i.type === s);
     // Merge remote + local, dedupe by id, newest first.
     const byId = new Map<string, LibraryItem>();
     for (const i of [...mine, ...getLibrary()]) byId.set(i.id, i);

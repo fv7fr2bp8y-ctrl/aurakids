@@ -328,7 +328,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             <p style={{ fontSize: 13, color: "#ff9a9a", marginTop: 14 }}>{payError}</p>
           )}
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>
-            {t(lang, "demoUnlockNote")} · {t(lang, "demoSoon")}
+            {t(lang, "demoUnlockNote")}
           </p>
         </div>
       </section>

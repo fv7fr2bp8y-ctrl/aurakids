@@ -28,7 +28,7 @@ const STEPS = [
   {
     n: "4",
     title: "Чуй я на глас",
-    desc: "Топъл глас разказва приказката. Пазена е завинаги.",
+    desc: "Топъл глас разказва приказката. После я намираш в библиотеката.",
     bg: "linear-gradient(135deg, #67E8F9 0%, #2563EB 100%)",
     prompt: "Disney watercolor illustration, a cozy bedroom at night, a parent and young child snuggled under a starry blanket together, soft golden lamplight, magical glowing ribbons of sound floating through the air like aurora borealis, a crescent moon visible through the window, tender intimate mood, warm blue and gold tones, ultra-detailed, no text, no letters, no watermarks",
   },

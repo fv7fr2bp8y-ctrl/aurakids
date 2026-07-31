@@ -1,6 +1,7 @@
 import AuraLogo from "./AuraLogo";
+import { t } from "@/lib/i18n";
 
-export default function Footer() {
+export default function Footer({ lang }: { lang: string }) {
   return (
     <footer className="py-16 px-6" style={{ background: "#0F0520", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
@@ -11,13 +12,13 @@ export default function Footer() {
           <span className="text-xl font-bold text-white tracking-tight">AuraKids</span>
         </button>
         <p className="text-sm mb-2 max-w-xs" style={{ color: "rgba(255,255,255,0.35)", lineHeight: 1.7 }}>
-          Персонализирани приказки с изкуствен интелект — твоето дете е героят.
+          {t(lang, "footerTagline")}
         </p>
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
-          © 2026 AuraKids · aurakids.fun · Всички права запазени
+          © 2026 AuraKids · aurakids.fun · {t(lang, "footerRights")}
         </p>
         <a href="/privacy" className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
-          Политика за поверителност
+          {t(lang, "privacy")}
         </a>
       </div>
     </footer>
