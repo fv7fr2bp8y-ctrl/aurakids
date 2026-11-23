@@ -6,7 +6,7 @@ import HeroSection from "@/components/HeroSection";
 import Library from "@/components/Library";
 import HowItWorks from "@/components/HowItWorks";
 import StoryPreview from "@/components/StoryPreview";
-import Testimonials from "@/components/Testimonials";
+import ListenExcerpt from "@/components/ListenExcerpt";
 import Footer from "@/components/Footer";
 import { soleFormat as buildSoleFormat } from "@/lib/appConfig";
 
@@ -74,7 +74,7 @@ export default function HomeApp({ forced }: { forced?: "story" | "comic" }) {
         <>
           <HowItWorks />
           <StoryPreview onStart={() => setMode("story")} />
-          <Testimonials />
+          <ListenExcerpt onStart={() => setMode("story")} />
         </>
       )}
       <Footer lang={lang} />

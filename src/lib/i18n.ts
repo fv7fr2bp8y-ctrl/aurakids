@@ -12,7 +12,7 @@ type Dict = Record<string, Record<Lang, string>>;
 
 const D: Dict = {
   // ---- Hero / Home ----
-  badge: { bg: "✨ Над 1 200 създадени приказки", en: "✨ Over 1,200 stories created", de: "✨ Über 1.200 Geschichten erstellt", fr: "✨ Plus de 1 200 histoires créées", ru: "✨ Более 1 200 созданных сказок" },
+  badge: { bg: "✨ Нова приказка всяка вечер", en: "✨ A new story every night", de: "✨ Jeden Abend eine neue Geschichte", fr: "✨ Une nouvelle histoire chaque soir", ru: "✨ Новая сказка каждый вечер" },
   subPortal: { bg: "Избери какво приключение да създадем тази вечер.", en: "Choose what adventure we'll create tonight.", de: "Wähle, welches Abenteuer wir heute Abend erschaffen.", fr: "Choisis quelle aventure créer ce soir.", ru: "Выбери, какое приключение создадим сегодня." },
   h1a: { bg: "Само едно дете", en: "Only one child", de: "Nur ein Kind", fr: "Un seul enfant", ru: "Только один ребёнок" },
   h1b: { bg: "е героят.", en: "is the hero.", de: "ist der Held.", fr: "est le héros.", ru: "— герой." },
@@ -33,7 +33,6 @@ const D: Dict = {
   micro1: { bg: "Безплатно", en: "Free", de: "Kostenlos", fr: "Gratuit", ru: "Бесплатно" },
   micro2: { bg: "Готово за около минута", en: "Ready in about a minute", de: "Fertig in etwa einer Minute", fr: "Prêt en une minute environ", ru: "Готово примерно за минуту" },
   micro3: { bg: "Запазена в библиотеката", en: "Saved in your library", de: "In deiner Bibliothek gespeichert", fr: "Gardée dans ta bibliothèque", ru: "Сохранится в библиотеке" },
-  rating: { bg: "от 380+ родители", en: "from 380+ parents", de: "von 380+ Eltern", fr: "par plus de 380 parents", ru: "от 380+ родителей" },
 
   // ---- Create flow ----
   s1eyebrow: { bg: "Стъпка 1 · Героят", en: "Step 1 · The Hero", de: "Schritt 1 · Der Held", fr: "Étape 1 · Le héros", ru: "Шаг 1 · Герой" },
