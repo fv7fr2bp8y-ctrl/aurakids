@@ -13,6 +13,8 @@ export async function GET() {
   try {
     const r = await fetch("https://api.openai.com/v1/models/gpt-image-1", { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` } });
     out.openai = `${r.status}`;
+    const all = await fetch("https://api.openai.com/v1/models", { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` } }).then((x) => x.json());
+    out.openaiImageModels = (all?.data || []).map((m: { id: string }) => m.id).filter((id: string) => /image|dall/i.test(id)).join(",") || JSON.stringify(all).slice(0, 200);
   } catch { out.openai = "error"; }
   const gk = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "";
   try {
