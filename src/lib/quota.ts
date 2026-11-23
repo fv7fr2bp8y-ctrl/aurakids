@@ -116,6 +116,27 @@ export async function takeQuota(req: NextRequest, kind: QuotaKind): Promise<Quot
   };
 }
 
+// ElevenLabs voice (≈0,30 $ a story) only for paying families: 15 stories a
+// calendar month on a subscription or lifetime unlock, 3 during the trial.
+// Returns null when this request should use the cheaper Gemini voice.
+const EL_MONTH = 15;
+const EL_TRIAL = 3;
+export async function takeElevenLabs(req: NextRequest): Promise<{ refund: () => Promise<void> } | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const code = familyCodeFrom(req);
+  const ent = await getEntitlement(code);
+  if (!ent.paid) return null;
+  const path = ent.kind === "trial"
+    ? `limits/trial-${ent.sub.subId}/tts-el.json`
+    : `limits/m-${today().slice(0, 7)}/code-${code}-tts-el.json`;
+  const limit = ent.kind === "trial" ? EL_TRIAL : EL_MONTH;
+  const n = await readCount(sb, path);
+  if (n >= limit) return null;
+  await writeCount(sb, path, n + 1);
+  return { refund: async () => writeCount(sb, path, (await readCount(sb, path)) - 1) };
+}
+
 // Standard "limit reached" answer the app understands.
 export function quotaDenied(r: Extract<QuotaResult, { ok: false }>): NextResponse {
   return NextResponse.json({ error: "limit", scope: r.scope, paid: r.paid }, { status: 429 });
