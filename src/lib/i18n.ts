@@ -180,6 +180,8 @@ const D: Dict = {
   libLoad: { bg: "Зареди", en: "Load", de: "Laden", fr: "Charger", ru: "Загрузить" },
 
   // ---- Themes ----
+  thXmas: { bg: "Коледа", en: "Christmas", de: "Weihnachten", fr: "Noël", ru: "Рождество" },
+  thXmasD: { bg: "Сняг, елха и Дядо Коледа", en: "Snow, the tree and Santa", de: "Schnee, Baum und Weihnachtsmann", fr: "Neige, sapin et père Noël", ru: "Снег, ёлка и Дед Мороз" },
   thDragon: { bg: "Дракони", en: "Dragons", de: "Drachen", fr: "Dragons", ru: "Драконы" },
   thDragonD: { bg: "Смели полети и съкровища", en: "Brave flights and treasure", de: "Mutige Flüge und Schätze", fr: "Vols audacieux et trésors", ru: "Смелые полёты и сокровища" },
   thSpace: { bg: "Космос", en: "Space", de: "Weltall", fr: "Espace", ru: "Космос" },

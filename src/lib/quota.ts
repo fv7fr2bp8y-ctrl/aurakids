@@ -34,15 +34,19 @@ export function familyCodeFrom(req: NextRequest): string {
   return CODE.test(code) ? code : "";
 }
 
-function clientIp(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for") || "";
-  return fwd.split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
+export function ipFromHeaders(h: Headers): string {
+  const fwd = h.get("x-forwarded-for") || "";
+  return fwd.split(",")[0].trim() || h.get("x-real-ip") || "unknown";
+}
+
+// Only a salted hash is stored, never the address itself.
+export function hashIp(ip: string): string {
+  const salt = process.env.QUOTA_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "aurakids";
+  return createHash("sha256").update(`${salt}|${ip}`).digest("hex").slice(0, 24);
 }
 
 function ipKey(req: NextRequest): string {
-  // Only a salted hash is stored, never the address itself.
-  const salt = process.env.QUOTA_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "aurakids";
-  return createHash("sha256").update(`${salt}|${clientIp(req)}`).digest("hex").slice(0, 24);
+  return hashIp(ipFromHeaders(req.headers));
 }
 
 function today(): string {

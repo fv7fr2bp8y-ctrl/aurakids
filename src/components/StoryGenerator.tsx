@@ -20,6 +20,7 @@ const WORLD_IMG: Record<string, string> = {
   mermaid: `${ASSETS}/world-ocean.png`,
   superhero: `${ASSETS}/world-superhero.png`,
   fairy: `${ASSETS}/world-fairy.png`,
+  xmas: "/koleda/world.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
   pixar: `${ASSETS}/style-pixar.png`,
@@ -34,6 +35,10 @@ interface StoryGeneratorProps {
   onLangChange: (l: string) => void;
   onBack: () => void;
   onHome?: () => void;
+  // Landing pages (e.g. /koleda) arrive with the world chosen and maybe the
+  // name typed: the creator then only asks what is still missing.
+  preset?: { name?: string; theme: { id: string; label: string; description: string } };
+  onEvent?: (e: "story" | "paywall") => void;
 }
 
 const THEMES = [
@@ -43,6 +48,7 @@ const THEMES = [
   { id: "mermaid", glyph: "🧜", lk: "thMermaid", dk: "thMermaidD", description: "Русалки, рибки и съкровища" },
   { id: "superhero", glyph: "🦸", lk: "thSuper", dk: "thSuperD", description: "Спасяване на света с особени сили" },
   { id: "fairy", glyph: "🧚", lk: "thFairy", dk: "thFairyD", description: "Вълшебна пръчка и изпълнени желания" },
+  { id: "xmas", glyph: "🎄", lk: "thXmas", dk: "thXmasD", description: "Коледа: сняг, украсена елха, Дядо Коледа, джуджета и подаръци, топла празнична нощ" },
 ];
 
 
@@ -53,6 +59,7 @@ const THEME_COVERS: Record<string, string> = {
   forest: "An enchanted forest clearing with giant glowing mushrooms, fireflies and a friendly fox peeking from ancient trees",
   mermaid: "An underwater coral palace with shimmering fish, pearls and a gentle sea turtle, sunbeams piercing turquoise water",
   superhero: "A heroic cape fluttering over a vibrant city skyline at sunset, comic-style energy, bold dynamic composition",
+  xmas: "A snowy fairy-tale village on Christmas night with a glowing decorated Christmas tree, warm windows and a reindeer sleigh crossing the moon",
   fairy: "A tiny fairy village inside glowing flowers with sparkling magic dust and butterfly wings, dreamy pastel light",
   custom: "A magical glowing door standing alone in a starfield, slightly open with golden light and question-mark shaped sparkles spilling out, mysterious and inviting",
   retro: "A brave kid superhero mid-action in a classic vintage American comic book style: bold black ink outlines, Ben-Day halftone dots, punchy primary colors, dynamic pose with motion lines, retro comic energy",
@@ -99,10 +106,12 @@ export interface StoryData {
   voiceText?: string; // same story with stress marks, for the voice only
 }
 
-export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome }: StoryGeneratorProps) {
-  const [step, setStep] = useState(1);
-  const [childName, setChildName] = useState("");
-  const [selectedTheme, setSelectedTheme] = useState("");
+export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome, preset, onEvent }: StoryGeneratorProps) {
+  // With a preset world there is no world step: name → age → story.
+  const LAST = preset ? 2 : 3;
+  const [step, setStep] = useState(preset?.name?.trim() ? 2 : 1);
+  const [childName, setChildName] = useState(preset?.name?.trim() ?? "");
+  const [selectedTheme, setSelectedTheme] = useState(preset?.theme.id ?? "");
   const [selectedAge, setSelectedAge] = useState("");
   const [artStyle, setArtStyle] = useState("pixar");
   const [s3Tab, setS3Tab] = useState<"world" | "style">("world");
@@ -166,7 +175,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     ? [t(lang, "cls1"), t(lang, "cls2"), t(lang, "cls3"), t(lang, "cls4")]
     : [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
 
-  const activeTheme = selectedTheme === "custom"
+  const activeTheme = preset && selectedTheme === preset.theme.id
+    ? { label: preset.theme.label, description: preset.theme.description }
+    : selectedTheme === "custom"
     ? { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" }
     : (() => { const th = THEMES.find((x) => x.id === selectedTheme); return th ? { label: t(lang, th.lk), description: th.description } : undefined; })();
 
@@ -233,14 +244,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const nameOk = isNameClean(childName);
   const canProceed =
     (step === 1 && !!childName.trim() && nameOk) ||
-    (step === 2 && !!selectedAge) ||
+    (step === 2 && !!selectedAge && (LAST === 2 ? !!selectedTheme : true)) ||
     (step === 3 && !!selectedTheme);
 
   const handleNext = () => {
     if (!canProceed) return;
-    if (step < 3) { setStep(step + 1); return; }
+    if (step < LAST) { setStep(step + 1); return; }
     // Web demo: one story + one comic, then upsell the full app.
-    if (!canGenerate(format)) { setDemoBlocked(true); return; }
+    if (!canGenerate(format)) { setDemoBlocked(true); onEvent?.("paywall"); return; }
     handleGenerate();
   };
 
@@ -252,7 +263,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   // The server said no (daily limit). Free web visitors see the paywall;
   // paid families and the Play app get a "come back tomorrow" message.
   const onLimit = (scope: unknown) => {
-    if (scope === "free" && !isStoreApp()) { setDemoBlocked(true); return; }
+    if (scope === "free" && !isStoreApp()) { setDemoBlocked(true); onEvent?.("paywall"); return; }
     setError(t(lang, scope === "busy" ? "errBusy" : "errLimit"));
   };
 
@@ -337,6 +348,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       });
       recordGeneration("story");
       setStoryData(storyResult);
+      onEvent?.("story");
     } catch {
       setError(t(lang, format === "comic" ? "errComic" : "errStory"));
     } finally {
@@ -410,9 +422,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             </svg>
           </button>
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
+            <div className="progress-fill" style={{ width: `${(step / LAST) * 100}%` }} />
           </div>
-          <span className="progress-count">{step} / 3</span>
+          <span className="progress-count">{step} / {LAST}</span>
           {onHome && (
             <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
               <Image src={`${ASSETS}/logo-mark-v5.png`} alt="AuraKids" width={32} height={32} unoptimized
@@ -545,7 +557,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
           <div className="create-foot">
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
-              {step < 3 ? (
+              {step < LAST ? (
                 t(lang, "continueBtn")
               ) : format === "comic" ? (
                 <><ComicIcon size={18} /> {t(lang, "ctaComic")} {childName || t(lang, "heroFallback")}</>
