@@ -73,3 +73,20 @@
 .kl-seo h2 { margin: 0 0 6px; font-size: 22px; color: #fff; }
 .kl-seo h3 { margin: 14px 0 0; font-size: 16px; color: #fff; }
 .kl-seo p { margin: 0; font-size: 15px; line-height: 1.65; color: #d6c8ff; }
+
+/* "Чуй как звучи" audio sample */
+.kl-audio { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 16px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); }
+.kl-audio-pp { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 0; background: #ffc847; color: #2a1052;
+  display: grid; place-items: center; cursor: pointer; }
+.kl-audio-pp svg { width: 18px; height: 18px; }
+.kl-audio-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.kl-audio-txt b { font-size: 14px; }
+.kl-audio-bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,0.2); overflow: hidden; }
+.kl-audio-bar i { display: block; height: 100%; background: #ffc847; }
+.kl-audio-row { display: flex; justify-content: space-between; font-size: 11.5px; color: #cbbcf2; font-variant-numeric: tabular-nums; }
+.kl-audio.light { background: #fff; border-color: #e3d7f2; color: #1c0b3a; }
+.kl-audio.light .kl-audio-pp { background: #1a3f86; color: #fff; }
+.kl-audio.light .kl-audio-bar { background: #e6ddf5; }
+.kl-audio.light .kl-audio-bar i { background: #1a3f86; }
+.kl-audio.light .kl-audio-row { color: #6b5a8a; }

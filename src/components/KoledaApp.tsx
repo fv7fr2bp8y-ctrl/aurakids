@@ -54,6 +54,42 @@ function NameField({ value, onChange, onEnter, light }: { value: string; onChang
   );
 }
 
+// "Чуй как звучи": a 34-second sample of the Аура voice. Plays only on tap.
+function AudioSample({ variant, light }: { variant: KoledaVariant; light?: boolean }) {
+  const au = useRef<HTMLAudioElement | null>(null);
+  const [on, setOn] = useState(false);
+  const [t, setT] = useState(0);
+  const [dur, setDur] = useState(34);
+  const sent = useRef(false);
+  const toggle = () => {
+    const a = au.current;
+    if (!a) return;
+    if (a.paused) {
+      a.play().catch(() => {});
+      if (!sent.current) { sent.current = true; trackEvent("koleda_audio_play", { variant }); }
+    } else a.pause();
+  };
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  return (
+    <div className={`kl-audio ${light ? "light" : ""}`}>
+      <button type="button" className="kl-audio-pp" onClick={toggle} aria-label={on ? "Спри откъса" : "Пусни откъса"}>
+        {on
+          ? <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
+          : <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>}
+      </button>
+      <div className="kl-audio-txt">
+        <b>Чуй как звучи</b>
+        <div className="kl-audio-bar"><i style={{ width: `${dur ? (t / dur) * 100 : 0}%` }} /></div>
+        <div className="kl-audio-row"><span>{fmt(t)}</span><span>{fmt(dur)}</span></div>
+      </div>
+      <audio ref={au} src="/koleda/otkas-aura.mp3" preload="none"
+        onPlay={() => setOn(true)} onPause={() => setOn(false)} onEnded={() => { setOn(false); setT(0); }}
+        onTimeUpdate={(e) => setT(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDur(e.currentTarget.duration || 34)} />
+    </div>
+  );
+}
+
 export default function KoledaApp({ variant, preview }: { variant: KoledaVariant; preview: boolean }) {
   const [name, setName] = useState("");
   const [plot, setPlot] = useState(0);
@@ -112,6 +148,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
             <div className="kl-a-art"><img src="/koleda/hero.jpg" alt="Дете чете вълшебна книга до коледната елха" /></div>
             <h1 className="kl-a-h1">Коледна приказка, в която <em>твоето дете</em> е героят</h1>
             <p className="kl-lead">Напиши името и за минута получаваш приказка с картинки, която някой ще ти прочете на глас.</p>
+            <AudioSample variant={variant} />
             <NameField value={name} onChange={setName} onEnter={() => start(XMAS)} />
             {nameError}
             <button className="kl-cta gold" onClick={() => start(XMAS)}>✨ Създай коледната приказка</button>
@@ -140,6 +177,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
               <div><b>2</b>Възрастта</div>
               <div><b>3</b>Приказка с картинки и глас</div>
             </div>
+            <AudioSample variant={variant} light />
             <NameField value={name} onChange={setName} onEnter={() => start(LETTER)} light />
             {nameError}
             <button className="kl-cta green" onClick={() => start(LETTER)}>🎁 Направи коледното писмо</button>
@@ -172,6 +210,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
                 </button>
               ))}
             </div>
+            <AudioSample variant={variant} light />
             <NameField value={name} onChange={setName} onEnter={() => start(PLOTS[plot])} light />
             {nameError}
             <button className="kl-cta red" onClick={() => start(PLOTS[plot])}>🎄 Започни коледната приказка</button>
