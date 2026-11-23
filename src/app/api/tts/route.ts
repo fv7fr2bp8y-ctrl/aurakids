@@ -95,7 +95,7 @@ async function callGemini(text: string, key: string, voice: string) {
   // Try each model until one returns audio (preview models occasionally answer
   // with finishReason OTHER and no audio; the next model usually succeeds).
   for (const model of GEMINI_MODELS) {
-    try {
+    for (let attempt = 0; attempt < 3; attempt++) try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
         {
@@ -110,10 +110,13 @@ async function callGemini(text: string, key: string, voice: string) {
           }),
         }
       );
-      if (!res.ok) continue;
+      // Rate limit: wait a little and try the same model again.
+      if (res.status === 429) { await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); continue; }
+      if (!res.ok) break;
       const part = (await res.json())?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
       if (part?.data) return part;
-    } catch { /* try next model */ }
+      break;
+    } catch { break; /* try next model */ }
   }
   return null;
 }
@@ -213,9 +216,10 @@ export async function POST(req: NextRequest) {
   // story in sentence-sized chunks and stitch the PCM into one WAV.
   const q = await reserve();
   if (!q.ok) return quotaDenied(q);
-  // Chunks are recorded 3 at a time (a 4k-character story took ~2 minutes
-  // one by one); stress marks from the shared dictionary go in first.
-  const chunks = chunkText(addStress(trimmed), 900);
+  // Short pieces (one or two sentences): in long requests Gemini skipped the
+  // stress marks ("драконът" read wrong despite "дра́конът", 23.11.2026), in
+  // single sentences it kept them. 3 pieces are recorded at a time.
+  const chunks = chunkText(addStress(trimmed), 260);
   const pcmParts: Uint8Array[] = new Array(chunks.length);
   let rate = 24000;
   let failed = false;
