@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "11 юли 2026";
+const UPDATED = "23 ноември 2026";
 
 export default function PrivacyPage() {
   return (
@@ -25,14 +25,24 @@ export default function PrivacyPage() {
         <ul style={ulStyle}>
           <li><b>Въведеното от теб</b> за създаване на история: име на детето, възраст (диапазон), избран свят/стил и език. Използва се само за да генерираме приказката или комикса.</li>
           <li><b>Създаденото съдържание</b> (текст, илюстрации, глас) се пази, за да можеш да го отваряш пак. Пази се локално на устройството и в облак, свързан с анонимен „семеен код" — без имейл или акаунт.</li>
-          <li><b>Технически данни</b>: стандартни логове на сървъра (напр. при грешка). Не използваме рекламни тракери.</li>
+          <li><b>Технически данни</b>: стандартни логове на сървъра (напр. при грешка) и общи бройки за посещенията на страниците, без лични данни.</li>
         </ul>
       </Section>
 
       <Section title="Не събираме излишни лични данни">
         Не изискваме регистрация, имейл или парола. „Семейният код" е случаен низ, който
         стои на твоето устройство; всеки с този код вижда съответната библиотека.
-        Не продаваме данни и не ги използваме за реклама.
+        Не продаваме данни. Името на детето и създадените истории никога не се изпращат към рекламни услуги.
+      </Section>
+
+      <Section title="Бисквитки и реклама" id="cookies">
+        На уебсайта питаме дали може да използваме бисквитки от Google (Google Analytics и Google Ads).
+        Ако се съгласиш, те ни казват колко хора идват, от коя реклама и дали са опитали приказка или
+        абонамент. Ако откажеш, нищо от това не се зарежда и сайтът работи по същия начин. Изборът се
+        пази на устройството ти; за да го промениш, изтрий данните на сайта в браузъра и ще те попитаме
+        отново. В приложенията от Google Play такива бисквитки не се използват. За да сравним вариантите
+        на някои страници, броим посещенията по вариант чрез необратим отпечатък на IP адреса, без
+        бисквитки и без да пазим самия адрес.
       </Section>
 
       <Section title="Деца">
@@ -64,7 +74,7 @@ export default function PrivacyPage() {
       <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.12)", margin: "40px 0" }} />
 
       <h2 style={{ fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Privacy Policy (English)</h2>
-      <p style={{ fontSize: 13, color: "rgba(237,231,246,0.6)", marginBottom: 20 }}>Last updated: July 11, 2026</p>
+      <p style={{ fontSize: 13, color: "rgba(237,231,246,0.6)", marginBottom: 20 }}>Last updated: November 23, 2026</p>
       <Section title="Who we are">
         AuraKids creates personalised children&apos;s stories and comics. This policy covers the
         AuraKids Stories and AuraKids Comics apps and the aurakids.fun website.
@@ -73,8 +83,14 @@ export default function PrivacyPage() {
         <ul style={ulStyle}>
           <li><b>What you enter</b> to create a story: child&apos;s name, age range, chosen world/style and language — used only to generate the story or comic.</li>
           <li><b>The content created</b> (text, illustrations, voice) is stored so you can reopen it — locally and in a cloud copy tied to an anonymous &quot;family code&quot;, with no email or account.</li>
-          <li><b>Technical data</b>: standard server logs. No advertising trackers.</li>
+          <li><b>Technical data</b>: standard server logs and aggregate page counts with no personal data.</li>
         </ul>
+      </Section>
+      <Section title="Cookies and advertising">
+        On the website we ask whether we may use Google cookies (Google Analytics and Google Ads) to
+        learn which ads bring visitors and whether they tried a story or a subscription. If you decline,
+        none of it loads and the site works the same. The Google Play apps do not use these cookies.
+        The child&apos;s name and stories are never sent to advertising services.
       </Section>
       <Section title="Children">
         The apps are for parents creating content for their children. We do not request personal
@@ -94,9 +110,9 @@ export default function PrivacyPage() {
 
 const ulStyle: React.CSSProperties = { margin: "8px 0", paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section style={{ marginBottom: 24 }}>
+    <section id={id} style={{ marginBottom: 24 }}>
       <h2 style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{title}</h2>
       <div style={{ fontSize: 15, color: "rgba(237,231,246,0.85)" }}>{children}</div>
     </section>

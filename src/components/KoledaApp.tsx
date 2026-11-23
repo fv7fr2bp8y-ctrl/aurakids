@@ -7,6 +7,7 @@ import StoryGenerator from "@/components/StoryGenerator";
 import Footer from "@/components/Footer";
 import type { KoledaVariant } from "@/lib/abtest";
 import { isNameClean } from "@/lib/nameFilter";
+import { trackEvent } from "@/lib/analytics";
 import "./koleda.css";
 
 // Christmas landing page, three variants under test (A/B/C). The winner is the
@@ -78,6 +79,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
   const start = (theme: Theme) => {
     if (name.trim() && !nameOk) return;
     track(variant, "click", preview);
+    trackEvent("koleda_cta_click", { variant });
     setStarted(theme);
     window.scrollTo(0, 0);
   };

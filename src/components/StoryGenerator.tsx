@@ -11,6 +11,7 @@ import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
 import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
 import { isNameClean } from "@/lib/nameFilter";
+import { trackEvent } from "@/lib/analytics";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -148,6 +149,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   };
 
   const startCheckout = async () => {
+    trackEvent("begin_checkout", { plan, currency: "EUR", value: plan === "year" ? 39.99 : 4.99 });
     setPaying(true);
     setPayError("");
     try {
@@ -291,6 +293,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
         const comicData: ComicData = { childName: childName.trim(), title: comic.title, pages: comic.pages };
         saveToLibrary({ type: "comic", title: comic.title, childName: childName.trim(), lang, cover: comic.pages[0]?.url ?? null, data: comicData });
         recordGeneration("comic");
+        trackEvent("comic_ready");
         setComicData(comicData);
         return;
       }
@@ -349,6 +352,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       recordGeneration("story");
       setStoryData(storyResult);
       onEvent?.("story");
+      trackEvent("story_ready", { theme: String(selectedTheme) });
     } catch {
       setError(t(lang, format === "comic" ? "errComic" : "errStory"));
     } finally {

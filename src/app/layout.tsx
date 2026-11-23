@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import ServiceWorker from "@/components/ServiceWorker";
+import ConsentBanner from "@/components/ConsentBanner";
+import ThanksTracker from "@/components/ThanksTracker";
+import { GA_ID, bootScript } from "@/lib/analytics";
 import { BRAND, APP } from "@/lib/appConfig";
 
 const IV = BRAND.iconVariant;
@@ -90,9 +93,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bg" className={`${geist.variable} h-full antialiased`}>
+      {GA_ID && (
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: bootScript() }} />
+        </head>
+      )}
       <body className="min-h-full flex flex-col">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         <ServiceWorker />
+        <ConsentBanner />
+        <ThanksTracker />
         {children}
       </body>
     </html>
