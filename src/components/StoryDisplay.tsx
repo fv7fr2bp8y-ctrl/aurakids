@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StoryData } from "./StoryGenerator";
-import { useTTS, DEFAULT_VOICE } from "@/hooks/useTTS";
+import { useStoryVoice, DEFAULT_VOICE } from "@/hooks/useStoryVoice";
 import { t } from "@/lib/i18n";
 import { Sparkle } from "./Icons";
 
@@ -35,6 +35,11 @@ function useIllustration(prompt: string | undefined) {
   return { url, loading };
 }
 
+function fmtTime(sec: number) {
+  if (!Number.isFinite(sec) || sec < 0) sec = 0;
+  return `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+}
+
 const VOICES = [
   { id: "Schedar", name: "Аура", desc: "Топъл, спокоен" },
   { id: "Kore", name: "Мира", desc: "Ясен, женски" },
@@ -46,10 +51,14 @@ const VOICES = [
 
 export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: StoryDisplayProps) {
   const lang = langProp || story.language || "bg";
-  const { speak, status: ttsStatus } = useTTS();
   const [voice, setVoice] = useState(DEFAULT_VOICE);
   const [voiceMenu, setVoiceMenu] = useState(false);
   const fullStoryText = story.voiceText || `${story.title}.\n\n${story.story}`;
+  const sv = useStoryVoice(fullStoryText, voice, lang);
+  // Record the whole story in the background as soon as it is open, so the
+  // play button usually starts at once.
+  const { record } = sv;
+  useEffect(() => { record(); }, [record]);
   const { url: heroUrl, loading: heroLoading } = useIllustration(story.imagePrompts?.[0]);
   const voiceName = VOICES.find((v) => v.id === voice)?.name ?? "Аура";
 
@@ -188,57 +197,70 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
         </div>
       </div>
 
-      {/* Sticky audio player — voice pinned right beside the play button */}
-      <div className="player">
-        <div className="player-inner">
-          <div className="player-row">
-            <button className={`playbtn ${ttsStatus === "playing" ? "on" : ""}`}
-              onClick={() => speak(fullStoryText, voice, lang)} disabled={ttsStatus === "loading"}
-              aria-label={t(lang, "tapToListen")}>
-              {ttsStatus === "playing" && <span className="playbtn-pulse" />}
-              {ttsStatus === "loading" ? (
-                <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      {/* Voice player (variant B): a floating card with what is played and
+          what is already recorded; the start plays while the rest records. */}
+      <div className="vplayer">
+        <div className="vplayer-card">
+          <div className="vplayer-row">
+            <button className="vplay" onClick={sv.toggle} aria-label={sv.status === "playing" ? t(lang, "pause") : t(lang, "tapToListen")}>
+              {sv.status === "preparing" || sv.status === "buffering" ? (
+                <svg className="animate-spin-ak" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-              ) : ttsStatus === "playing" ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+              ) : sv.status === "playing" ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
               ) : (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
               )}
             </button>
-            <div className="player-meta">
-              <div className="ptitle">{story.title}</div>
-              <div className="ptime">{ttsStatus === "playing" ? t(lang, "playing") : ttsStatus === "loading" ? t(lang, "loadSub") : t(lang, "tapToListen")}</div>
+            <div className="vmeta">
+              <div className="vtitle">{t(lang, "readsFor").replace("{voice}", sv.voiceName || voiceName).replace("{name}", story.childName)}</div>
+              <div className="vsub">
+                {sv.status === "error" ? t(lang, "voiceError")
+                  : sv.ready === 0 ? t(lang, "voicePreparing")
+                  : sv.ready < sv.total ? t(lang, "voiceFirstReady")
+                  : t(lang, "voiceAllReady")}
+              </div>
             </div>
-
-            {/* Voice chip pinned to the play button */}
-            <div className="voicechip-wrap">
-              {voiceMenu && (
-                <>
-                  <div className="voicechip-backdrop" onClick={() => setVoiceMenu(false)} />
-                  <div className="voicechip-menu">
-                    {VOICES.map((v) => (
-                      <button key={v.id} className={v.id === voice ? "on" : ""}
-                        onClick={() => { setVoice(v.id); setVoiceMenu(false); }}>
-                        <span className="vname">{v.name}</span>
-                        <span className="vdesc">{v.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-              <button className="voicechip" onClick={() => setVoiceMenu((m) => !m)} aria-label={t(lang, "voiceLabel")}>
-                <svg className="voicechip-eq" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
-                </svg>
-                <span className="voicechip-name">{voiceName}</span>
-                <svg className="voicechip-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ transform: voiceMenu ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-            </div>
+            {sv.status === "playing" ? (
+              <div className="vwave" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></div>
+            ) : !sv.voiceName && (
+              /* Voice choice only where the voice can change (free voice) */
+              <div className="voicechip-wrap">
+                {voiceMenu && (
+                  <>
+                    <div className="voicechip-backdrop" onClick={() => setVoiceMenu(false)} />
+                    <div className="voicechip-menu">
+                      {VOICES.map((v) => (
+                        <button key={v.id} className={v.id === voice ? "on" : ""}
+                          onClick={() => { setVoice(v.id); setVoiceMenu(false); }}>
+                          <span className="vname">{v.name}</span>
+                          <span className="vdesc">{v.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <button className="voicechip dark" onClick={() => setVoiceMenu((m) => !m)} aria-label={t(lang, "voiceLabel")}>
+                  <span className="voicechip-name">{voiceName}</span>
+                  <svg className="voicechip-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: voiceMenu ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="vbar" aria-hidden="true">
+            <i className="rec" style={{ width: `${Math.min(100, (sv.recordedSec / Math.max(1, sv.estTotal)) * 100)}%` }} />
+            <i className="play" style={{ width: `${Math.min(100, (sv.played / Math.max(1, sv.estTotal)) * 100)}%` }} />
+          </div>
+          <div className="vtimes">
+            <span>{fmtTime(sv.played)}</span>
+            <span>{sv.ready < sv.total
+              ? t(lang, "voiceRecorded").replace("{a}", fmtTime(sv.recordedSec)).replace("{b}", fmtTime(sv.estTotal))
+              : fmtTime(sv.estTotal)}</span>
           </div>
         </div>
       </div>

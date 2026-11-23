@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
-import { takeQuota, quotaDenied, takeElevenLabs, type QuotaResult } from "@/lib/quota";
+import { takeQuota, quotaDenied, takeElevenLabs, readGroup, writeGroup, type QuotaResult } from "@/lib/quota";
 import { addStress } from "@/lib/stress";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
@@ -48,6 +48,8 @@ async function callGoogleTTSOAuth(text: string, token: string, voiceName: string
 // ELEVENLABS_VOICE_ID picks the narrator; otherwise the friendly voice id maps
 // to one of ElevenLabs' premade voices below.
 const EL_MODEL = "eleven_v3";
+// Shown in the player ("Мария чете на …"); ASCII-encoded for the header.
+const EL_NAME = encodeURIComponent(process.env.ELEVENLABS_VOICE_NAME || "Аура");
 // Pieces of up to ~1600 characters, split between paragraphs and recorded at
 // the same time (one 4k-character request took close to a minute).
 const EL_MAX = 1600;
@@ -138,7 +140,11 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
-  const { text, voice, language } = await req.json();
+  const { text, voice, language, group: rawGroup, part: rawPart } = await req.json();
+  const group = typeof rawGroup === "string" ? rawGroup : "";
+  const part = Number.isInteger(rawPart) ? (rawPart as number) : 0;
+  // Later parts of an already-charged story are free and keep its voice.
+  const charged = part > 0 && group ? await readGroup(group) : null;
   if (!text?.trim()) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });
   }
@@ -151,7 +157,8 @@ export async function POST(req: NextRequest) {
   // One quota unit per request, taken only when audio really has to be made
   // (cache hits stay free).
   let quota: QuotaResult | null = null;
-  const reserve = async () => (quota ??= await takeQuota(req, "tts"));
+  const reserve = async (): Promise<QuotaResult> =>
+    charged ? { ok: true, paid: false, refund: async () => {} } : (quota ??= await takeQuota(req, "tts"));
 
   const elKey = process.env.ELEVENLABS_API_KEY;
   const geminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
@@ -190,11 +197,14 @@ export async function POST(req: NextRequest) {
     const cachedUrl = await getCachedAudio(fn);
     if (cachedUrl) {
       const audio = await (await fetch(cachedUrl)).arrayBuffer();
-      return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+      return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400", "X-Voice": EL_NAME } });
     }
 
-    const allowance = await takeElevenLabs(req);
+    const allowance = charged
+      ? (charged.el ? { refund: async () => {} } : null)
+      : await takeElevenLabs(req);
     if (allowance) {
+      if (!charged && group && part === 0) await writeGroup(group, { el: true });
       const q = await reserve();
       if (!q.ok) { await allowance.refund().catch(() => {}); return quotaDenied(q); }
       // Only the dictionary layers ElevenLabs needs (names/rare words); the
@@ -208,7 +218,7 @@ export async function POST(req: NextRequest) {
         let off = 0;
         for (const b of out) { joined.set(new Uint8Array(b), off); off += b.byteLength; }
         await saveAudioToStorage(fn, joined.buffer);
-        return new NextResponse(joined.buffer, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+        return new NextResponse(joined.buffer, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400", "X-Voice": EL_NAME } });
       }
       await allowance.refund().catch(() => {});
       // fall through to Gemini if ElevenLabs failed
@@ -232,6 +242,7 @@ export async function POST(req: NextRequest) {
   // story in sentence-sized chunks and stitch the PCM into one WAV.
   const q = await reserve();
   if (!q.ok) return quotaDenied(q);
+  if (!charged && group && part === 0) await writeGroup(group, { el: false });
   // Short pieces (one or two sentences): in long requests Gemini skipped the
   // stress marks ("драконът" read wrong despite "дра́конът", 23.11.2026), in
   // single sentences it kept them. 3 pieces are recorded at a time.
