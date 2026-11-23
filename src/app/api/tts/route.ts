@@ -49,7 +49,7 @@ async function callGoogleTTSOAuth(text: string, token: string, voiceName: string
 // to one of ElevenLabs' premade voices below.
 const EL_MODEL = "eleven_v3";
 // Shown in the player ("Мария чете на …"); ASCII-encoded for the header.
-const EL_NAME = encodeURIComponent(process.env.ELEVENLABS_VOICE_NAME || "Мария");
+const EL_NAME = encodeURIComponent(process.env.ELEVENLABS_VOICE_NAME || "Аура");
 // Pieces of up to ~1600 characters, split between paragraphs and recorded at
 // the same time (one 4k-character request took close to a minute).
 const EL_MAX = 1600;
