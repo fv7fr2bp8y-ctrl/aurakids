@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
     // Words not checked in time are looked up after the answer is sent and
     // cached, so the next stories (and this one's voice, if recorded later) gain.
     if (missing.length) after(() => warmStress(missing, 50000));
-    const voiceText = `${addStress(plainTitle, extra)}.\n\n${addStress(plainStory, extra)}`;
+    const voiceText = `${addStress(plainTitle, extra, { wiki: false })}.\n\n${addStress(plainStory, extra, { wiki: false })}`;
 
     // Archive every story (unique key per generation) — history, not dedup.
     const cacheKey = makeCacheKey(childName, themeName || theme, age);

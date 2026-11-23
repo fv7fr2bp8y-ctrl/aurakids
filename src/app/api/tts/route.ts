@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
-import { takeQuota, quotaDenied, type QuotaResult } from "@/lib/quota";
+import { takeQuota, quotaDenied, takeElevenLabs, type QuotaResult } from "@/lib/quota";
 import { addStress } from "@/lib/stress";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
@@ -44,9 +44,11 @@ async function callGoogleTTSOAuth(text: string, token: string, voiceName: string
   return (await attempt(voiceName)) ?? (await attempt(`${locale}-Standard-A`));
 }
 
-// ElevenLabs multilingual voices — best Bulgarian pronunciation.
-// Maps our friendly voice ids to ElevenLabs voice IDs.
-const EL_MODEL = "eleven_multilingual_v2";
+// ElevenLabs v3 (like ONIRA) for paying families only, see takeElevenLabs().
+// ELEVENLABS_VOICE_ID picks the narrator; otherwise the friendly voice id maps
+// to one of ElevenLabs' premade voices below.
+const EL_MODEL = "eleven_v3";
+const EL_MAX = 4500; // v3 takes up to 5000 characters per request
 const EL_VOICE_MAP: Record<string, string> = {
   Schedar: "EXAVITQu4vr4xnSDxMaL", // Sarah — warm female
   Kore: "pFZP5JQG7iQjIQuC4Bku",    // Lily — clear female
@@ -81,7 +83,8 @@ async function callElevenLabs(text: string, key: string, voiceId: string): Promi
     body: JSON.stringify({
       text,
       model_id: EL_MODEL,
-      voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.15, use_speaker_boost: true },
+      language_code: "bg",
+      voice_settings: { stability: 0.5, similarity_boost: 0.8 },
     }),
   });
   if (!res.ok) {
@@ -177,10 +180,10 @@ export async function POST(req: NextRequest) {
     // fall through if Google TTS failed
   }
 
-  // ---------- ElevenLabs ----------
-  if (elKey) {
-    const voiceId = EL_VOICE_MAP[voice] || EL_DEFAULT;
-    const fn = fileName(trimmed, voiceId, "el", "mp3");
+  // ---------- ElevenLabs (paying families, within their monthly allowance) ----------
+  if (elKey && (language || "bg") === "bg") {
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || EL_VOICE_MAP[voice] || EL_DEFAULT;
+    const fn = fileName(trimmed, voiceId, "el3", "mp3");
 
     const cachedUrl = await getCachedAudio(fn);
     if (cachedUrl) {
@@ -188,15 +191,30 @@ export async function POST(req: NextRequest) {
       return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     }
 
-    const q = await reserve();
-    if (!q.ok) return quotaDenied(q);
-    let mp3 = await callElevenLabs(trimmed, elKey, voiceId);
-    if (!mp3) mp3 = await callElevenLabs(trimmed, elKey, voiceId);
-    if (mp3) {
-      await saveAudioToStorage(fn, mp3);
-      return new NextResponse(mp3, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+    const allowance = await takeElevenLabs(req);
+    if (allowance) {
+      const q = await reserve();
+      if (!q.ok) { await allowance.refund().catch(() => {}); return quotaDenied(q); }
+      // Only the dictionary layers ElevenLabs needs (names/rare words); the
+      // text is cut between paragraphs when over the v3 request limit.
+      const parts = splitParagraphs(addStress(trimmed, {}, { wiki: false }), EL_MAX);
+      const out: ArrayBuffer[] = [];
+      for (const part of parts) {
+        const mp3 = (await callElevenLabs(part, elKey, voiceId)) ?? (await callElevenLabs(part, elKey, voiceId));
+        if (!mp3) break;
+        out.push(mp3);
+      }
+      if (out.length === parts.length) {
+        const total = out.reduce((n, b) => n + b.byteLength, 0);
+        const joined = new Uint8Array(total);
+        let off = 0;
+        for (const b of out) { joined.set(new Uint8Array(b), off); off += b.byteLength; }
+        await saveAudioToStorage(fn, joined.buffer);
+        return new NextResponse(joined.buffer, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+      }
+      await allowance.refund().catch(() => {});
+      // fall through to Gemini if ElevenLabs failed
     }
-    // fall through to Gemini if ElevenLabs failed
   }
 
   // ---------- Fallback: Gemini ----------
@@ -248,6 +266,20 @@ export async function POST(req: NextRequest) {
   await saveAudioToStorage(fn, wav);
 
   return new NextResponse(wav, { headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400" } });
+}
+
+// Split between paragraphs (then sentences) into pieces of at most maxLen.
+function splitParagraphs(text: string, maxLen: number): string[] {
+  if (text.length <= maxLen) return [text];
+  const out: string[] = [];
+  let cur = "";
+  for (const p of text.split(/\n\s*\n/)) {
+    if (cur && cur.length + p.length + 2 > maxLen) { out.push(cur); cur = ""; }
+    if (p.length > maxLen) { out.push(...chunkText(p, maxLen)); continue; }
+    cur = cur ? `${cur}\n\n${p}` : p;
+  }
+  if (cur) out.push(cur);
+  return out;
 }
 
 // Split text into chunks up to ~maxLen chars, breaking on sentence ends.

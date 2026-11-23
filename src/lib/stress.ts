@@ -36,8 +36,11 @@ function withCase(w: string, out: string): string {
   return w[0] !== w[0].toLowerCase() ? out[0].toUpperCase() + out.slice(1) : out;
 }
 
-export function addStress(text: string, extra: Record<string, string> = {}): string {
-  const W = wiki();
+// opts.wiki = false: only the owner/rechnik/ONIRA layers (for ElevenLabs,
+// which reads Bulgarian well by itself; Wiktionary and rechnik disagree on
+// some words, e.g. „село́“ vs „сѐло“).
+export function addStress(text: string, extra: Record<string, string> = {}, opts: { wiki?: boolean } = {}): string {
+  const W = opts.wiki === false ? new Map<string, number>() : wiki();
   return text.replace(WORD, (w) => {
     if (w.includes(ACUTE) || w.includes(GRAVE)) return w;
     const low = w.toLowerCase();
