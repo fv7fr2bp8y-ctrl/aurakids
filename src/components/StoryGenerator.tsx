@@ -179,6 +179,8 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}|${lang}`;
     if (prefetchKeyRef.current === key) return;
     const timer = setTimeout(() => {
+      // The button may have started this very story meanwhile: don't pay twice.
+      if (prefetchKeyRef.current === key) return;
       prefetchKeyRef.current = key;
       prefetchRef.current = fetch("/api/generate-story", {
         method: "POST",
@@ -275,6 +277,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       if (prefetchRef.current && prefetchKeyRef.current === key) {
         data = await prefetchRef.current;
       } else {
+        // Claim the key first so a pending prefetch timer won't start a second,
+        // paid copy of the same story (seen 23.11.2026: two calls per story).
+        prefetchKeyRef.current = key;
         const res = await fetch("/api/generate-story", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
