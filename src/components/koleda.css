@@ -14,7 +14,7 @@
 .kl-cta { height: 56px; border-radius: 16px; border: 0; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 .kl-cta.gold { background: linear-gradient(135deg, #ff7a59, #ffc847); color: #2a1052; }
-.kl-cta.green { background: #1f6b4a; color: #fff; }
+.kl-cta.green { background: #1a3f86; color: #fff; }
 .kl-cta.red { background: #b3262f; color: #fff; }
 .kl-trust { margin: 0 0 28px; text-align: center; font-size: 12.5px; color: #cbbcf2; }
 .kl-trust.dark { color: #6b5a8a; }
@@ -41,7 +41,7 @@
 .kl-b-top { background: #b3262f; color: #fff; padding-bottom: 26px; }
 .kl-letter { margin-top: 10px; background: #fffdf6; color: #3d2a1c; border-radius: 18px; padding: 20px 18px; position: relative;
   box-shadow: 0 10px 24px rgba(90,30,10,.25); font-family: Georgia, "Times New Roman", serif; }
-.kl-stamp { position: absolute; right: 14px; top: -12px; width: 56px; height: 64px; background: #1f6b4a; border: 3px dashed #fff; border-radius: 6px;
+.kl-stamp { position: absolute; right: 14px; top: -12px; width: 56px; height: 64px; background: #1a3f86; border: 3px dashed #fff; border-radius: 6px;
   color: #fff; font: 800 10px/1.2 system-ui, sans-serif; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(6deg); }
 .kl-to { font: 700 12px system-ui, sans-serif; letter-spacing: .08em; color: #9a7a5a; padding-right: 64px; }
 .kl-b-h1 { margin: 8px 0 10px; font-size: 24px; line-height: 1.25; }
