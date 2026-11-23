@@ -11,7 +11,7 @@ function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
 
-async function callGemini(prompt: string, key: string): Promise<string | null> {
+async function callGemini(prompt: string, key: string, aspect = "1:1"): Promise<string | null> {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`,
     {
@@ -19,7 +19,7 @@ async function callGemini(prompt: string, key: string): Promise<string | null> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ["IMAGE"] },
+        generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: aspect } },
       }),
     }
   );
@@ -35,7 +35,7 @@ async function callGemini(prompt: string, key: string): Promise<string | null> {
   return imgPart?.inlineData?.data ?? null;
 }
 
-async function callOpenAI(prompt: string): Promise<string | null> {
+async function callOpenAI(prompt: string, size: "1024x1024" | "1536x1024" = "1024x1024"): Promise<string | null> {
   if (!process.env.OPENAI_API_KEY) return null;
   try {
     const client = new OpenAI();
@@ -43,7 +43,7 @@ async function callOpenAI(prompt: string): Promise<string | null> {
       model: "gpt-image-2",
       prompt: prompt.slice(0, 4000),
       n: 1,
-      size: "1024x1024",
+      size,
       quality: "medium",
     });
     return "data" in response ? response.data?.[0]?.b64_json ?? null : null;
@@ -62,11 +62,12 @@ async function generateImage(prompt: string): Promise<Buffer> {
 
   const googleKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
-  // Comic panels: gpt-image-2 first (best cinematic 3D + consistency), Gemini fallback.
-  // Everything else: Gemini first, gpt-image-2 fallback.
-  // OpenAI first for everything since 23.11.2026: the Gemini key on
-  // production is free tier with no image quota (429), which only added delay.
-  const providers = [() => callOpenAI(styledPrompt), () => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null))];
+  // Story pictures: wide (3:2) so the reader shows them uncropped, Gemini first
+  // (~10 s, paid key since 23.11.2026) with OpenAI as fallback. Comic panels
+  // stay square on OpenAI (best lettering and consistency).
+  const providers = isPreStyled
+    ? [() => callOpenAI(styledPrompt), () => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null))]
+    : [() => (googleKey ? callGemini(styledPrompt, googleKey, "3:2") : Promise.resolve(null)), () => callOpenAI(styledPrompt, "1536x1024")];
 
   for (const call of providers) {
     const b64 = await call();

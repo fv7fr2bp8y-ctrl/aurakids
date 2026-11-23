@@ -124,33 +124,34 @@ export async function POST(req: NextRequest) {
 
 За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи. В сцените НЕ описвай външния вид на героите отново (той е в characters), наричай ги само по име или роля ("Maya", "the pigeon Murmorko").`;
 
-    const message = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 3500,
-      temperature: 1,
-      tools: [{
-        name: "save_story",
-        description: "Save the generated story",
-        input_schema: {
-          type: "object" as const,
-          properties: {
-            title: { type: "string" },
-            story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
-            stress: { type: "array", items: { type: "string" }, maxItems: 40, description: "Думи от текста със знак за ударение U+0301, напр. „Мъ́рморко“" },
-            characters: { type: "string", description: "English: exact look of the hero and every companion that appears in the pictures" },
-            imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
-          },
-          required: ["title", "story", "characters", "imagePrompts"],
-        },
-      }],
-      tool_choice: { type: "tool", name: "save_story" },
+    // Claude Opus 5.5 at low effort: ~20 s instead of ~50 s with Opus 4.8 for
+    // the same story (23.11.2026). It answers with JSON that must match the
+    // schema (structured output; forced tool use is not accepted by 5.5).
+    const schema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        title: { type: "string" },
+        story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
+        stress: { type: "array", items: { type: "string" }, description: "До 40 думи от текста със знак за ударение U+0301, напр. „Мъ́рморко“" },
+        characters: { type: "string", description: "English: exact look of the hero and every companion that appears in the pictures" },
+        imagePrompts: { type: "array", items: { type: "string" }, description: "Exactly 3 English scene prompts" },
+      },
+      required: ["title", "story", "stress", "characters", "imagePrompts"],
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      model: "claude-opus-5-5",
+      max_tokens: 6000,
+      output_config: { effort: "low", format: { type: "json_schema", schema } },
       messages: [{ role: "user", content: storyPrompt }],
-    });
-
-    const toolUse = message.content.find((b) => b.type === "tool_use");
-    if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
-
-    const parsed = toolUse.input as { title: string; story: string; stress?: string[]; characters?: string; imagePrompts: string[] };
+    };
+    const message = await client.messages.create(params);
+    if (message.stop_reason === "refusal") throw new Error("Моделът отказа");
+    const raw = message.content.filter((b) => b.type === "text").map((b) => (b as { text: string }).text).join("");
+    const parsed = JSON.parse(raw) as { title: string; story: string; stress?: string[]; characters?: string; imagePrompts: string[] };
+    if (!parsed.title || !parsed.story || !Array.isArray(parsed.imagePrompts)) throw new Error("Невалиден отговор от модела");
+    parsed.imagePrompts = parsed.imagePrompts.slice(0, 3);
     // Every picture is drawn on its own, so the same character sheet goes into
     // each prompt (else the pigeon became a parrot in the next picture).
     const characters = (parsed.characters || "").trim().slice(0, 600);
