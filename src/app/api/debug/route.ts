@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await client.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-2",
       prompt: "a red circle",
       n: 1,
       size: "1024x1024",

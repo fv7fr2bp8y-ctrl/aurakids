@@ -40,7 +40,7 @@ async function callOpenAI(prompt: string): Promise<string | null> {
   try {
     const client = new OpenAI();
     const response = await client.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-2",
       prompt: prompt.slice(0, 4000),
       n: 1,
       size: "1024x1024",
@@ -62,8 +62,8 @@ async function generateImage(prompt: string): Promise<Buffer> {
 
   const googleKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
-  // Comic panels: gpt-image-1 first (best cinematic 3D + consistency), Gemini fallback.
-  // Everything else: Gemini first, gpt-image-1 fallback.
+  // Comic panels: gpt-image-2 first (best cinematic 3D + consistency), Gemini fallback.
+  // Everything else: Gemini first, gpt-image-2 fallback.
   const providers = isPreStyled
     ? [() => callOpenAI(styledPrompt), () => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null))]
     : [() => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null)), () => callOpenAI(styledPrompt)];
