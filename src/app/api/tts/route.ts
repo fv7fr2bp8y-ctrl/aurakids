@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied, takeElevenLabs, readGroup, writeGroup, type QuotaResult } from "@/lib/quota";
-import { addStress } from "@/lib/stress";
+import { loadWiki, addStress } from "@/lib/stress";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
@@ -246,6 +246,7 @@ export async function POST(req: NextRequest) {
   // Short pieces (one or two sentences): in long requests Gemini skipped the
   // stress marks ("драконът" read wrong despite "дра́конът", 23.11.2026), in
   // single sentences it kept them. 3 pieces are recorded at a time.
+  await loadWiki(req.nextUrl.origin);
   const chunks = chunkText(addStress(trimmed), 260);
   const pcmParts: Uint8Array[] = new Array(chunks.length);
   let rate = 24000;

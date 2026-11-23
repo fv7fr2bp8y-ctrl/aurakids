@@ -4,31 +4,42 @@
 //   2. ONIRA's shared dictionary (content/pronunciation/obsht-rechnik.json),
 //   3. Wiktionary via kaikki.org: 158k forms with exactly one stress
 //      (data/stress-bg.tsv.gz, CC BY-SA 4.0, see data/README.md).
-// The reader never sees the marks. Server-only (reads a file).
+// The reader never sees the marks. Server-only.
 import dict from "./stress-dict.json";
-import { readFileSync } from "fs";
 import { gunzipSync } from "zlib";
-import path from "path";
 
 const ACUTE = "́";
 const GRAVE = "̀";
 const WORD = /[Ѐ-ӿ̀́]+/g;
 const ONIRA: Record<string, string> = (dict as unknown as { думи: Record<string, string> }).думи;
 
+// The Wiktionary map is a static file (public/data/stress-bg.tsv.gz), fetched
+// once per server instance; works on Node and on Cloudflare Workers alike.
+// Call loadWiki() before addStress() with the wiki layer.
 let WIKI: Map<string, number> | null = null;
-function wiki(): Map<string, number> {
-  if (WIKI) return WIKI;
-  WIKI = new Map();
-  try {
-    const raw = gunzipSync(readFileSync(path.join(process.cwd(), "data", "stress-bg.tsv.gz"))).toString("utf8");
-    for (const line of raw.split("\n")) {
-      const tab = line.indexOf("\t");
-      if (tab > 0) WIKI.set(line.slice(0, tab), Number(line.slice(tab + 1)));
+let loading: Promise<void> | null = null;
+export function loadWiki(origin = process.env.SITE_URL || "https://aurakids.fun"): Promise<void> {
+  if (WIKI) return Promise.resolve();
+  loading ??= (async () => {
+    const m = new Map<string, number>();
+    try {
+      const res = await fetch(`${origin}/data/stress-bg.tsv.gz`);
+      if (!res.ok) throw new Error(`http ${res.status}`);
+      const raw = gunzipSync(Buffer.from(await res.arrayBuffer())).toString("utf8");
+      for (const line of raw.split("\n")) {
+        const tab = line.indexOf("\t");
+        if (tab > 0) m.set(line.slice(0, tab), Number(line.slice(tab + 1)));
+      }
+      WIKI = m;
+    } catch (e) {
+      console.error("stress dictionary not loaded:", e instanceof Error ? e.message : e);
+      loading = null; // try again next time
     }
-  } catch (e) {
-    console.error("stress dictionary not loaded:", e instanceof Error ? e.message : e);
-  }
-  return WIKI;
+  })();
+  return loading;
+}
+function wiki(): Map<string, number> {
+  return WIKI ?? new Map();
 }
 
 function withCase(w: string, out: string): string {
