@@ -7,7 +7,7 @@ import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
-import { canGenerate, recordGeneration, initUnlock, checkServerUnlock } from "@/lib/demo";
+import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
 import { isNameClean } from "@/lib/nameFilter";
 
@@ -170,6 +170,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
   // Speculative pre-fetch once all fields ready
   useEffect(() => {
+    // Only for stories, and only when this visitor may generate one: every
+    // prefetch is a paid AI call and counts against the daily limit.
+    if (format !== "story" || !canGenerate("story")) return;
     if (!childName.trim() || !selectedTheme || !selectedAge) return;
     const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}|${lang}`;
     if (prefetchKeyRef.current === key) return;
@@ -229,6 +232,13 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     else onBack();
   };
 
+  // The server said no (daily limit). Free web visitors see the paywall;
+  // paid families and the Play app get a "come back tomorrow" message.
+  const onLimit = (scope: unknown) => {
+    if (scope === "free" && !isStoreApp()) { setDemoBlocked(true); return; }
+    setError(t(lang, scope === "busy" ? "errBusy" : "errLimit"));
+  };
+
   const handleGenerate = async () => {
     setIsLoading(true);
     setError("");
@@ -246,6 +256,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             artStyle,
           }),
         });
+        if (res.status === 429) { onLimit((await res.json().catch(() => ({})))?.scope); return; }
         if (!res.ok) throw new Error("fail");
         const comic = await res.json();
         if (comic.error) throw new Error(String(comic.error));
@@ -273,8 +284,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             language: lang,
           }),
         });
-        if (!res.ok) throw new Error("fail");
+        if (!res.ok && res.status !== 429) throw new Error("fail");
         data = await res.json();
+      }
+      if (data.error === "limit") {
+        // A prefetch that hit the limit must not be reused for the next try.
+        prefetchRef.current = null; prefetchKeyRef.current = "";
+        onLimit(data.scope);
+        return;
       }
       if (data.error) throw new Error(String(data.error));
 

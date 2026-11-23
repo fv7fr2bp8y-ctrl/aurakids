@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied } from "@/lib/quota";
 import { createHash } from "crypto";
 import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
@@ -88,6 +89,9 @@ export async function POST(req: NextRequest) {
   const cached = await getCachedImage(fileName);
   if (cached) return NextResponse.json({ url: cached, fromCache: true });
 
+  const quota = await takeQuota(req, "image");
+  if (!quota.ok) return quotaDenied(quota);
+
   try {
     const imgBuffer = await generateImage(prompt);
     const arrayBuffer = imgBuffer.buffer.slice(imgBuffer.byteOffset, imgBuffer.byteOffset + imgBuffer.byteLength) as ArrayBuffer;
@@ -96,6 +100,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: publicUrl, fromCache: false });
   } catch (error) {
     console.error("Image generation error:", error);
+    await quota.refund().catch(() => {});
     return NextResponse.json({ error: "Грешка при генериране на илюстрация" }, { status: 500 });
   }
 }

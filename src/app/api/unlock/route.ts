@@ -22,8 +22,9 @@ export async function GET(req: NextRequest) {
     if (res.ok && session?.payment_status === "paid") {
       const code = String(session?.metadata?.code || "").toUpperCase();
       if (CODE.test(code)) await markUnlocked(code);
-      // ?full=1 also flips the local unlock immediately on this device.
-      return NextResponse.redirect(`${origin}/?full=1&thanks=1`);
+      // The app re-checks /api/unlocked on load, so this device is unlocked
+      // from the server marker set above (no client-side unlock flag in the URL).
+      return NextResponse.redirect(`${origin}/?thanks=1`);
     }
     return NextResponse.redirect(`${origin}/?payment=failed`);
   } catch {

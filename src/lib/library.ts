@@ -28,6 +28,14 @@ function scope() { return runtimeMode(); }
 function libKey() { return LIB_KEYS[scope()]; }
 const CODE_KEY = "ak-family-code";
 
+// The server reads the family code from this cookie to know whether the
+// family has paid (daily limits, see lib/quota).
+function syncCodeCookie(code: string) {
+  try {
+    document.cookie = `ak_code=${encodeURIComponent(code)}; path=/; max-age=31536000; samesite=lax; secure`;
+  } catch { /* ignore */ }
+}
+
 // ---- Family code (the key to the cloud library) ----
 export function getFamilyCode(): string {
   if (typeof window === "undefined") return "";
@@ -40,11 +48,15 @@ export function getFamilyCode(): string {
     code = `AURA-${raw.slice(0, 4)}-${raw.slice(4, 8)}`;
     localStorage.setItem(CODE_KEY, code);
   }
+  syncCodeCookie(code);
   return code;
 }
 
 export function setFamilyCode(code: string) {
-  if (typeof window !== "undefined") localStorage.setItem(CODE_KEY, code.trim().toUpperCase());
+  if (typeof window === "undefined") return;
+  const clean = code.trim().toUpperCase();
+  localStorage.setItem(CODE_KEY, clean);
+  syncCodeCookie(clean);
 }
 
 export function getLibrary(): LibraryItem[] {

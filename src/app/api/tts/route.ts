@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied, type QuotaResult } from "@/lib/quota";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
@@ -133,6 +134,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Липсва текст" }, { status: 400 });
   }
   const trimmed = text.trim();
+  // A full bedtime story is ~3–5k characters; anything far longer is not ours.
+  if (trimmed.length > 9000) {
+    return NextResponse.json({ error: "Текстът е твърде дълъг" }, { status: 413 });
+  }
+
+  // One quota unit per request, taken only when audio really has to be made
+  // (cache hits stay free).
+  let quota: QuotaResult | null = null;
+  const reserve = async () => (quota ??= await takeQuota(req, "tts"));
 
   const elKey = process.env.ELEVENLABS_API_KEY;
   const geminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
@@ -152,6 +162,8 @@ export async function POST(req: NextRequest) {
       return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     }
 
+    const q = await reserve();
+    if (!q.ok) return quotaDenied(q);
     let mp3 = await callGoogleTTSOAuth(trimmed, gttsToken, voiceName, locale);
     if (!mp3) mp3 = await callGoogleTTSOAuth(trimmed, gttsToken, voiceName, locale);
     if (mp3) {
@@ -172,6 +184,8 @@ export async function POST(req: NextRequest) {
       return new NextResponse(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     }
 
+    const q = await reserve();
+    if (!q.ok) return quotaDenied(q);
     let mp3 = await callElevenLabs(trimmed, elKey, voiceId);
     if (!mp3) mp3 = await callElevenLabs(trimmed, elKey, voiceId);
     if (mp3) {
@@ -196,6 +210,8 @@ export async function POST(req: NextRequest) {
 
   // The Gemini preview TTS chokes on long input (returns no audio), so read the
   // story in sentence-sized chunks and stitch the PCM into one WAV.
+  const q = await reserve();
+  if (!q.ok) return quotaDenied(q);
   const chunks = chunkText(trimmed, 600);
   const pcmParts: Uint8Array[] = [];
   let rate = 24000;
@@ -203,6 +219,7 @@ export async function POST(req: NextRequest) {
     let part = await callGemini(chunk, geminiKey, gVoice);
     if (!part) part = await callGemini(chunk, geminiKey, gVoice);
     if (!part?.data) {
+      await q.refund().catch(() => {});
       return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
     }
     rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);

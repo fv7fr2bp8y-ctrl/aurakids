@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
 
@@ -58,12 +59,17 @@ function pick<T>(arr: T[]): T {
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
+  let refund: (() => Promise<void>) | null = null;
   try {
     const { childName, theme, themeName, age, language } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
     }
+
+    const quota = await takeQuota(req, "story");
+    if (!quota.ok) return quotaDenied(quota);
+    refund = quota.refund;
 
     const archetype = pick(ARCHETYPES);
     const core = pick(EMOTIONAL_CORES);
@@ -150,6 +156,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Story generation error:", error);
+    await refund?.().catch(() => {});
     return NextResponse.json({ error: "Грешка при генериране" }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createHash } from "crypto";
@@ -96,12 +97,17 @@ ${panelLines}`;
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
+  let refund: (() => Promise<void>) | null = null;
   try {
     const { childName, theme, age, language, artStyle } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
     }
+
+    const quota = await takeQuota(req, "comic");
+    if (!quota.ok) return quotaDenied(quota);
+    refund = quota.refund;
 
     const plot = pick(PLOTS);
     const sidekick = pick(SIDEKICKS);
@@ -189,6 +195,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ title: script.title, pages });
   } catch (error) {
     console.error("Comic generation error:", error);
+    await refund?.().catch(() => {});
     return NextResponse.json({ error: "Грешка при генериране" }, { status: 500 });
   }
 }
