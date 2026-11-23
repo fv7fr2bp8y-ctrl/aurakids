@@ -12,7 +12,7 @@ type Dict = Record<string, Record<Lang, string>>;
 
 const D: Dict = {
   // ---- Hero / Home ----
-  badge: { bg: "✨ Над 1 200 създадени приказки", en: "✨ Over 1,200 stories created", de: "✨ Über 1.200 Geschichten erstellt", fr: "✨ Plus de 1 200 histoires créées", ru: "✨ Более 1 200 созданных сказок" },
+  badge: { bg: "✨ Персонализирани приказки", en: "✨ Personalised stories", de: "✨ Persönliche Geschichten", fr: "✨ Histoires personnalisées", ru: "✨ Персональные сказки" },
   subPortal: { bg: "Избери какво приключение да създадем тази вечер.", en: "Choose what adventure we'll create tonight.", de: "Wähle, welches Abenteuer wir heute Abend erschaffen.", fr: "Choisis quelle aventure créer ce soir.", ru: "Выбери, какое приключение создадим сегодня." },
   h1a: { bg: "Само едно дете", en: "Only one child", de: "Nur ein Kind", fr: "Un seul enfant", ru: "Только один ребёнок" },
   h1b: { bg: "е героят.", en: "is the hero.", de: "ist der Held.", fr: "est le héros.", ru: "— герой." },
@@ -107,7 +107,7 @@ const D: Dict = {
   tabWorld: { bg: "Свят", en: "World", de: "Welt", fr: "Univers", ru: "Мир" },
   tabStyle: { bg: "Стил", en: "Style", de: "Stil", fr: "Style", ru: "Стиль" },
   stPixar: { bg: "3D филм", en: "3D movie", de: "3D-Film", fr: "Film 3D", ru: "3D-фильм" },
-  stPixarD: { bg: "Като Pixar анимация", en: "Like a Pixar film", de: "Wie ein Pixar-Film", fr: "Comme un film Pixar", ru: "Как мультфильм Pixar" },
+  stPixarD: { bg: "Обемна 3D анимация", en: "Soft 3D animation look", de: "Weicher 3D-Animationslook", fr: "Style animation 3D", ru: "Объёмная 3D-анимация" },
   stCartoon: { bg: "Карикатурен", en: "Cartoon", de: "Cartoon", fr: "Cartoon", ru: "Мультяшный" },
   stCartoonD: { bg: "Смешен, като Астерикс", en: "Funny, like Asterix", de: "Lustig, wie Asterix", fr: "Drôle, comme Astérix", ru: "Смешной, как Астерикс" },
   stManga: { bg: "Манга", en: "Manga", de: "Manga", fr: "Manga", ru: "Манга" },
