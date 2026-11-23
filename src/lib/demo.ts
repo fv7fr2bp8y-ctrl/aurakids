@@ -18,8 +18,21 @@ function keyFor(format: "story" | "comic") {
 function detectStoreApp(): boolean {
   if (typeof document === "undefined") return false;
   try {
-    return /^android-app:\/\/fun\.aurakids\.(stories|comics)/.test(document.referrer || "");
+    const m = (document.referrer || "").match(/^android-app:\/\/(fun\.aurakids\.(?:stories|comics))/);
+    if (m) localStorage.setItem(STORE_PKG_KEY, m[1]);
+    return !!m;
   } catch { return false; }
+}
+
+const STORE_PKG_KEY = "ak-store-pkg";
+// Which Play app this is (for Google Play Billing).
+export function storePackage(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const p = localStorage.getItem(STORE_PKG_KEY);
+    if (p) return p;
+    return location.pathname.startsWith("/komiksi") ? "fun.aurakids.comics" : "fun.aurakids.stories";
+  } catch { return "fun.aurakids.stories"; }
 }
 
 export function isStoreApp(): boolean {

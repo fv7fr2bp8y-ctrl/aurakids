@@ -1,3 +1,4 @@
+import { activePlaySub } from "@/lib/playBilling";
 import { getSupabase } from "@/lib/supabase";
 
 // Subscription billing for the web (Stripe). One product, two prices:
@@ -159,8 +160,11 @@ async function hasLifetime(code: string): Promise<boolean> {
 
 export async function getEntitlement(code: string): Promise<Entitlement> {
   if (!code) return { paid: false };
-  const [life, sub] = await Promise.all([hasLifetime(code), activeSub(code).catch(() => null)]);
+  const [life, stripeSub, playSub] = await Promise.all([
+    hasLifetime(code), activeSub(code).catch(() => null), activePlaySub(code).catch(() => null),
+  ]);
   if (life) return { paid: true, kind: "lifetime" };
+  const sub = stripeSub ?? playSub;
   if (sub) return { paid: true, kind: sub.status === "trialing" ? "trial" : "sub", sub };
   return { paid: false };
 }

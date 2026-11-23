@@ -13,5 +13,6 @@ export async function GET(req: NextRequest) {
     unlocked: ent.paid,
     plan: ent.paid ? ent.kind : null,
     renews: ent.paid && ent.kind !== "lifetime" ? ent.sub.periodEnd : null,
+    store: ent.paid && ent.kind !== "lifetime" && ent.sub.customer === "google-play" ? "play" : ent.paid ? "web" : null,
   }, { headers: { "Cache-Control": "no-store" } });
 }

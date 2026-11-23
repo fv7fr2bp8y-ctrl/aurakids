@@ -12,6 +12,7 @@ import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreAp
 import { getFamilyCode } from "@/lib/library";
 import { isNameClean } from "@/lib/nameFilter";
 import { trackEvent } from "@/lib/analytics";
+import { playBillingAvailable, playPrices, buyPlay, restorePlay } from "@/lib/playClient";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -126,13 +127,23 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const [payError, setPayError] = useState("");
   const [plan, setPlan] = useState<"year" | "month">("year");
   const [subPrices, setSubPrices] = useState<{ month: number; year: number; currency: string } | null>(null);
+  // Inside the Play app with Play Billing: the paywall pays through Google.
+  const [playOk, setPlayOk] = useState(false);
 
   useEffect(() => {
     initUnlock();
     // A paid family code unlocks any device it's restored on.
     checkServerUnlock(getFamilyCode()).catch(() => {});
+    // In the Play app: Google's prices, and re-attach a subscription Play
+    // already has (new phone, reinstall).
+    playBillingAvailable().then((ok) => {
+      if (!ok) return;
+      setPlayOk(true);
+      playPrices().then((p) => p && setSubPrices(p));
+      restorePlay(getFamilyCode()).catch(() => {});
+    });
     // Subscription prices for the paywall (from the server, not hard-coded).
-    fetch("/api/checkout").then((r) => r.json()).then((d) => {
+    if (!isStoreApp()) fetch("/api/checkout").then((r) => r.json()).then((d) => {
       const s = d?.subscription;
       if (s?.month && s?.year) setSubPrices({ month: Number(s.month), year: Number(s.year), currency: String(s.currency || "eur") });
     }).catch(() => {});
@@ -152,6 +163,18 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     trackEvent("begin_checkout", { plan, currency: "EUR", value: plan === "year" ? 39.99 : 4.99 });
     setPaying(true);
     setPayError("");
+    // Play app: Google Play Billing only (no Stripe inside Play apps).
+    if (isStoreApp()) {
+      try {
+        if (playOk && await buyPlay(plan, getFamilyCode())) { setDemoBlocked(false); setError(""); return; }
+        setPayError(t(lang, "payUnavailable"));
+      } catch {
+        setPayError(t(lang, "payUnavailable"));
+      } finally {
+        setPaying(false);
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -265,7 +288,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   // The server said no (daily limit). Free web visitors see the paywall;
   // paid families and the Play app get a "come back tomorrow" message.
   const onLimit = (scope: unknown) => {
-    if (scope === "free" && !isStoreApp()) { setDemoBlocked(true); onEvent?.("paywall"); return; }
+    if (scope === "free" && (!isStoreApp() || playOk)) { setDemoBlocked(true); onEvent?.("paywall"); return; }
     setError(t(lang, scope === "busy" ? "errBusy" : "errLimit"));
   };
 
