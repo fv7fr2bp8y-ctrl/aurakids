@@ -120,7 +120,9 @@ export async function POST(req: NextRequest) {
 
 За stress (ударения за гласа, който чете приказката): списък с думите от приказката, в които гласът лесно бърка ударението, всяка написана точно както е в текста, със знак за ударение U+0301 върху ударената гласна (напр. „Мъ́рморко“, „па́ра“, „замъ́ка“). Задължително: всички имена (и главният герой ${childName}) и всички редки, диалектни или двусмислени думи. До 40 думи. Ако не си сигурен за ударението на дума, не я включвай.
 
-За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи.`;
+За characters: на английски, 2–3 изречения: как изглежда ${childName} (възраст, коса, очи, дрехи, 1–2 запомнящи се белега) и как изглежда всеки спътник или същество, което се появява на картинките (точен вид животно, цвят, размер, отличителен белег). Пример: "Maya, a 5-year-old girl with curly chestnut hair, brown eyes, a red knitted scarf and a navy coat. Murmorko, a plump round grey pigeon with a white neck ring." Това описание се слага дословно на всяка картинка, затова бъди точен и последователен с текста.
+
+За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи. В сцените НЕ описвай външния вид на героите отново (той е в characters), наричай ги само по име или роля ("Maya", "the pigeon Murmorko").`;
 
     const message = await client.messages.create({
       model: "claude-opus-4-8",
@@ -135,9 +137,10 @@ export async function POST(req: NextRequest) {
             title: { type: "string" },
             story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
             stress: { type: "array", items: { type: "string" }, maxItems: 40, description: "Думи от текста със знак за ударение U+0301, напр. „Мъ́рморко“" },
+            characters: { type: "string", description: "English: exact look of the hero and every companion that appears in the pictures" },
             imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           },
-          required: ["title", "story", "imagePrompts"],
+          required: ["title", "story", "characters", "imagePrompts"],
         },
       }],
       tool_choice: { type: "tool", name: "save_story" },
@@ -147,7 +150,12 @@ export async function POST(req: NextRequest) {
     const toolUse = message.content.find((b) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
 
-    const parsed = toolUse.input as { title: string; story: string; stress?: string[]; imagePrompts: string[] };
+    const parsed = toolUse.input as { title: string; story: string; stress?: string[]; characters?: string; imagePrompts: string[] };
+    // Every picture is drawn on its own, so the same character sheet goes into
+    // each prompt (else the pigeon became a parrot in the next picture).
+    const characters = (parsed.characters || "").trim().slice(0, 600);
+    const imagePrompts = (parsed.imagePrompts || []).map((p) =>
+      characters ? `Characters (draw them exactly like this in every picture): ${characters} Scene: ${p}` : p);
     // The reader sees the plain text; the voice gets the same text with stress
     // marks from the model's word list plus the shared ONIRA dictionary.
     const plainStory = stripStress(parsed.story);
@@ -162,13 +170,13 @@ export async function POST(req: NextRequest) {
 
     // Archive every story (unique key per generation) — history, not dedup.
     const cacheKey = makeCacheKey(childName, themeName || theme, age);
-    saveCachedStory(cacheKey, parsed.title, plainStory, parsed.imagePrompts || []).catch(() => {});
+    saveCachedStory(cacheKey, parsed.title, plainStory, imagePrompts).catch(() => {});
 
     return NextResponse.json({
       title: parsed.title,
       story: plainStory,
       voiceText,
-      imagePrompts: parsed.imagePrompts || [],
+      imagePrompts,
       fromCache: false,
     });
   } catch (error) {

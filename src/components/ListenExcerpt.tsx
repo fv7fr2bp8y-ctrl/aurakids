@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 // "Чуй сам": a real excerpt made by AuraKids itself (story text by the story
-// model, picture by the image model, voice by the site's own voice with the
-// stress dictionary), instead of invented reviews and numbers.
-const SRC = "/samples/maya-otkas.m4a";
+// model, picture by the image model, voice by the site's own
+// subscriber voice, ElevenLabs v3), instead of invented reviews and numbers.
+const SRC = "/samples/maya-otkas.mp3";
 const COVER = "/samples/maya-cover.jpg";
 
 function fmt(s: number) {
