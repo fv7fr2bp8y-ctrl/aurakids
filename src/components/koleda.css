@@ -54,13 +54,13 @@
 
 /* C */
 .kl-c { background: #f6f0ff; color: #1c0b3a; }
-.kl-c-top { background: linear-gradient(180deg, #0f3d2e 0%, #145c43 100%); color: #fff; padding-bottom: 24px; }
+.kl-c-top { background: linear-gradient(180deg, #0b1f4d 0%, #1a3f86 100%); color: #fff; padding-bottom: 24px; }
 .kl-count { display: flex; gap: 8px; margin-top: 6px; }
 .kl-count div { flex: 1; background: rgba(255,255,255,.12); border-radius: 12px; padding: 8px 0; text-align: center; }
 .kl-count b { display: block; font-size: 26px; color: #ffd36b; font-variant-numeric: tabular-nums; }
-.kl-count span { font-size: 10px; letter-spacing: .1em; color: #cfe8dc; }
+.kl-count span { font-size: 10px; letter-spacing: .1em; color: #cfdcf5; }
 .kl-c-h1 { margin: 6px 0 0; font-size: 26px; line-height: 1.2; font-weight: 800; }
-.kl-c .kl-lead { color: #d7efe4; }
+.kl-c .kl-lead { color: #d6e2f7; }
 .kl-plots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
 .kl-plot { position: relative; border: 3px solid transparent; border-radius: 16px; overflow: hidden; padding: 0; cursor: pointer; aspect-ratio: 3 / 4; background: #ddd; }
 .kl-plot img { width: 100%; height: 100%; object-fit: cover; display: block; }
