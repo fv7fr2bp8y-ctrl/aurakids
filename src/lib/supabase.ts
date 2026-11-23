@@ -113,15 +113,10 @@ export async function markUnlocked(code: string): Promise<boolean> {
   }
 }
 
+// Paid = one-time "Пълен достъп" (old) or a live subscription / trial.
 export async function isCodeUnlocked(code: string): Promise<boolean> {
-  const sb = getSupabase();
-  if (!sb) return false;
-  try {
-    const { data, error } = await sb.storage.from(LIB_BUCKET).download(`unlocks/${code}.json`);
-    return !error && !!data;
-  } catch {
-    return false;
-  }
+  const { getEntitlement } = await import("@/lib/billing");
+  return (await getEntitlement(code)).paid;
 }
 
 export async function getCachedAudio(fileName: string): Promise<string | null> {

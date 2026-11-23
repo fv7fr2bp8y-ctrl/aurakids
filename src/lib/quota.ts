@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { getSupabase, isCodeUnlocked } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
+import { getEntitlement } from "@/lib/billing";
 
 // Server-side spending brake for the paid AI endpoints. The browser can no
 // longer unlock anything by itself: a family code counts as paid only when
@@ -18,6 +19,9 @@ export type QuotaKind = "story" | "comic" | "image" | "tts";
 const FREE: Record<QuotaKind, number> = { story: 4, comic: 1, image: 15, tts: 5 };
 // Per paid family code per day.
 const PAID: Record<QuotaKind, number> = { story: 15, comic: 5, image: 60, tts: 20 };
+// Subscribers per calendar month, and during the 7-day trial in total.
+const MONTHLY: Partial<Record<QuotaKind, number>> = { story: 30, comic: 6 };
+const TRIAL: Partial<Record<QuotaKind, number>> = { story: 7, comic: 2 };
 // All free traffic together per day (worst case ≈ 19 € of AI per day).
 const GLOBAL_FREE: Record<QuotaKind, number> = { story: 40, comic: 6, image: 150, tts: 40 };
 
@@ -77,11 +81,20 @@ export async function takeQuota(req: NextRequest, kind: QuotaKind): Promise<Quot
   if (!sb) return kind === "comic" || kind === "story" ? { ok: false, paid: false, scope: "busy" } : { ok: true, paid: false, refund: async () => {} };
 
   const code = familyCodeFrom(req);
-  const paid = code ? await isCodeUnlocked(code) : false;
+  const ent = await getEntitlement(code);
+  const paid = ent.paid;
   const day = today();
 
   const checks: { path: string; limit: number; scope: "free" | "paid" | "busy" }[] = paid
-    ? [{ path: `limits/${day}/code-${code}-${kind}.json`, limit: PAID[kind], scope: "paid" }]
+    ? [
+        { path: `limits/${day}/code-${code}-${kind}.json`, limit: PAID[kind], scope: "paid" },
+        ...(ent.kind === "sub" && MONTHLY[kind] != null
+          ? [{ path: `limits/m-${day.slice(0, 7)}/code-${code}-${kind}.json`, limit: MONTHLY[kind]!, scope: "paid" as const }]
+          : []),
+        ...(ent.kind === "trial" && TRIAL[kind] != null
+          ? [{ path: `limits/trial-${ent.sub.subId}/${kind}.json`, limit: TRIAL[kind]!, scope: "paid" as const }]
+          : []),
+      ]
     : [
         { path: `limits/${day}/ip-${ipKey(req)}-${kind}.json`, limit: FREE[kind], scope: "free" },
         { path: `limits/${day}/global-free-${kind}.json`, limit: GLOBAL_FREE[kind], scope: "busy" },
@@ -112,7 +125,8 @@ export function quotaDenied(r: Extract<QuotaResult, { ok: false }>): NextRespons
 export async function quotaStatus(req: NextRequest) {
   const sb = getSupabase();
   const code = familyCodeFrom(req);
-  const paid = code ? await isCodeUnlocked(code) : false;
+  const ent = await getEntitlement(code);
+  const paid = ent.paid;
   if (!sb) return { paid, storage: false };
   const day = today();
   const kinds: QuotaKind[] = ["story", "comic", "image", "tts"];
@@ -121,6 +135,7 @@ export async function quotaStatus(req: NextRequest) {
   const limits = paid ? PAID : FREE;
   return {
     paid,
+    plan: ent.paid ? ent.kind : null,
     storage: true,
     day,
     left: Object.fromEntries(kinds.map((k, i) => [k, Math.max(0, limits[k] - used[i])])),
