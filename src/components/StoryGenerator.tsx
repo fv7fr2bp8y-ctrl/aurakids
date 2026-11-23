@@ -121,9 +121,17 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     // Live price from Stripe → shown on the unlock button.
     fetch("/api/checkout").then((r) => r.json()).then((d) => {
       if (d?.configured && d.amount != null) {
-        const sym = d.currency === "eur" ? "€" : d.currency === "bgn" ? " лв" : ` ${String(d.currency).toUpperCase()}`;
-        const amt = Number(d.amount).toFixed(2).replace(/\.00$/, "");
-        setPriceLabel(d.currency === "bgn" ? `${amt}${sym}` : `${sym}${amt}`);
+        // Local price format: "11,99 €" in BG/DE/FR/RU, "€11.99" in EN.
+        const locale = { bg: "bg-BG", en: "en-IE", de: "de-DE", fr: "fr-FR", ru: "ru-RU" }[lang as string] || "bg-BG";
+        const amount = Number(d.amount);
+        try {
+          setPriceLabel(new Intl.NumberFormat(locale, {
+            style: "currency", currency: String(d.currency).toUpperCase(),
+            minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+          }).format(amount));
+        } catch {
+          setPriceLabel(`${amount.toFixed(2)} ${String(d.currency).toUpperCase()}`);
+        }
       }
     }).catch(() => {});
   }, []);
