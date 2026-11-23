@@ -43,12 +43,12 @@ ${lines}`;
 }
 
 let lastErr = "";
-async function gemini(prompt: string, model = "gemini-2.5-flash-image"): Promise<string | null> {
+async function gemini(prompt: string, model = "gemini-2.5-flash-image", req2 = false): Promise<string | null> {
   const key = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   if (!key) { lastErr = "no GOOGLE_API_KEY/GEMINI_API_KEY"; return null; }
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent${req2 ? `?key=${key}` : ""}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(req2 ? {} : { "x-goog-api-key": key }) },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "2:3" } },
@@ -73,7 +73,8 @@ export async function GET(req: NextRequest) {
   let b64: string | null = null;
   let usage: unknown = null;
   try {
-    if (v === "gemini") b64 = await gemini(prompt, req.nextUrl.searchParams.get("m") || undefined);
+    if (v === "gemini") b64 = await gemini(prompt, req.nextUrl.searchParams.get("m") || undefined, req.nextUrl.searchParams.get("q") === "1");
+      if (!b64) lastErr += ` | keyPrefix=${(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").slice(0, 3)} len=${(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").length} src=${process.env.GOOGLE_API_KEY ? "GOOGLE_API_KEY" : "GEMINI_API_KEY"}`;
     else {
       const r = await new OpenAI().images.generate({ model: "gpt-image-1", prompt, n: 1, size: "1024x1536", quality: v as "high" | "medium" | "low" });
       b64 = "data" in r ? r.data?.[0]?.b64_json ?? null : null;
