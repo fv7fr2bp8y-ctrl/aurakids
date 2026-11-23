@@ -77,7 +77,8 @@ export async function GET(req: NextRequest) {
     if (v === "gemini") b64 = await gemini(prompt, req.nextUrl.searchParams.get("m") || undefined, req.nextUrl.searchParams.get("q") === "1", req.nextUrl.searchParams.get("vx") === "1");
       if (!b64 && v === "gemini") lastErr += ` | keyPrefix=${(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").slice(0, 3)} len=${(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").length} src=${process.env.GOOGLE_API_KEY ? "GOOGLE_API_KEY" : "GEMINI_API_KEY"}`;
     else {
-      const r = await new OpenAI().images.generate({ model: "gpt-image-1", prompt, n: 1, size: "1024x1536", quality: v as "high" | "medium" | "low" });
+      const mdl = req.nextUrl.searchParams.get("mdl") || "gpt-image-1.5";
+      const r = await new OpenAI().images.generate({ model: mdl, prompt, n: 1, size: "1024x1536", quality: v as "high" | "medium" | "low" });
       b64 = "data" in r ? r.data?.[0]?.b64_json ?? null : null;
       if (!b64) lastErr = JSON.stringify(r, (k, v) => (typeof v === "string" && v.length > 200 ? v.slice(0, 60) + "…" : v)).slice(0, 600);
       usage = (r as { usage?: unknown }).usage ?? null;
@@ -87,6 +88,6 @@ export async function GET(req: NextRequest) {
   }
   if (!b64) return NextResponse.json({ error: "no image", detail: lastErr.replace(/key=[^&\s"]+/g, "key=…") }, { status: 502 });
   const buf = Buffer.from(b64, "base64");
-  const url = await saveImageToStorage(`lab/comic-compare-p${page}-${v}.png`, buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
+  const url = await saveImageToStorage(`lab/comic-compare-p${page}-${v}-${req.nextUrl.searchParams.get("mdl") || "gemini"}.png`, buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
   return NextResponse.json({ url, seconds: Math.round((Date.now() - t0) / 1000), bytes: buf.length, usage });
 }
