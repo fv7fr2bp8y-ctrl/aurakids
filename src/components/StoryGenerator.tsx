@@ -425,6 +425,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
               <Sparkle size={18} /> {paying ? "…" : t(lang, "trialCta")}
             </button>
             <p style={{ margin: 0, fontSize: 13, color: "#e4d8ff", textAlign: "center" }}>{t(lang, "trialNote")}</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#cbbcf2", textAlign: "center", lineHeight: 1.5 }}>
+              {t(lang, "renewNote")} <a href="/usloviya" style={{ color: "#ffd93d" }}>{t(lang, "terms")}</a>.
+            </p>
             {payError && (
               <p style={{ fontSize: 13, color: "#ff9a9a", margin: 0, textAlign: "center" }}>{payError}</p>
             )}

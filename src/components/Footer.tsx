@@ -17,9 +17,10 @@ export default function Footer({ lang }: { lang: string }) {
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
           © 2026 AuraKids · aurakids.fun · {t(lang, "footerRights")}
         </p>
-        <a href="/privacy" className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
-          {t(lang, "privacy")}
-        </a>
+        <div className="text-xs mt-3" style={{ display: "flex", gap: 14 }}>
+          <a href="/privacy" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>{t(lang, "privacy")}</a>
+          <a href="/usloviya" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>{t(lang, "termsLink")}</a>
+        </div>
       </div>
     </footer>
   );

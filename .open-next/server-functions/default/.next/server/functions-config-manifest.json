@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/generate-comic": {
+      "maxDuration": 300
+    },
+    "/api/generate-image": {
+      "maxDuration": 120
+    },
+    "/api/generate-story": {
+      "maxDuration": 120
+    },
+    "/api/import-asset": {
+      "maxDuration": 60
+    },
+    "/api/library": {
+      "maxDuration": 30
+    },
+    "/api/og-image": {
+      "maxDuration": 10
+    },
+    "/api/stripe-webhook": {},
+    "/api/tts": {
+      "maxDuration": 180
+    }
+  }
+}
