@@ -42,10 +42,11 @@ Speech bubbles are white with black outlines. All bubble text must be large and 
 ${lines}`;
 }
 
-async function gemini(prompt: string): Promise<string | null> {
+let lastErr = "";
+async function gemini(prompt: string, model = "gemini-2.5-flash-image"): Promise<string | null> {
   const key = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-  if (!key) return null;
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`, {
+  if (!key) { lastErr = "no GOOGLE_API_KEY/GEMINI_API_KEY"; return null; }
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -53,8 +54,9 @@ async function gemini(prompt: string): Promise<string | null> {
       generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "2:3" } },
     }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) { lastErr = `${res.status} ${(await res.text()).slice(0, 300)}`; return null; }
   const data = await res.json();
+  if (!data?.candidates?.[0]?.content?.parts?.length) lastErr = JSON.stringify(data).slice(0, 300);
   const parts = data?.candidates?.[0]?.content?.parts ?? [];
   const img = parts.find((x: { inlineData?: { mimeType?: string; data?: string } }) => x.inlineData?.mimeType?.startsWith("image/"));
   return img?.inlineData?.data ?? null;
@@ -71,7 +73,7 @@ export async function GET(req: NextRequest) {
   let b64: string | null = null;
   let usage: unknown = null;
   try {
-    if (v === "gemini") b64 = await gemini(prompt);
+    if (v === "gemini") b64 = await gemini(prompt, req.nextUrl.searchParams.get("m") || undefined);
     else {
       const r = await new OpenAI().images.generate({ model: "gpt-image-1", prompt, n: 1, size: "1024x1536", quality: v as "high" | "medium" | "low" });
       b64 = "data" in r ? r.data?.[0]?.b64_json ?? null : null;
@@ -80,7 +82,7 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "error" }, { status: 502 });
   }
-  if (!b64) return NextResponse.json({ error: "no image" }, { status: 502 });
+  if (!b64) return NextResponse.json({ error: "no image", detail: lastErr.replace(/key=[^&\s"]+/g, "key=…") }, { status: 502 });
   const buf = Buffer.from(b64, "base64");
   const url = await saveImageToStorage(`lab/comic-compare-p${page}-${v}.png`, buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
   return NextResponse.json({ url, seconds: Math.round((Date.now() - t0) / 1000), bytes: buf.length, usage });
