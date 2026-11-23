@@ -137,6 +137,28 @@ export async function takeElevenLabs(req: NextRequest): Promise<{ refund: () => 
   return { refund: async () => writeCount(sb, path, (await readCount(sb, path)) - 1) };
 }
 
+// Voice parts of one story share a group id: only the first part is charged
+// (daily limit and ElevenLabs allowance); the marker remembers which voice the
+// story got so its later parts use the same one.
+export async function readGroup(group: string): Promise<{ el: boolean } | null> {
+  const sb = getSupabase();
+  if (!sb || !/^[a-f0-9]{16,40}$/.test(group)) return null;
+  try {
+    const { data, error } = await sb.storage.from(BUCKET).download(`limits/groups/${group}.json`);
+    if (error || !data) return null;
+    return JSON.parse(await data.text());
+  } catch {
+    return null;
+  }
+}
+
+export async function writeGroup(group: string, info: { el: boolean }) {
+  const sb = getSupabase();
+  if (!sb || !/^[a-f0-9]{16,40}$/.test(group)) return;
+  const body = new Blob([JSON.stringify(info)], { type: "application/json" });
+  await sb.storage.from(BUCKET).upload(`limits/groups/${group}.json`, body, { contentType: "application/json", upsert: true }).catch(() => {});
+}
+
 // Standard "limit reached" answer the app understands.
 export function quotaDenied(r: Extract<QuotaResult, { ok: false }>): NextResponse {
   return NextResponse.json({ error: "limit", scope: r.scope, paid: r.paid }, { status: 429 });

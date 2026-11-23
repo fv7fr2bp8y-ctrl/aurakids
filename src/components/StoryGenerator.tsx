@@ -6,7 +6,7 @@ import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
-import { prefetchTTS, DEFAULT_VOICE } from "@/hooks/useTTS";
+import { prefetchStoryVoice, DEFAULT_VOICE } from "@/hooks/useStoryVoice";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
 import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
@@ -200,13 +200,26 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
   // Loading checklist: earlier steps get checked, the current one keeps a
   // spinner until generation really finishes (story ~25s, comic ~2-3min).
+  // Variant A (23.11.2026): honest steps. A story only waits for the text
+  // (~40 s); pictures and voice come in the reader. The bar fills by elapsed
+  // time against the usual duration and stops short of the end.
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (!isLoading) return;
-    setLoadStep(0);
-    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), format === "comic" ? 35000 : 7000);
-    return () => clearInterval(t);
+    const t0 = Date.now();
+    const t = setInterval(() => {
+      const sec = (Date.now() - t0) / 1000;
+      setElapsed(sec);
+      setLoadStep(format === "comic"
+        ? Math.min(Math.floor(sec / 30), LOAD_STEPS.length - 1)
+        : sec < 1.5 ? 0 : 1);
+    }, 500);
+    return () => { clearInterval(t); setElapsed(0); setLoadStep(0); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
+  const expectedSec = format === "comic" ? 100 : 45;
+  const barPct = Math.min(95, 4 + (elapsed / expectedSec) * 91);
+  const STEP_HINTS = format === "comic" ? [] : ["", t(lang, "ls2h"), t(lang, "ls3h"), t(lang, "ls4h")];
 
   // Rotating magic one-liners to keep the wait alive.
   const [tipIdx, setTipIdx] = useState(0);
@@ -314,7 +327,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       if (data.title && data.story) {
         // Same text and voice as the player's play button, so a tap during the
         // warm-up waits for this one instead of paying for a second recording.
-        prefetchTTS((data.voiceText as string) || `${data.title}.\n\n${data.story}`, DEFAULT_VOICE, lang);
+        prefetchStoryVoice((data.voiceText as string) || `${data.title}.\n\n${data.story}`, DEFAULT_VOICE, lang);
       }
 
       const storyResult = { childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData;
@@ -573,16 +586,17 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             <Image className="orb-img orb-mascot" src={`${ASSETS}/orb-story.png`}
               alt="" width={150} height={150} unoptimized />
           </div>
-          <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
-          <p>{t(lang, "loadSub")}</p>
+          <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStoryFor").replace("{name}", childName.trim())}</h3>
+          <p>{t(lang, format === "comic" ? "loadWaitComic" : "loadWait")}</p>
           {/* Live progress toward completion */}
           <div className="load-bar" aria-hidden>
-            <span style={{ width: `${Math.round(((loadStep + 1) / LOAD_STEPS.length) * 92) + 4}%` }} />
+            <span style={{ width: `${barPct}%` }} />
           </div>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
               <div key={label} className={i < loadStep ? "done" : i === loadStep ? "active" : ""}>
-                <span className="mk">{i < loadStep && <Check size={13} />}</span> {label}
+                <span className="mk">{i < loadStep && <Check size={13} />}</span>
+                <span className="lbl">{label}{STEP_HINTS[i] && <small>{STEP_HINTS[i]}</small>}</span>
               </div>
             ))}
           </div>
