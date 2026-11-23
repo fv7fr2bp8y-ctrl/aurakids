@@ -88,7 +88,7 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
     return (
       <div className="story-illus">
         {url ? (
-          <Image src={url} alt={caption} fill className="object-cover" unoptimized style={{ zIndex: 1 }} />
+          <Image src={url} alt={caption} fill className="object-contain" unoptimized style={{ zIndex: 1 }} />
         ) : (
           <>
             <div className="stars" />
@@ -110,7 +110,12 @@ export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: 
       {/* Illustration header */}
       <div className="reader-illus">
         {heroUrl ? (
-          <Image src={heroUrl} alt={story.title} fill className="object-cover" unoptimized style={{ zIndex: 1 }} />
+          <>
+            {/* The whole picture, never cropped; the sides are filled with a
+                blurred copy so the wide header still looks full. */}
+            <Image src={heroUrl} alt="" aria-hidden fill className="object-cover illus-bg" unoptimized style={{ zIndex: 0 }} />
+            <Image src={heroUrl} alt={story.title} fill className="object-contain illus-fg" unoptimized style={{ zIndex: 1 }} />
+          </>
         ) : (
           <>
             <div className="stars" />

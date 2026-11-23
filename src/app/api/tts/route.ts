@@ -48,7 +48,9 @@ async function callGoogleTTSOAuth(text: string, token: string, voiceName: string
 // ELEVENLABS_VOICE_ID picks the narrator; otherwise the friendly voice id maps
 // to one of ElevenLabs' premade voices below.
 const EL_MODEL = "eleven_v3";
-const EL_MAX = 4500; // v3 takes up to 5000 characters per request
+// Pieces of up to ~1600 characters, split between paragraphs and recorded at
+// the same time (one 4k-character request took close to a minute).
+const EL_MAX = 1600;
 const EL_VOICE_MAP: Record<string, string> = {
   Schedar: "EXAVITQu4vr4xnSDxMaL", // Sarah — warm female
   Kore: "pFZP5JQG7iQjIQuC4Bku",    // Lily — clear female
@@ -198,13 +200,9 @@ export async function POST(req: NextRequest) {
       // Only the dictionary layers ElevenLabs needs (names/rare words); the
       // text is cut between paragraphs when over the v3 request limit.
       const parts = splitParagraphs(addStress(trimmed, {}, { wiki: false }), EL_MAX);
-      const out: ArrayBuffer[] = [];
-      for (const part of parts) {
-        const mp3 = (await callElevenLabs(part, elKey, voiceId)) ?? (await callElevenLabs(part, elKey, voiceId));
-        if (!mp3) break;
-        out.push(mp3);
-      }
-      if (out.length === parts.length) {
+      const out = await Promise.all(parts.map(async (part) =>
+        (await callElevenLabs(part, elKey, voiceId)) ?? (await callElevenLabs(part, elKey, voiceId))));
+      if (out.every((b): b is ArrayBuffer => !!b)) {
         const total = out.reduce((n, b) => n + b.byteLength, 0);
         const joined = new Uint8Array(total);
         let off = 0;
