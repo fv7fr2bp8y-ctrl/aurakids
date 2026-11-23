@@ -35,7 +35,10 @@ async function accessToken(): Promise<string> {
     body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${sig}` }),
   });
   const d = await res.json();
-  if (!d.access_token) throw new Error("play-auth");
+  if (!d.access_token) {
+    console.error("[play] token error", res.status, d?.error, d?.error_description);
+    throw new Error("play-auth");
+  }
   cached = { token: d.access_token, exp: Date.now() + (d.expires_in || 3600) * 1000 };
   return cached.token;
 }
@@ -52,7 +55,12 @@ async function fetchSub(pkg: string, token: string): Promise<PlaySubV2> {
   const res = await fetch(`${API}/${pkg}/purchases/subscriptionsv2/tokens/${encodeURIComponent(token)}`, {
     headers: { Authorization: `Bearer ${await accessToken()}` },
   });
-  if (!res.ok) throw new Error(`play-verify ${res.status}`);
+  if (!res.ok) {
+    // Google's own reason (no token in it): permission, unknown product, bad token...
+    const body = await res.text().catch(() => "");
+    console.error("[play] verify error", pkg, res.status, body.slice(0, 500));
+    throw new Error(`play-verify ${res.status}`);
+  }
   return res.json();
 }
 

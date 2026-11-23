@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: r.ok, reason: r.reason, until: r.sub?.expiry }, { status: r.ok ? 200 : 409 });
   } catch (e) {
     const msg = String((e as Error)?.message || "");
+    console.error("[play] verify failed", b.pkg, msg);
     return NextResponse.json({ ok: false, reason: msg.startsWith("play-not-configured") ? "not-configured" : "verify-failed" }, { status: 503 });
   }
 }
