@@ -3,6 +3,7 @@ import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
+import { addStress, stripStress } from "@/lib/stress";
 
 export const maxDuration = 120;
 
@@ -116,11 +117,13 @@ export async function POST(req: NextRequest) {
 - Краят: топъл, завършен, с тиха връзка към скритото послание — идеален за заспиване
 - Заглавие: поетично и конкретно, съдържа ${childName}, НЕ шаблонно („X и вълшебното Y" е забранено)
 
+За voiceText: СЪЩИЯТ текст като story, дума по дума, но за четене на глас. Сложи знак за ударение (U+0301, комбиниращо остро ударение, като в „Мъ́рморко“) САМО на: имената на героите, редките и диалектни думи и думите, чието ударение се бърка или променя смисъла (па́ра/пара́, въ́лна/вълна́, за́мък/замъ́к). Обичайните думи остави без знак. Ако не си сигурен за ударението, не слагай знак.
+
 За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи.`;
 
     const message = await client.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 3000,
+      max_tokens: 6000,
       temperature: 1,
       tools: [{
         name: "save_story",
@@ -130,6 +133,7 @@ export async function POST(req: NextRequest) {
           properties: {
             title: { type: "string" },
             story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
+            voiceText: { type: "string", description: "Същият текст със знак за ударение (U+0301) на имената, редките и двусмислените думи" },
             imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           },
           required: ["title", "story", "imagePrompts"],
@@ -142,15 +146,21 @@ export async function POST(req: NextRequest) {
     const toolUse = message.content.find((b) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
 
-    const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
+    const parsed = toolUse.input as { title: string; story: string; voiceText?: string; imagePrompts: string[] };
+    // The reader sees the plain text; the voice gets the marked one (only if it
+    // really is the same story, i.e. identical once the marks are removed).
+    const plainStory = stripStress(parsed.story);
+    const voiceOk = parsed.voiceText && stripStress(parsed.voiceText).replace(/\s+/g, " ").trim() === plainStory.replace(/\s+/g, " ").trim();
+    const voiceText = addStress(voiceOk ? parsed.voiceText! : plainStory);
 
     // Archive every story (unique key per generation) — history, not dedup.
     const cacheKey = makeCacheKey(childName, themeName || theme, age);
-    saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []).catch(() => {});
+    saveCachedStory(cacheKey, parsed.title, plainStory, parsed.imagePrompts || []).catch(() => {});
 
     return NextResponse.json({
       title: parsed.title,
-      story: parsed.story,
+      story: plainStory,
+      voiceText: `${addStress(stripStress(parsed.title))}.\n\n${voiceText}`,
       imagePrompts: parsed.imagePrompts || [],
       fromCache: false,
     });

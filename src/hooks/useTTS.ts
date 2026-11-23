@@ -4,7 +4,39 @@ import { useCallback, useRef, useState } from "react";
 
 type Status = "idle" | "loading" | "playing" | "error";
 
+export const DEFAULT_VOICE = "Schedar";
+
 const audioCache = new Map<string, string>();
+// Recordings in flight, shared by the warm-up and the play button.
+const inflight = new Map<string, Promise<string>>();
+
+function fetchAudio(text: string, voice: string, language: string): Promise<string> {
+  const key = `${language}|${voice}|${text}`;
+  const done = audioCache.get(key);
+  if (done) return Promise.resolve(done);
+  let p = inflight.get(key);
+  if (!p) {
+    p = fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice, language }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("TTS грешка");
+        const url = URL.createObjectURL(await res.blob());
+        audioCache.set(key, url);
+        return url;
+      })
+      .finally(() => inflight.delete(key));
+    inflight.set(key, p);
+  }
+  return p;
+}
+
+// Start recording in the background (right after the story is written).
+export function prefetchTTS(text: string, voice = DEFAULT_VOICE, language = "bg") {
+  fetchAudio(text, voice, language).catch(() => {});
+}
 
 // 44-byte silent WAV. Played synchronously inside the user's tap to unlock the
 // audio element on iOS — otherwise play() after an awaited fetch is blocked and
@@ -35,7 +67,7 @@ export function useTTS() {
   }, []);
 
   const speak = useCallback(
-    async (text: string, voice = "Schedar", language = "bg") => {
+    async (text: string, voice = DEFAULT_VOICE, language = "bg") => {
       if (status === "playing") {
         stop();
         return;
@@ -49,22 +81,7 @@ export function useTTS() {
       setStatus("loading");
 
       try {
-        const cacheKey = `${language}|${voice}|${text}`;
-        let url = audioCache.get(cacheKey);
-
-        if (!url) {
-          const res = await fetch("/api/tts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, voice, language }),
-          });
-
-          if (!res.ok) throw new Error("TTS грешка");
-
-          const blob = await res.blob();
-          url = URL.createObjectURL(blob);
-          audioCache.set(cacheKey, url);
-        }
+        const url = await fetchAudio(text, voice, language);
 
         el.src = url;
         el.onended = () => setStatus("idle");

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied, type QuotaResult } from "@/lib/quota";
+import { addStress } from "@/lib/stress";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 // Newest first — 3.1 is the most reliable; 2.5 as fallback.
 const GEMINI_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
@@ -212,18 +213,27 @@ export async function POST(req: NextRequest) {
   // story in sentence-sized chunks and stitch the PCM into one WAV.
   const q = await reserve();
   if (!q.ok) return quotaDenied(q);
-  const chunks = chunkText(trimmed, 600);
-  const pcmParts: Uint8Array[] = [];
+  // Chunks are recorded 3 at a time (a 4k-character story took ~2 minutes
+  // one by one); stress marks from the shared dictionary go in first.
+  const chunks = chunkText(addStress(trimmed), 900);
+  const pcmParts: Uint8Array[] = new Array(chunks.length);
   let rate = 24000;
-  for (const chunk of chunks) {
-    let part = await callGemini(chunk, geminiKey, gVoice);
-    if (!part) part = await callGemini(chunk, geminiKey, gVoice);
-    if (!part?.data) {
-      await q.refund().catch(() => {});
-      return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
+  let failed = false;
+  let next = 0;
+  const worker = async () => {
+    while (!failed && next < chunks.length) {
+      const i = next++;
+      let part = await callGemini(chunks[i], geminiKey, gVoice);
+      if (!part) part = await callGemini(chunks[i], geminiKey, gVoice);
+      if (!part?.data) { failed = true; return; }
+      rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
+      pcmParts[i] = new Uint8Array(Buffer.from(part.data, "base64"));
     }
-    rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
-    pcmParts.push(new Uint8Array(Buffer.from(part.data, "base64")));
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (failed) {
+    await q.refund().catch(() => {});
+    return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
   }
 
   const total = pcmParts.reduce((n, p) => n + p.length, 0);

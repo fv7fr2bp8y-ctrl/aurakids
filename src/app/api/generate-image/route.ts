@@ -5,7 +5,7 @@ import { createHash } from "crypto";
 import OpenAI from "openai";
 import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
@@ -64,9 +64,9 @@ async function generateImage(prompt: string): Promise<Buffer> {
 
   // Comic panels: gpt-image-2 first (best cinematic 3D + consistency), Gemini fallback.
   // Everything else: Gemini first, gpt-image-2 fallback.
-  const providers = isPreStyled
-    ? [() => callOpenAI(styledPrompt), () => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null))]
-    : [() => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null)), () => callOpenAI(styledPrompt)];
+  // OpenAI first for everything since 23.11.2026: the Gemini key on
+  // production is free tier with no image quota (429), which only added delay.
+  const providers = [() => callOpenAI(styledPrompt), () => (googleKey ? callGemini(styledPrompt, googleKey) : Promise.resolve(null))];
 
   for (const call of providers) {
     const b64 = await call();

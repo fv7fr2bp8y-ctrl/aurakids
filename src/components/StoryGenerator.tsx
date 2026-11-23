@@ -6,6 +6,7 @@ import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
+import { prefetchTTS, DEFAULT_VOICE } from "@/hooks/useTTS";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
 import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
@@ -95,6 +96,7 @@ export interface StoryData {
   title: string;
   imagePrompts: string[];
   language?: string;
+  voiceText?: string; // same story with stress marks, for the voice only
 }
 
 export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome }: StoryGeneratorProps) {
@@ -305,10 +307,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           : Promise.resolve(null)
       );
       if (data.title && data.story) {
-        fetch("/api/tts", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}`, language: lang }),
-        }).catch(() => {});
+        // Same text and voice as the player's play button, so a tap during the
+        // warm-up waits for this one instead of paying for a second recording.
+        prefetchTTS((data.voiceText as string) || `${data.title}.\n\n${data.story}`, DEFAULT_VOICE, lang);
       }
 
       const storyResult = { childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData;
