@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied, type QuotaResult } from "@/lib/quota";
+import { addStress } from "@/lib/stress";
 import { createHash } from "crypto";
 import { getCachedAudio, saveAudioToStorage } from "@/lib/supabase";
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 // Newest first — 3.1 is the most reliable; 2.5 as fallback.
 const GEMINI_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
@@ -94,7 +95,7 @@ async function callGemini(text: string, key: string, voice: string) {
   // Try each model until one returns audio (preview models occasionally answer
   // with finishReason OTHER and no audio; the next model usually succeeds).
   for (const model of GEMINI_MODELS) {
-    try {
+    for (let attempt = 0; attempt < 3; attempt++) try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
         {
@@ -109,10 +110,13 @@ async function callGemini(text: string, key: string, voice: string) {
           }),
         }
       );
-      if (!res.ok) continue;
+      // Rate limit: wait a little and try the same model again.
+      if (res.status === 429) { await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); continue; }
+      if (!res.ok) break;
       const part = (await res.json())?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
       if (part?.data) return part;
-    } catch { /* try next model */ }
+      break;
+    } catch { break; /* try next model */ }
   }
   return null;
 }
@@ -212,18 +216,28 @@ export async function POST(req: NextRequest) {
   // story in sentence-sized chunks and stitch the PCM into one WAV.
   const q = await reserve();
   if (!q.ok) return quotaDenied(q);
-  const chunks = chunkText(trimmed, 600);
-  const pcmParts: Uint8Array[] = [];
+  // Short pieces (one or two sentences): in long requests Gemini skipped the
+  // stress marks ("драконът" read wrong despite "дра́конът", 23.11.2026), in
+  // single sentences it kept them. 3 pieces are recorded at a time.
+  const chunks = chunkText(addStress(trimmed), 260);
+  const pcmParts: Uint8Array[] = new Array(chunks.length);
   let rate = 24000;
-  for (const chunk of chunks) {
-    let part = await callGemini(chunk, geminiKey, gVoice);
-    if (!part) part = await callGemini(chunk, geminiKey, gVoice);
-    if (!part?.data) {
-      await q.refund().catch(() => {});
-      return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
+  let failed = false;
+  let next = 0;
+  const worker = async () => {
+    while (!failed && next < chunks.length) {
+      const i = next++;
+      let part = await callGemini(chunks[i], geminiKey, gVoice);
+      if (!part) part = await callGemini(chunks[i], geminiKey, gVoice);
+      if (!part?.data) { failed = true; return; }
+      rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
+      pcmParts[i] = new Uint8Array(Buffer.from(part.data, "base64"));
     }
-    rate = parseInt((part.mimeType?.match(/rate=(\d+)/) || [])[1] || "24000", 10);
-    pcmParts.push(new Uint8Array(Buffer.from(part.data, "base64")));
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (failed) {
+    await q.refund().catch(() => {});
+    return NextResponse.json({ error: "Грешка при TTS" }, { status: 502 });
   }
 
   const total = pcmParts.reduce((n, p) => n + p.length, 0);

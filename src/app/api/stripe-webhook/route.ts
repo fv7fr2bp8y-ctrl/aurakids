@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { markUnlocked } from "@/lib/supabase";
+import { saveSubscription, stripe } from "@/lib/billing";
 
 // Stripe calls this server-to-server on payment events (retries until 200), so
 // a paid unlock is recorded even if the user never returns to the site.
@@ -34,14 +35,29 @@ export async function POST(req: NextRequest) {
 
   try {
     const event = JSON.parse(raw);
+    const obj = event.data?.object;
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
-      const session = event.data?.object;
-      if (session?.payment_status === "paid") {
-        const code = String(session?.metadata?.code || "").toUpperCase();
-        if (CODE.test(code)) await markUnlocked(code);
+      const code = String(obj?.metadata?.code || "").toUpperCase();
+      if (CODE.test(code)) {
+        if (obj?.mode === "subscription" && obj?.subscription) {
+          const subId = typeof obj.subscription === "string" ? obj.subscription : obj.subscription.id;
+          await saveSubscription(code, await stripe(`/subscriptions/${subId}`));
+        } else if (obj?.payment_status === "paid") {
+          await markUnlocked(code);
+        }
       }
     }
-  } catch { /* ignore malformed */ }
+    // Renewals, cancellations, failed payments (needs these events enabled on
+    // the Stripe endpoint; without them the state still refreshes on expiry).
+    if (event.type?.startsWith("customer.subscription.")) {
+      const code = String(obj?.metadata?.code || "").toUpperCase();
+      if (CODE.test(code) && obj?.metadata?.app === "aurakids") await saveSubscription(code, obj);
+    }
+  } catch (e) {
+    // Let Stripe retry if our side failed (e.g. storage down).
+    console.error("Stripe webhook error:", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: "retry" }, { status: 500 });
+  }
 
   // Always 200 so Stripe stops retrying a handled event.
   return NextResponse.json({ received: true });

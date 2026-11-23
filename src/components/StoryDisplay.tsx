@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StoryData } from "./StoryGenerator";
-import { useTTS } from "@/hooks/useTTS";
+import { useTTS, DEFAULT_VOICE } from "@/hooks/useTTS";
 import { t } from "@/lib/i18n";
 import { Sparkle } from "./Icons";
 
@@ -47,9 +47,9 @@ const VOICES = [
 export default function StoryDisplay({ story, lang: langProp, onBack, onHome }: StoryDisplayProps) {
   const lang = langProp || story.language || "bg";
   const { speak, status: ttsStatus } = useTTS();
-  const [voice, setVoice] = useState("Schedar");
+  const [voice, setVoice] = useState(DEFAULT_VOICE);
   const [voiceMenu, setVoiceMenu] = useState(false);
-  const fullStoryText = `${story.title}.\n\n${story.story}`;
+  const fullStoryText = story.voiceText || `${story.title}.\n\n${story.story}`;
   const { url: heroUrl, loading: heroLoading } = useIllustration(story.imagePrompts?.[0]);
   const voiceName = VOICES.find((v) => v.id === voice)?.name ?? "Аура";
 

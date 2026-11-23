@@ -6,6 +6,7 @@ import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
+import { prefetchTTS, DEFAULT_VOICE } from "@/hooks/useTTS";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
 import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
@@ -95,6 +96,7 @@ export interface StoryData {
   title: string;
   imagePrompts: string[];
   language?: string;
+  voiceText?: string; // same story with stress marks, for the voice only
 }
 
 export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome }: StoryGeneratorProps) {
@@ -112,29 +114,29 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const [demoBlocked, setDemoBlocked] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
-  const [priceLabel, setPriceLabel] = useState("");
+  const [plan, setPlan] = useState<"year" | "month">("year");
+  const [subPrices, setSubPrices] = useState<{ month: number; year: number; currency: string } | null>(null);
 
   useEffect(() => {
     initUnlock();
     // A paid family code unlocks any device it's restored on.
     checkServerUnlock(getFamilyCode()).catch(() => {});
-    // Live price from Stripe → shown on the unlock button.
+    // Subscription prices for the paywall (from the server, not hard-coded).
     fetch("/api/checkout").then((r) => r.json()).then((d) => {
-      if (d?.configured && d.amount != null) {
-        // Local price format: "11,99 €" in BG/DE/FR/RU, "€11.99" in EN.
-        const locale = { bg: "bg-BG", en: "en-IE", de: "de-DE", fr: "fr-FR", ru: "ru-RU" }[lang as string] || "bg-BG";
-        const amount = Number(d.amount);
-        try {
-          setPriceLabel(new Intl.NumberFormat(locale, {
-            style: "currency", currency: String(d.currency).toUpperCase(),
-            minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-          }).format(amount));
-        } catch {
-          setPriceLabel(`${amount.toFixed(2)} ${String(d.currency).toUpperCase()}`);
-        }
-      }
+      const s = d?.subscription;
+      if (s?.month && s?.year) setSubPrices({ month: Number(s.month), year: Number(s.year), currency: String(s.currency || "eur") });
     }).catch(() => {});
   }, []);
+
+  // Local price format: "4,99 €" in BG/DE/FR/RU, "€4.99" in EN.
+  const money = (amount: number, currency = "eur") => {
+    const locale = ({ bg: "bg-BG", en: "en-IE", de: "de-DE", fr: "fr-FR", ru: "ru-RU" } as Record<string, string>)[lang] || "bg-BG";
+    try {
+      return new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: 2 }).format(amount);
+    } catch {
+      return `${amount.toFixed(2)} ${currency.toUpperCase()}`;
+    }
+  };
 
   const startCheckout = async () => {
     setPaying(true);
@@ -143,7 +145,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: getFamilyCode() }),
+        body: JSON.stringify({ code: getFamilyCode(), plan }),
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
@@ -305,10 +307,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           : Promise.resolve(null)
       );
       if (data.title && data.story) {
-        fetch("/api/tts", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}`, language: lang }),
-        }).catch(() => {});
+        // Same text and voice as the player's play button, so a tap during the
+        // warm-up waits for this one instead of paying for a second recording.
+        prefetchTTS((data.voiceText as string) || `${data.title}.\n\n${data.story}`, DEFAULT_VOICE, lang);
       }
 
       const storyResult = { childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData;
@@ -334,31 +335,49 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   }
 
   if (demoBlocked) {
+    const prices = subPrices ?? { month: 4.99, year: 39.99, currency: "eur" };
+    const planCard = (id: "year" | "month") => {
+      const selected = plan === id;
+      return {
+        position: "relative" as const, width: "100%", boxSizing: "border-box" as const, padding: 20, borderRadius: 20,
+        background: selected ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)",
+        border: selected ? "2px solid #ffc847" : "1px solid rgba(255,255,255,0.2)",
+        color: "#fff", font: "inherit", textAlign: "left" as const, display: "flex", flexDirection: "column" as const, gap: 6, cursor: "pointer",
+      };
+    };
     return (
       <section className="ak-screen home-hero-bg">
         <div className="stars" />
-        <div className="ak-col" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", paddingTop: 40, paddingBottom: 40 }}>
-          <div className="orb" style={{ margin: "0 auto 26px" }}>
-            {format === "comic" ? <ComicIcon size={44} className="text-white" /> : <Sparkle size={46} className="text-white" />}
-          </div>
-          <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "demoTitle")}</h2>
-          <p className="step-help" style={{ textAlign: "center", margin: "10px auto 28px", maxWidth: 320 }}>{t(lang, "demoBody")}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 340, margin: "0 auto", width: "100%" }}>
-            <button className="cta" onClick={startCheckout} disabled={paying}>
-              <Sparkle size={18} /> {paying ? "…" : `${t(lang, "demoUnlockWeb")}${priceLabel ? ` — ${priceLabel}` : ""}`}
+        <div className="ak-col" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, paddingTop: 40, paddingBottom: 32 }}>
+          <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "payTitle")}</h2>
+          <p className="step-help" style={{ textAlign: "center", margin: "0 auto 8px", maxWidth: 320 }}>{t(lang, "payBody")}</p>
+          <div role="radiogroup" aria-label={t(lang, "payTitle")} style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 380, width: "100%", margin: "0 auto" }}>
+            <button role="radio" aria-checked={plan === "year"} onClick={() => setPlan("year")} style={planCard("year")}>
+              <span style={{ position: "absolute", top: -12, right: 16, padding: "4px 10px", borderRadius: 12, background: "#ffc847", color: "#2a1052", fontSize: 12, fontWeight: 800 }}>{t(lang, "yearBadge")}</span>
+              <span style={{ fontSize: 17, fontWeight: 800 }}>{t(lang, "planYear")}</span>
+              <span style={{ fontSize: 24, fontWeight: 800 }}>{money(prices.year, prices.currency)} <span style={{ fontSize: 14, fontWeight: 600, color: "#e4d8ff" }}>{t(lang, "perYear")}</span></span>
+              <span style={{ fontSize: 14, color: "#e4d8ff" }}>{t(lang, "yearPerMonth").replace("{x}", money(Math.floor((prices.year / 12) * 100) / 100, prices.currency))}</span>
             </button>
-            <button className="cta ghost" onClick={onBack}>{t(lang, "demoBack")}</button>
+            <button role="radio" aria-checked={plan === "month"} onClick={() => setPlan("month")} style={planCard("month")}>
+              <span style={{ fontSize: 17, fontWeight: 800 }}>{t(lang, "planMonth")}</span>
+              <span style={{ fontSize: 24, fontWeight: 800 }}>{money(prices.month, prices.currency)} <span style={{ fontSize: 14, fontWeight: 600, color: "#e4d8ff" }}>{t(lang, "perMonth")}</span></span>
+              <span style={{ fontSize: 14, color: "#e4d8ff" }}>{t(lang, "monthNote")}</span>
+            </button>
+            <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.6, color: "#e4d8ff" }}>{t(lang, "planIncludes")}</p>
+            <button className="cta" onClick={startCheckout} disabled={paying} style={{ marginTop: 8 }}>
+              <Sparkle size={18} /> {paying ? "…" : t(lang, "trialCta")}
+            </button>
+            <p style={{ margin: 0, fontSize: 13, color: "#e4d8ff", textAlign: "center" }}>{t(lang, "trialNote")}</p>
+            {payError && (
+              <p style={{ fontSize: 13, color: "#ff9a9a", margin: 0, textAlign: "center" }}>{payError}</p>
+            )}
+            <button className="cta ghost" onClick={onBack}>{t(lang, "notNow")}</button>
           </div>
-          {payError && (
-            <p style={{ fontSize: 13, color: "#ff9a9a", marginTop: 14 }}>{payError}</p>
-          )}
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>
-            {t(lang, "demoUnlockNote")}
-          </p>
         </div>
       </section>
     );
   }
+
 
   return (
     <section className="ak-screen home-hero-bg">

@@ -75,11 +75,13 @@ ${panelLines}`;
   const client = new OpenAI();
   try {
     const response = await client.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-2",
       prompt: prompt.slice(0, 4000),
       n: 1,
       size: "1024x1536",
-      quality: "high",
+      // gpt-image-2 medium: ~0,04 $ per page, Cyrillic lettering and character
+      // consistency as good as "high" (~0,17 $) in the 23.11.2026 comparison.
+      quality: "medium",
     });
     const b64 = "data" in response ? response.data?.[0]?.b64_json : undefined;
     if (!b64) return null;
@@ -182,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     const script = toolUse.input as { title: string; characterDescription: string; pages: PageScript[] };
 
-    // Render both pages in parallel with gpt-image-1
+    // Render all pages in parallel with gpt-image-2
     const urls = await Promise.all(
       script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1, artStyle || "pixar"))
     );

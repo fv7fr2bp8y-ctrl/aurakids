@@ -17,18 +17,6 @@ interface HeroSectionProps {
   soleFormat?: "story" | "comic" | null;
 }
 
-function Stars5() {
-  return (
-    <span className="stars-row">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <svg key={i} viewBox="0 0 24 24" fill="#FFD93D">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </svg>
-      ))}
-    </span>
-  );
-}
-
 const DOOR_PROMPTS = {
   story: "A cozy magical bedtime scene: a small child in starry pajamas sitting up in bed with a teddy bear, reading a glowing open storybook; a shimmering golden stream of magic rises from the pages into dreamy clouds holding a fairytale castle, a tiny sailing ship, a hot-air balloon and a friendly golden dragon; crescent moon and stars, star-lamp on the nightstand, rich purples and warm gold, soft dreamy night atmosphere",
   comic: "A thrilled child superhero mid-leap over city rooftops at sunset, cape flying, dynamic action pose, comic book energy with motion lines and bright bold colors, joyful adventurous expression, cinematic wide angle",
@@ -177,10 +165,6 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
               <span>{t(lang, "micro3")}</span>
             </div>
 
-            <div className="rating" data-rise style={{ animationDelay: ".46s" }}>
-              <Stars5 />
-              <span><strong style={{ color: "#fff" }}>4.9 / 5</strong> {t(lang, "rating")}</span>
-            </div>
 
             <a href="/privacy" style={{ display: "block", marginTop: 22, fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}>
               {t(lang, "privacy")}

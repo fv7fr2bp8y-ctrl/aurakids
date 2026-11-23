@@ -26,13 +26,28 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
   const [showCode, setShowCode] = useState(false);
   const [restoreCode, setRestoreCode] = useState("");
   const [syncing, setSyncing] = useState(false);
+  const [hasSub, setHasSub] = useState(false);
 
   useEffect(() => {
     setItems(getLibrary());
     setCode(getFamilyCode());
     // Pull the cloud copy and merge in.
     syncLibrary().then(setItems).catch(() => {});
+    // Subscribers get a button to the Stripe portal (cancel, card, invoices).
+    fetch(`/api/unlocked?code=${encodeURIComponent(getFamilyCode())}`, { cache: "no-store" })
+      .then((r) => r.json()).then((d) => setHasSub(d?.plan === "sub" || d?.plan === "trial")).catch(() => {});
   }, []);
+
+  const openPortal = async () => {
+    try {
+      const res = await fetch("/api/portal", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: getFamilyCode() }),
+      });
+      const d = await res.json();
+      if (d?.url) window.location.href = d.url;
+    } catch { /* ignore */ }
+  };
 
   const restore = async () => {
     if (!restoreCode.trim()) return;
@@ -117,6 +132,13 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
             </div>
           )}
         </div>
+        )}
+
+        {/* Subscribers: cancel / change card in the Stripe portal, always visible. */}
+        {hasSub && (
+          <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 12 }}>
+            <button className="lib-restore-btn" onClick={openPortal}>{t(lang, "manageSub")}</button>
+          </div>
         )}
 
         {/* Filter chips */}

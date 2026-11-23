@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
+import { addStress, stripStress } from "@/lib/stress";
+import { verifiedStress, warmStress } from "@/lib/rechnik";
 
 export const maxDuration = 120;
 
@@ -116,11 +118,13 @@ export async function POST(req: NextRequest) {
 - Краят: топъл, завършен, с тиха връзка към скритото послание — идеален за заспиване
 - Заглавие: поетично и конкретно, съдържа ${childName}, НЕ шаблонно („X и вълшебното Y" е забранено)
 
+За stress (ударения за гласа, който чете приказката): списък с думите от приказката, в които гласът лесно бърка ударението, всяка написана точно както е в текста, със знак за ударение U+0301 върху ударената гласна (напр. „Мъ́рморко“, „па́ра“, „замъ́ка“). Задължително: всички имена (и главният герой ${childName}) и всички редки, диалектни или двусмислени думи. До 40 думи. Ако не си сигурен за ударението на дума, не я включвай.
+
 За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи.`;
 
     const message = await client.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 3000,
+      max_tokens: 3500,
       temperature: 1,
       tools: [{
         name: "save_story",
@@ -130,6 +134,7 @@ export async function POST(req: NextRequest) {
           properties: {
             title: { type: "string" },
             story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
+            stress: { type: "array", items: { type: "string" }, maxItems: 40, description: "Думи от текста със знак за ударение U+0301, напр. „Мъ́рморко“" },
             imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           },
           required: ["title", "story", "imagePrompts"],
@@ -142,15 +147,27 @@ export async function POST(req: NextRequest) {
     const toolUse = message.content.find((b) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
 
-    const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
+    const parsed = toolUse.input as { title: string; story: string; stress?: string[]; imagePrompts: string[] };
+    // The reader sees the plain text; the voice gets the same text with stress
+    // marks from the model's word list plus the shared ONIRA dictionary.
+    const plainStory = stripStress(parsed.story);
+    const plainTitle = stripStress(parsed.title);
+    // Only dictionary-confirmed stress (rechnik.chitanka.info); the model just
+    // points at the tricky words. Unknown words (most names) stay unmarked.
+    const { marks: extra, missing } = await verifiedStress(parsed.stress || []).catch(() => ({ marks: {}, missing: [] as string[] }));
+    // Words not checked in time are looked up after the answer is sent and
+    // cached, so the next stories (and this one's voice, if recorded later) gain.
+    if (missing.length) after(() => warmStress(missing, 50000));
+    const voiceText = `${addStress(plainTitle, extra)}.\n\n${addStress(plainStory, extra)}`;
 
     // Archive every story (unique key per generation) — history, not dedup.
     const cacheKey = makeCacheKey(childName, themeName || theme, age);
-    saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []).catch(() => {});
+    saveCachedStory(cacheKey, parsed.title, plainStory, parsed.imagePrompts || []).catch(() => {});
 
     return NextResponse.json({
       title: parsed.title,
-      story: parsed.story,
+      story: plainStory,
+      voiceText,
       imagePrompts: parsed.imagePrompts || [],
       fromCache: false,
     });
