@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
 import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
-import { addStress, stripStress, storyStressMap } from "@/lib/stress";
+import { addStress, stripStress } from "@/lib/stress";
+import { verifiedStress, warmStress } from "@/lib/rechnik";
 
 export const maxDuration = 120;
 
@@ -151,7 +152,12 @@ export async function POST(req: NextRequest) {
     // marks from the model's word list plus the shared ONIRA dictionary.
     const plainStory = stripStress(parsed.story);
     const plainTitle = stripStress(parsed.title);
-    const extra = storyStressMap(parsed.stress || []);
+    // Only dictionary-confirmed stress (rechnik.chitanka.info); the model just
+    // points at the tricky words. Unknown words (most names) stay unmarked.
+    const { marks: extra, missing } = await verifiedStress(parsed.stress || []).catch(() => ({ marks: {}, missing: [] as string[] }));
+    // Words not checked in time are looked up after the answer is sent and
+    // cached, so the next stories (and this one's voice, if recorded later) gain.
+    if (missing.length) after(() => warmStress(missing, 50000));
     const voiceText = `${addStress(plainTitle, extra)}.\n\n${addStress(plainStory, extra)}`;
 
     // Archive every story (unique key per generation) — history, not dedup.
