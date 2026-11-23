@@ -5,6 +5,11 @@ const APP = process.env.NEXT_PUBLIC_APP === "story" ? "story"
   : process.env.NEXT_PUBLIC_APP === "comic" ? "comic" : "both";
 
 const nextConfig: NextConfig = {
+  // The voice's stress dictionary is read from disk by these API routes.
+  outputFileTracingIncludes: {
+    "/api/generate-story": ["./data/stress-bg.tsv.gz"],
+    "/api/tts": ["./data/stress-bg.tsv.gz"],
+  },
   async rewrites() {
     // Serve every legacy icon path from this build's brand icon (via /api/icon),
     // so anything iOS/Android/browsers probe resolves to the right icon.
