@@ -2,8 +2,19 @@ import type { Metadata } from "next";
 import HomeApp from "@/components/HomeApp";
 
 export const metadata: Metadata = {
-  title: "AuraKids Комикси — твоето дете е супергероят",
-  description: "Персонализирани комикси, в които твоето дете е главният герой — цели страници с реплики и екшън.",
+  title: "Комикс, в който детето ти е супергероят | AuraKids",
+  description: "Създай комикс, в който детето ти е главният герой: цели страници с реплики и екшън. Опитай безплатно.",
+  alternates: { canonical: "/komiksi" },
+  openGraph: {
+    title: "Комикс, в който детето ти е супергероят | AuraKids",
+    description: "Създай комикс, в който детето ти е главният герой: цели страници с реплики и екшън. Опитай безплатно.",
+    url: "/komiksi",
+    siteName: "AuraKids",
+    locale: "bg_BG",
+    type: "website",
+    images: [{ url: "/og-comic.jpg", width: 1200, height: 630, alt: "AuraKids" }],
+  },
+  twitter: { card: "summary_large_image", title: "Комикс, в който детето ти е супергероят | AuraKids", description: "Създай комикс, в който детето ти е главният герой: цели страници с реплики и екшън. Опитай безплатно.", images: ["/og-comic.jpg"] },
   manifest: "/komiksi/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "AuraKids Комикси" },
   icons: {

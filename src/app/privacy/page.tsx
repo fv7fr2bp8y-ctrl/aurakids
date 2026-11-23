@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Политика за поверителност · AuraKids",
   description: "Как AuraKids събира, използва и защитава данните.",
+  alternates: { canonical: "/privacy" },
 };
 
 const UPDATED = "11 юли 2026";

@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
     "/api/generate-story": ["./data/stress-bg.tsv.gz"],
     "/api/tts": ["./data/stress-bg.tsv.gz"],
   },
+  // One address for search engines: www → aurakids.fun. The API (Stripe
+  // webhook, app calls) and /.well-known (Android app links) stay on both.
+  async redirects() {
+    const www = [{ type: "host" as const, value: "www.aurakids.fun" }];
+    return [
+      { source: "/", has: www, destination: "https://aurakids.fun/", permanent: true },
+      { source: "/:path((?!api/|\\.well-known/).+)", has: www, destination: "https://aurakids.fun/:path", permanent: true },
+    ];
+  },
   async rewrites() {
     // Serve every legacy icon path from this build's brand icon (via /api/icon),
     // so anything iOS/Android/browsers probe resolves to the right icon.

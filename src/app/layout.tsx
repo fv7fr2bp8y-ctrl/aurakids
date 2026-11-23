@@ -6,13 +6,32 @@ import { BRAND, APP } from "@/lib/appConfig";
 
 const IV = BRAND.iconVariant;
 const TITLE = APP === "story"
-  ? "AuraKids Приказки — вечерни приказки за твоето дете"
+  ? "Приказка с името на детето, с картинки и глас | AuraKids"
   : APP === "comic"
-    ? "AuraKids Комикси — твоето дете е супергероят"
-    : "AuraKids — Вълшебни приказки за твоето дете";
+    ? "Комикс, в който детето ти е супергероят | AuraKids"
+    : "AuraKids: приказки и комикси с името на детето";
 const DESC = APP === "comic"
-  ? "Създай персонализиран комикс, в който детето ти е главният герой — цели страници с реплики и екшън."
-  : "Генерирай персонализирана приказка с името на детето си и уникални илюстрации. Нещо специално, само за него.";
+  ? "Създай комикс, в който детето ти е главният герой: цели страници с реплики и екшън. Опитай безплатно."
+  : "Вечерна приказка с името на детето ти, с уникални илюстрации и глас, готова за минута. Опитай безплатно.";
+const OG_IMG = APP === "comic" ? "/og-comic.jpg" : "/og-story.jpg";
+
+// Structured data for search engines (who we are, what it costs).
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": "https://aurakids.fun/#org", name: "AuraKids", url: "https://aurakids.fun/",
+      logo: "https://aurakids.fun/icon-512.png" },
+    { "@type": "WebSite", "@id": "https://aurakids.fun/#site", name: "AuraKids", url: "https://aurakids.fun/",
+      inLanguage: "bg", publisher: { "@id": "https://aurakids.fun/#org" } },
+    { "@type": "WebApplication", name: "AuraKids", url: "https://aurakids.fun/", applicationCategory: "EntertainmentApplication",
+      operatingSystem: "Web, Android", inLanguage: "bg",
+      description: "Приказки и комикси с името на детето, с илюстрации и глас.",
+      offers: [
+        { "@type": "Offer", name: "Месечен абонамент", price: "4.99", priceCurrency: "EUR" },
+        { "@type": "Offer", name: "Годишен абонамент", price: "39.99", priceCurrency: "EUR" },
+      ] },
+  ],
+};
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +50,7 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESC,
   metadataBase: new URL("https://aurakids.fun"),
+  alternates: { canonical: "/" },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -49,16 +69,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description: DESC,
-    url: "https://aurakids.fun",
+    url: "/",
     siteName: BRAND.name,
-    images: [{ url: "/api/og-image", width: 1200, height: 630, alt: BRAND.name }],
+    locale: "bg_BG",
+    images: [{ url: OG_IMG, width: 1200, height: 630, alt: BRAND.name }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESC,
-    images: ["/api/og-image"],
+    images: [OG_IMG],
   },
 };
 
@@ -70,6 +91,7 @@ export default function RootLayout({
   return (
     <html lang="bg" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         <ServiceWorker />
         {children}
       </body>
