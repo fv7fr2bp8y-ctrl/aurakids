@@ -8,8 +8,7 @@ export const metadata: Metadata = {
 };
 
 const UPDATED = "23 ноември 2026";
-// TODO before publishing: ЕИК of the company (not in Stripe's public data).
-const EIK = "[ЕИК]";
+const EIK = "202632082";
 
 export default function TermsPage() {
   return (
@@ -20,9 +19,9 @@ export default function TermsPage() {
 
       <Section title="1. Кой предлага услугата">
         AuraKids (уебсайтът aurakids.fun и приложенията AuraKids Приказки и AuraKids Комикси) се предлага от
-        „Ню Ейдж Дизайн“ ООД, ЕИК {EIK}, със седалище и адрес на управление: гр. София 1113,
+        „Ню Ейдж Дизайн“ ООД, ЕИК {EIK}, ДДС № BG{EIK}, със седалище и адрес на управление: гр. София 1113,
         ж.к. „Манастирски ливади“, ул. „Шарл Шампо“, бл. 112, вх. А, ет. 4, ап. 23,
-        представлявано от управителя Спас Спасов.
+        представлявано от управителите Мариан Маринов и Спас Спасов.
         Връзка с нас: <a href="mailto:privacy@aurakids.fun" style={linkStyle}>privacy@aurakids.fun</a>.
       </Section>
 
