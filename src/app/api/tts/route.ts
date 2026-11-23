@@ -129,7 +129,44 @@ async function callGemini(text: string, key: string, voice: string) {
 }
 
 // Self-check: which TTS providers are configured (booleans only, no secrets).
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Temporary probe, preview deployments only: one fixed short phrase per
+  // Gemini model, returns HTTP status and whether audio came back.
+  if (process.env.VERCEL_ENV === "preview" && req.nextUrl.searchParams.get("probe") === "1") {
+    const key = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+    if (!key) return NextResponse.json({ error: "no gemini key in preview env" });
+    const results = await Promise.all(GEMINI_MODELS.map(async (model) => {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "Имало едно време едно малко зайче." }] }],
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_DEFAULT_VOICE } } },
+              },
+            }),
+          }
+        );
+        const body = await res.text();
+        let audioBytes = 0;
+        let finishReason: string | undefined;
+        try {
+          const j = JSON.parse(body);
+          const data = j?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          audioBytes = data ? Buffer.from(data, "base64").length : 0;
+          finishReason = j?.candidates?.[0]?.finishReason;
+        } catch {}
+        return { model, status: res.status, audioBytes, finishReason, error: res.ok ? undefined : body.slice(0, 300) };
+      } catch (e) {
+        return { model, error: String(e) };
+      }
+    }));
+    return NextResponse.json({ results });
+  }
   return NextResponse.json({
     googleCloudTTS: !!process.env.GOOGLE_TTS_ACCESS_TOKEN,
     elevenlabs: !!process.env.ELEVENLABS_API_KEY,
