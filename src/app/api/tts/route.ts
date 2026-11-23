@@ -132,7 +132,7 @@ async function callGemini(text: string, key: string, voice: string) {
 export async function GET(req: NextRequest) {
   // Temporary probe, preview deployments only: one fixed short phrase per
   // Gemini model, returns HTTP status and whether audio came back.
-  if (Date.now() < Date.parse("2026-11-23T21:00:00Z") && req.nextUrl.searchParams.get("probe") === "1") {
+  if (process.env.VERCEL_ENV === "preview" && req.nextUrl.searchParams.get("probe") === "1") {
     const key = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!key) return NextResponse.json({ error: "no gemini key in preview env" });
     const results = await Promise.all(GEMINI_MODELS.map(async (model) => {
