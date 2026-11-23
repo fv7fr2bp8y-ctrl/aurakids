@@ -7,6 +7,7 @@ import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import type { StoryData } from "./StoryGenerator";
 import { getLibrary, syncLibrary, getFamilyCode, type LibraryItem } from "@/lib/library";
 import { t } from "@/lib/i18n";
+import { isStoreApp, storePackage } from "@/lib/demo";
 import { Sparkle, Comic as ComicIcon, Moon } from "./Icons";
 
 interface LibraryProps {
@@ -22,17 +23,42 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
   const [filter, setFilter] = useState<Filter>("all");
   const [open, setOpen] = useState<LibraryItem | null>(null);
   const [code, setCode] = useState("");
+  const [subStore, setSubStore] = useState<"play" | "web">("web");
   const [showSync, setShowSync] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [restoreCode, setRestoreCode] = useState("");
   const [syncing, setSyncing] = useState(false);
+  const [hasSub, setHasSub] = useState(false);
 
   useEffect(() => {
     setItems(getLibrary());
     setCode(getFamilyCode());
     // Pull the cloud copy and merge in.
     syncLibrary().then(setItems).catch(() => {});
+    // Subscribers get a button to the Stripe portal (cancel, card, invoices).
+    fetch(`/api/unlocked?code=${encodeURIComponent(getFamilyCode())}`, { cache: "no-store" })
+      .then((r) => r.json()).then((d) => {
+        const sub = d?.plan === "sub" || d?.plan === "trial";
+        setSubStore(d?.store === "play" ? "play" : "web");
+        // Inside the Play app we never link to the web payment pages.
+        setHasSub(sub && (d?.store === "play" || !isStoreApp()));
+      }).catch(() => {});
   }, []);
+
+  const openPortal = async () => {
+    if (subStore === "play") {
+      window.location.href = `https://play.google.com/store/account/subscriptions?package=${storePackage()}`;
+      return;
+    }
+    try {
+      const res = await fetch("/api/portal", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: getFamilyCode() }),
+      });
+      const d = await res.json();
+      if (d?.url) window.location.href = d.url;
+    } catch { /* ignore */ }
+  };
 
   const restore = async () => {
     if (!restoreCode.trim()) return;
@@ -117,6 +143,13 @@ export default function Library({ lang, onBack, onNew }: LibraryProps) {
             </div>
           )}
         </div>
+        )}
+
+        {/* Subscribers: cancel / change card in the Stripe portal, always visible. */}
+        {hasSub && (
+          <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 12 }}>
+            <button className="lib-restore-btn" onClick={openPortal}>{t(lang, "manageSub")}</button>
+          </div>
         )}
 
         {/* Filter chips */}

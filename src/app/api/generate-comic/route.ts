@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createHash } from "crypto";
@@ -74,11 +75,13 @@ ${panelLines}`;
   const client = new OpenAI();
   try {
     const response = await client.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-2",
       prompt: prompt.slice(0, 4000),
       n: 1,
       size: "1024x1536",
-      quality: "high",
+      // gpt-image-2 medium: ~0,04 $ per page, Cyrillic lettering and character
+      // consistency as good as "high" (~0,17 $) in the 23.11.2026 comparison.
+      quality: "medium",
     });
     const b64 = "data" in response ? response.data?.[0]?.b64_json : undefined;
     if (!b64) return null;
@@ -96,12 +99,17 @@ ${panelLines}`;
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
+  let refund: (() => Promise<void>) | null = null;
   try {
     const { childName, theme, age, language, artStyle } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
     }
+
+    const quota = await takeQuota(req, "comic");
+    if (!quota.ok) return quotaDenied(quota);
+    refund = quota.refund;
 
     const plot = pick(PLOTS);
     const sidekick = pick(SIDEKICKS);
@@ -176,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     const script = toolUse.input as { title: string; characterDescription: string; pages: PageScript[] };
 
-    // Render both pages in parallel with gpt-image-1
+    // Render all pages in parallel with gpt-image-2
     const urls = await Promise.all(
       script.pages.map((page, i) => generatePage(page, script.characterDescription, i + 1, artStyle || "pixar"))
     );
@@ -189,6 +197,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ title: script.title, pages });
   } catch (error) {
     console.error("Comic generation error:", error);
+    await refund?.().catch(() => {});
     return NextResponse.json({ error: "Грешка при генериране" }, { status: 500 });
   }
 }

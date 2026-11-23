@@ -6,10 +6,13 @@ import StoryDisplay from "./StoryDisplay";
 import ComicDisplay, { type ComicData } from "./ComicDisplay";
 import { LANGS, t } from "@/lib/i18n";
 import { saveToLibrary } from "@/lib/library";
+import { prefetchStoryVoice, DEFAULT_VOICE } from "@/hooks/useStoryVoice";
 import { Sparkle, Comic as ComicIcon, Check } from "./Icons";
-import { canGenerate, recordGeneration, initUnlock, checkServerUnlock } from "@/lib/demo";
+import { canGenerate, recordGeneration, initUnlock, checkServerUnlock, isStoreApp } from "@/lib/demo";
 import { getFamilyCode } from "@/lib/library";
 import { isNameClean } from "@/lib/nameFilter";
+import { trackEvent } from "@/lib/analytics";
+import { playBillingAvailable, playPrices, buyPlay, restorePlay } from "@/lib/playClient";
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
@@ -19,6 +22,7 @@ const WORLD_IMG: Record<string, string> = {
   mermaid: `${ASSETS}/world-ocean.png`,
   superhero: `${ASSETS}/world-superhero.png`,
   fairy: `${ASSETS}/world-fairy.png`,
+  xmas: "/koleda/world.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
   pixar: `${ASSETS}/style-pixar.png`,
@@ -33,6 +37,10 @@ interface StoryGeneratorProps {
   onLangChange: (l: string) => void;
   onBack: () => void;
   onHome?: () => void;
+  // Landing pages (e.g. /koleda) arrive with the world chosen and maybe the
+  // name typed: the creator then only asks what is still missing.
+  preset?: { name?: string; theme: { id: string; label: string; description: string } };
+  onEvent?: (e: "story" | "paywall") => void;
 }
 
 const THEMES = [
@@ -42,6 +50,7 @@ const THEMES = [
   { id: "mermaid", glyph: "🧜", lk: "thMermaid", dk: "thMermaidD", description: "Русалки, рибки и съкровища" },
   { id: "superhero", glyph: "🦸", lk: "thSuper", dk: "thSuperD", description: "Спасяване на света с особени сили" },
   { id: "fairy", glyph: "🧚", lk: "thFairy", dk: "thFairyD", description: "Вълшебна пръчка и изпълнени желания" },
+  { id: "xmas", glyph: "🎄", lk: "thXmas", dk: "thXmasD", description: "Коледа: сняг, украсена елха, Дядо Коледа, джуджета и подаръци, топла празнична нощ" },
 ];
 
 
@@ -52,6 +61,7 @@ const THEME_COVERS: Record<string, string> = {
   forest: "An enchanted forest clearing with giant glowing mushrooms, fireflies and a friendly fox peeking from ancient trees",
   mermaid: "An underwater coral palace with shimmering fish, pearls and a gentle sea turtle, sunbeams piercing turquoise water",
   superhero: "A heroic cape fluttering over a vibrant city skyline at sunset, comic-style energy, bold dynamic composition",
+  xmas: "A snowy fairy-tale village on Christmas night with a glowing decorated Christmas tree, warm windows and a reindeer sleigh crossing the moon",
   fairy: "A tiny fairy village inside glowing flowers with sparkling magic dust and butterfly wings, dreamy pastel light",
   custom: "A magical glowing door standing alone in a starfield, slightly open with golden light and question-mark shaped sparkles spilling out, mysterious and inviting",
   retro: "A brave kid superhero mid-action in a classic vintage American comic book style: bold black ink outlines, Ben-Day halftone dots, punchy primary colors, dynamic pose with motion lines, retro comic energy",
@@ -95,12 +105,15 @@ export interface StoryData {
   title: string;
   imagePrompts: string[];
   language?: string;
+  voiceText?: string; // same story with stress marks, for the voice only
 }
 
-export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome }: StoryGeneratorProps) {
-  const [step, setStep] = useState(1);
-  const [childName, setChildName] = useState("");
-  const [selectedTheme, setSelectedTheme] = useState("");
+export default function StoryGenerator({ format, lang, onLangChange, onBack, onHome, preset, onEvent }: StoryGeneratorProps) {
+  // With a preset world there is no world step: name → age → story.
+  const LAST = preset ? 2 : 3;
+  const [step, setStep] = useState(preset?.name?.trim() ? 2 : 1);
+  const [childName, setChildName] = useState(preset?.name?.trim() ?? "");
+  const [selectedTheme, setSelectedTheme] = useState(preset?.theme.id ?? "");
   const [selectedAge, setSelectedAge] = useState("");
   const [artStyle, setArtStyle] = useState("pixar");
   const [s3Tab, setS3Tab] = useState<"world" | "style">("world");
@@ -112,30 +125,61 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const [demoBlocked, setDemoBlocked] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
-  const [priceLabel, setPriceLabel] = useState("");
+  const [plan, setPlan] = useState<"year" | "month">("year");
+  const [subPrices, setSubPrices] = useState<{ month: number; year: number; currency: string } | null>(null);
+  // Inside the Play app with Play Billing: the paywall pays through Google.
+  const [playOk, setPlayOk] = useState(false);
 
   useEffect(() => {
     initUnlock();
     // A paid family code unlocks any device it's restored on.
     checkServerUnlock(getFamilyCode()).catch(() => {});
-    // Live price from Stripe → shown on the unlock button.
-    fetch("/api/checkout").then((r) => r.json()).then((d) => {
-      if (d?.configured && d.amount != null) {
-        const sym = d.currency === "eur" ? "€" : d.currency === "bgn" ? " лв" : ` ${String(d.currency).toUpperCase()}`;
-        const amt = Number(d.amount).toFixed(2).replace(/\.00$/, "");
-        setPriceLabel(d.currency === "bgn" ? `${amt}${sym}` : `${sym}${amt}`);
-      }
+    // In the Play app: Google's prices, and re-attach a subscription Play
+    // already has (new phone, reinstall).
+    playBillingAvailable().then((ok) => {
+      if (!ok) return;
+      setPlayOk(true);
+      playPrices().then((p) => p && setSubPrices(p));
+      restorePlay(getFamilyCode()).catch(() => {});
+    });
+    // Subscription prices for the paywall (from the server, not hard-coded).
+    if (!isStoreApp()) fetch("/api/checkout").then((r) => r.json()).then((d) => {
+      const s = d?.subscription;
+      if (s?.month && s?.year) setSubPrices({ month: Number(s.month), year: Number(s.year), currency: String(s.currency || "eur") });
     }).catch(() => {});
   }, []);
 
+  // Local price format: "4,99 €" in BG/DE/FR/RU, "€4.99" in EN.
+  const money = (amount: number, currency = "eur") => {
+    const locale = ({ bg: "bg-BG", en: "en-IE", de: "de-DE", fr: "fr-FR", ru: "ru-RU" } as Record<string, string>)[lang] || "bg-BG";
+    try {
+      return new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: 2 }).format(amount);
+    } catch {
+      return `${amount.toFixed(2)} ${currency.toUpperCase()}`;
+    }
+  };
+
   const startCheckout = async () => {
+    trackEvent("begin_checkout", { plan, currency: "EUR", value: plan === "year" ? 39.99 : 4.99 });
     setPaying(true);
     setPayError("");
+    // Play app: Google Play Billing only (no Stripe inside Play apps).
+    if (isStoreApp()) {
+      try {
+        if (playOk && await buyPlay(plan, getFamilyCode())) { setDemoBlocked(false); setError(""); return; }
+        setPayError(t(lang, "payUnavailable"));
+      } catch {
+        setPayError(t(lang, "payUnavailable"));
+      } finally {
+        setPaying(false);
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: getFamilyCode() }),
+        body: JSON.stringify({ code: getFamilyCode(), plan }),
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
@@ -156,16 +200,23 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
     ? [t(lang, "cls1"), t(lang, "cls2"), t(lang, "cls3"), t(lang, "cls4")]
     : [t(lang, "ls1"), t(lang, "ls2"), t(lang, "ls3"), t(lang, "ls4")];
 
-  const activeTheme = selectedTheme === "custom"
+  const activeTheme = preset && selectedTheme === preset.theme.id
+    ? { label: preset.theme.label, description: preset.theme.description }
+    : selectedTheme === "custom"
     ? { label: "Изненада", description: "Изненадващ, необичаен и запомнящ се свят по избор на разказвача — нещо, което детето не очаква" }
     : (() => { const th = THEMES.find((x) => x.id === selectedTheme); return th ? { label: t(lang, th.lk), description: th.description } : undefined; })();
 
   // Speculative pre-fetch once all fields ready
   useEffect(() => {
+    // Only for stories, and only when this visitor may generate one: every
+    // prefetch is a paid AI call and counts against the daily limit.
+    if (format !== "story" || !canGenerate("story")) return;
     if (!childName.trim() || !selectedTheme || !selectedAge) return;
     const key = `${childName.trim()}|${activeTheme?.label}|${selectedAge}|${lang}`;
     if (prefetchKeyRef.current === key) return;
     const timer = setTimeout(() => {
+      // The button may have started this very story meanwhile: don't pay twice.
+      if (prefetchKeyRef.current === key) return;
       prefetchKeyRef.current = key;
       prefetchRef.current = fetch("/api/generate-story", {
         method: "POST",
@@ -185,13 +236,26 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
   // Loading checklist: earlier steps get checked, the current one keeps a
   // spinner until generation really finishes (story ~25s, comic ~2-3min).
+  // Variant A (23.11.2026): honest steps. A story only waits for the text
+  // (~40 s); pictures and voice come in the reader. The bar fills by elapsed
+  // time against the usual duration and stops short of the end.
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (!isLoading) return;
-    setLoadStep(0);
-    const t = setInterval(() => setLoadStep((s) => Math.min(s + 1, LOAD_STEPS.length - 1)), format === "comic" ? 35000 : 7000);
-    return () => clearInterval(t);
+    const t0 = Date.now();
+    const t = setInterval(() => {
+      const sec = (Date.now() - t0) / 1000;
+      setElapsed(sec);
+      setLoadStep(format === "comic"
+        ? Math.min(Math.floor(sec / 30), LOAD_STEPS.length - 1)
+        : sec < 1.5 ? 0 : 1);
+    }, 500);
+    return () => { clearInterval(t); setElapsed(0); setLoadStep(0); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
+  const expectedSec = format === "comic" ? 100 : 45;
+  const barPct = Math.min(95, 4 + (elapsed / expectedSec) * 91);
+  const STEP_HINTS = format === "comic" ? [] : ["", t(lang, "ls2h"), t(lang, "ls3h"), t(lang, "ls4h")];
 
   // Rotating magic one-liners to keep the wait alive.
   const [tipIdx, setTipIdx] = useState(0);
@@ -205,20 +269,27 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   const nameOk = isNameClean(childName);
   const canProceed =
     (step === 1 && !!childName.trim() && nameOk) ||
-    (step === 2 && !!selectedAge) ||
+    (step === 2 && !!selectedAge && (LAST === 2 ? !!selectedTheme : true)) ||
     (step === 3 && !!selectedTheme);
 
   const handleNext = () => {
     if (!canProceed) return;
-    if (step < 3) { setStep(step + 1); return; }
+    if (step < LAST) { setStep(step + 1); return; }
     // Web demo: one story + one comic, then upsell the full app.
-    if (!canGenerate(format)) { setDemoBlocked(true); return; }
+    if (!canGenerate(format)) { setDemoBlocked(true); onEvent?.("paywall"); return; }
     handleGenerate();
   };
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
     else onBack();
+  };
+
+  // The server said no (daily limit). Free web visitors see the paywall;
+  // paid families and the Play app get a "come back tomorrow" message.
+  const onLimit = (scope: unknown) => {
+    if (scope === "free" && (!isStoreApp() || playOk)) { setDemoBlocked(true); onEvent?.("paywall"); return; }
+    setError(t(lang, scope === "busy" ? "errBusy" : "errLimit"));
   };
 
   const handleGenerate = async () => {
@@ -238,12 +309,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             artStyle,
           }),
         });
+        if (res.status === 429) { onLimit((await res.json().catch(() => ({})))?.scope); return; }
         if (!res.ok) throw new Error("fail");
         const comic = await res.json();
         if (comic.error) throw new Error(String(comic.error));
         const comicData: ComicData = { childName: childName.trim(), title: comic.title, pages: comic.pages };
         saveToLibrary({ type: "comic", title: comic.title, childName: childName.trim(), lang, cover: comic.pages[0]?.url ?? null, data: comicData });
         recordGeneration("comic");
+        trackEvent("comic_ready");
         setComicData(comicData);
         return;
       }
@@ -254,6 +327,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       if (prefetchRef.current && prefetchKeyRef.current === key) {
         data = await prefetchRef.current;
       } else {
+        // Claim the key first so a pending prefetch timer won't start a second,
+        // paid copy of the same story (seen 23.11.2026: two calls per story).
+        prefetchKeyRef.current = key;
         const res = await fetch("/api/generate-story", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -265,8 +341,14 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             language: lang,
           }),
         });
-        if (!res.ok) throw new Error("fail");
+        if (!res.ok && res.status !== 429) throw new Error("fail");
         data = await res.json();
+      }
+      if (data.error === "limit") {
+        // A prefetch that hit the limit must not be reused for the next try.
+        prefetchRef.current = null; prefetchKeyRef.current = "";
+        onLimit(data.scope);
+        return;
       }
       if (data.error) throw new Error(String(data.error));
 
@@ -280,10 +362,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           : Promise.resolve(null)
       );
       if (data.title && data.story) {
-        fetch("/api/tts", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: `${data.title}.\n\n${data.story}`, language: lang }),
-        }).catch(() => {});
+        // Same text and voice as the player's play button, so a tap during the
+        // warm-up waits for this one instead of paying for a second recording.
+        prefetchStoryVoice((data.voiceText as string) || `${data.title}.\n\n${data.story}`, DEFAULT_VOICE, lang);
       }
 
       const storyResult = { childName: childName.trim(), theme: activeTheme?.label || selectedTheme, language: lang, ...data } as StoryData;
@@ -293,6 +374,8 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
       });
       recordGeneration("story");
       setStoryData(storyResult);
+      onEvent?.("story");
+      trackEvent("story_ready", { theme: String(selectedTheme) });
     } catch {
       setError(t(lang, format === "comic" ? "errComic" : "errStory"));
     } finally {
@@ -309,31 +392,52 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
   }
 
   if (demoBlocked) {
+    const prices = subPrices ?? { month: 4.99, year: 39.99, currency: "eur" };
+    const planCard = (id: "year" | "month") => {
+      const selected = plan === id;
+      return {
+        position: "relative" as const, width: "100%", boxSizing: "border-box" as const, padding: 20, borderRadius: 20,
+        background: selected ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)",
+        border: selected ? "2px solid #ffc847" : "1px solid rgba(255,255,255,0.2)",
+        color: "#fff", font: "inherit", textAlign: "left" as const, display: "flex", flexDirection: "column" as const, gap: 6, cursor: "pointer",
+      };
+    };
     return (
       <section className="ak-screen home-hero-bg">
         <div className="stars" />
-        <div className="ak-col" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", paddingTop: 40, paddingBottom: 40 }}>
-          <div className="orb" style={{ margin: "0 auto 26px" }}>
-            {format === "comic" ? <ComicIcon size={44} className="text-white" /> : <Sparkle size={46} className="text-white" />}
-          </div>
-          <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "demoTitle")}</h2>
-          <p className="step-help" style={{ textAlign: "center", margin: "10px auto 28px", maxWidth: 320 }}>{t(lang, "demoBody")}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 340, margin: "0 auto", width: "100%" }}>
-            <button className="cta" onClick={startCheckout} disabled={paying}>
-              <Sparkle size={18} /> {paying ? "…" : `${t(lang, "demoUnlockWeb")}${priceLabel ? ` — ${priceLabel}` : ""}`}
+        <div className="ak-col" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, paddingTop: 40, paddingBottom: 32 }}>
+          <h2 className="step-q" style={{ textAlign: "center" }}>{t(lang, "payTitle")}</h2>
+          <p className="step-help" style={{ textAlign: "center", margin: "0 auto 8px", maxWidth: 320 }}>{t(lang, "payBody")}</p>
+          <div role="radiogroup" aria-label={t(lang, "payTitle")} style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 380, width: "100%", margin: "0 auto" }}>
+            <button role="radio" aria-checked={plan === "year"} onClick={() => setPlan("year")} style={planCard("year")}>
+              <span style={{ position: "absolute", top: -12, right: 16, padding: "4px 10px", borderRadius: 12, background: "#ffc847", color: "#2a1052", fontSize: 12, fontWeight: 800 }}>{t(lang, "yearBadge")}</span>
+              <span style={{ fontSize: 17, fontWeight: 800 }}>{t(lang, "planYear")}</span>
+              <span style={{ fontSize: 24, fontWeight: 800 }}>{money(prices.year, prices.currency)} <span style={{ fontSize: 14, fontWeight: 600, color: "#e4d8ff" }}>{t(lang, "perYear")}</span></span>
+              <span style={{ fontSize: 14, color: "#e4d8ff" }}>{t(lang, "yearPerMonth").replace("{x}", money(Math.floor((prices.year / 12) * 100) / 100, prices.currency))}</span>
             </button>
-            <button className="cta ghost" onClick={onBack}>{t(lang, "demoBack")}</button>
+            <button role="radio" aria-checked={plan === "month"} onClick={() => setPlan("month")} style={planCard("month")}>
+              <span style={{ fontSize: 17, fontWeight: 800 }}>{t(lang, "planMonth")}</span>
+              <span style={{ fontSize: 24, fontWeight: 800 }}>{money(prices.month, prices.currency)} <span style={{ fontSize: 14, fontWeight: 600, color: "#e4d8ff" }}>{t(lang, "perMonth")}</span></span>
+              <span style={{ fontSize: 14, color: "#e4d8ff" }}>{t(lang, "monthNote")}</span>
+            </button>
+            <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.6, color: "#e4d8ff" }}>{t(lang, "planIncludes")}</p>
+            <button className="cta" onClick={startCheckout} disabled={paying} style={{ marginTop: 8 }}>
+              <Sparkle size={18} /> {paying ? "…" : t(lang, "trialCta")}
+            </button>
+            <p style={{ margin: 0, fontSize: 13, color: "#e4d8ff", textAlign: "center" }}>{t(lang, "trialNote")}</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#cbbcf2", textAlign: "center", lineHeight: 1.5 }}>
+              {t(lang, "renewNote")} <a href="/usloviya" style={{ color: "#ffd93d" }}>{t(lang, "terms")}</a>.
+            </p>
+            {payError && (
+              <p style={{ fontSize: 13, color: "#ff9a9a", margin: 0, textAlign: "center" }}>{payError}</p>
+            )}
+            <button className="cta ghost" onClick={onBack}>{t(lang, "notNow")}</button>
           </div>
-          {payError && (
-            <p style={{ fontSize: 13, color: "#ff9a9a", marginTop: 14 }}>{payError}</p>
-          )}
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 18 }}>
-            {t(lang, "demoUnlockNote")}
-          </p>
         </div>
       </section>
     );
   }
+
 
   return (
     <section className="ak-screen home-hero-bg">
@@ -348,9 +452,9 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             </svg>
           </button>
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
+            <div className="progress-fill" style={{ width: `${(step / LAST) * 100}%` }} />
           </div>
-          <span className="progress-count">{step} / 3</span>
+          <span className="progress-count">{step} / {LAST}</span>
           {onHome && (
             <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
               <Image src={`${ASSETS}/logo-mark-v5.png`} alt="AuraKids" width={32} height={32} unoptimized
@@ -483,7 +587,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
           <div className="create-foot">
             <button className={`cta ${canProceed ? "" : "disabled"}`} onClick={handleNext}>
-              {step < 3 ? (
+              {step < LAST ? (
                 t(lang, "continueBtn")
               ) : format === "comic" ? (
                 <><ComicIcon size={18} /> {t(lang, "ctaComic")} {childName || t(lang, "heroFallback")}</>
@@ -524,16 +628,17 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
             <Image className="orb-img orb-mascot" src={`${ASSETS}/orb-story.png`}
               alt="" width={150} height={150} unoptimized />
           </div>
-          <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStory")}</h3>
-          <p>{t(lang, "loadSub")}</p>
+          <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStoryFor").replace("{name}", childName.trim())}</h3>
+          <p>{t(lang, format === "comic" ? "loadWaitComic" : "loadWait")}</p>
           {/* Live progress toward completion */}
           <div className="load-bar" aria-hidden>
-            <span style={{ width: `${Math.round(((loadStep + 1) / LOAD_STEPS.length) * 92) + 4}%` }} />
+            <span style={{ width: `${barPct}%` }} />
           </div>
           <div className="steps">
             {LOAD_STEPS.map((label, i) => (
               <div key={label} className={i < loadStep ? "done" : i === loadStep ? "active" : ""}>
-                <span className="mk">{i < loadStep && <Check size={13} />}</span> {label}
+                <span className="mk">{i < loadStep && <Check size={13} />}</span>
+                <span className="lbl">{label}{STEP_HINTS[i] && <small>{STEP_HINTS[i]}</small>}</span>
               </div>
             ))}
           </div>

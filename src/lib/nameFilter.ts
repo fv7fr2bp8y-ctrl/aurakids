@@ -60,5 +60,10 @@ function isDirty(n: string): boolean {
 export function isNameClean(name: string): boolean {
   const n = normalize(name);
   if (!n) return true; // emptiness is handled by required-field logic
-  return ![n, fold(n, LAT2CYR), fold(n, CYR2LAT)].some(isDirty);
+  // Fold between scripts only when the name actually mixes them (the trick
+  // "путkа"). Folding a plain Cyrillic name turned "Ева" into "eba" and
+  // blocked every Eva (23.11.2026).
+  const mixed = /[a-z]/.test(n) && /[а-яё]/.test(n);
+  const variants = mixed ? [n, fold(n, LAT2CYR), fold(n, CYR2LAT)] : [n];
+  return !variants.some(isDirty);
 }

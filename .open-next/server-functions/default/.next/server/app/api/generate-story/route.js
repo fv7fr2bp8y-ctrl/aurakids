@@ -1,0 +1,13 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/generate-story/route.js")
+R.c("server/chunks/[root-of-the-server]__1ph9m02is0h8v._.js")
+R.c("server/chunks/src_lib_billing_ts_0h09xj7x_n5ex._.js")
+R.c("server/chunks/[root-of-the-server]__1v1-l-83czzsr._.js")
+R.c("server/chunks/src_lib_playBilling_ts_1redqqxyl1_5t._.js")
+R.c("server/chunks/[root-of-the-server]__17gfp9inp4-ee._.js")
+R.c("server/chunks/src_lib_supabase_ts_0_m2_rmbiir1s._.js")
+R.c("server/chunks/node_modules_1zvcedjtg5rbr._.js")
+R.c("server/chunks/_0i-u4t26pi-kv._.js")
+R.c("server/chunks/src_lib_quota_ts_0gzc-q-s1q29k._.js")
+R.c("server/chunks/_next-internal_server_app_api_generate-story_route_actions_11pia8hsxg-sh.js")
+R.m(78945)
+module.exports=R.m(78945).exports

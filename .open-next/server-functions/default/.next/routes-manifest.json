@@ -1,0 +1,314 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.aurakids.fun"
+        }
+      ],
+      "destination": "https://aurakids.fun/",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/(?:/)?$"
+    },
+    {
+      "source": "/:path((?!api/|\\.well-known/).+)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.aurakids.fun"
+        }
+      ],
+      "destination": "https://aurakids.fun/:path",
+      "statusCode": 308,
+      "regex": "^(?!/_next)(?:/((?!api/|\\.well-known/).+))(?:/)?$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [
+      {
+        "source": "/apple-touch-icon.png",
+        "destination": "/api/icon?size=180&app=both",
+        "regex": "^/apple-touch-icon\\.png(?:/)?$"
+      },
+      {
+        "source": "/apple-touch-icon-precomposed.png",
+        "destination": "/api/icon?size=180&app=both",
+        "regex": "^/apple-touch-icon-precomposed\\.png(?:/)?$"
+      },
+      {
+        "source": "/icon-192.png",
+        "destination": "/api/icon?size=192&app=both",
+        "regex": "^/icon-192\\.png(?:/)?$"
+      },
+      {
+        "source": "/icon-512.png",
+        "destination": "/api/icon?size=512&app=both",
+        "regex": "^/icon-512\\.png(?:/)?$"
+      },
+      {
+        "source": "/icon-maskable-512.png",
+        "destination": "/api/icon?size=512&padded=1&app=both",
+        "regex": "^/icon-maskable-512\\.png(?:/)?$"
+      },
+      {
+        "source": "/favicon.ico",
+        "destination": "/api/icon?size=32&app=favicon&v=6",
+        "regex": "^/favicon\\.ico(?:/)?$"
+      },
+      {
+        "source": "/favicon-32.png",
+        "destination": "/api/icon?size=32&app=favicon",
+        "regex": "^/favicon-32\\.png(?:/)?$"
+      },
+      {
+        "source": "/.well-known/assetlinks.json",
+        "destination": "/api/assetlinks",
+        "regex": "^/\\.well-known/assetlinks\\.json(?:/)?$"
+      }
+    ],
+    "fallback": []
+  },
+  "dynamicRoutes": [],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/api/ab",
+      "regex": "^/api/ab(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ab(?:/)?$"
+    },
+    {
+      "page": "/api/admin/data",
+      "regex": "^/api/admin/data(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/data(?:/)?$"
+    },
+    {
+      "page": "/api/assetlinks",
+      "regex": "^/api/assetlinks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/assetlinks(?:/)?$"
+    },
+    {
+      "page": "/api/checkout",
+      "regex": "^/api/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/checkout(?:/)?$"
+    },
+    {
+      "page": "/api/debug",
+      "regex": "^/api/debug(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/debug(?:/)?$"
+    },
+    {
+      "page": "/api/generate-comic",
+      "regex": "^/api/generate\\-comic(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/generate\\-comic(?:/)?$"
+    },
+    {
+      "page": "/api/generate-image",
+      "regex": "^/api/generate\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/generate\\-image(?:/)?$"
+    },
+    {
+      "page": "/api/generate-story",
+      "regex": "^/api/generate\\-story(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/generate\\-story(?:/)?$"
+    },
+    {
+      "page": "/api/icon",
+      "regex": "^/api/icon(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/icon(?:/)?$"
+    },
+    {
+      "page": "/api/import-asset",
+      "regex": "^/api/import\\-asset(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/import\\-asset(?:/)?$"
+    },
+    {
+      "page": "/api/library",
+      "regex": "^/api/library(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/library(?:/)?$"
+    },
+    {
+      "page": "/api/og-image",
+      "regex": "^/api/og\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/og\\-image(?:/)?$"
+    },
+    {
+      "page": "/api/play/verify",
+      "regex": "^/api/play/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/play/verify(?:/)?$"
+    },
+    {
+      "page": "/api/portal",
+      "regex": "^/api/portal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/portal(?:/)?$"
+    },
+    {
+      "page": "/api/quota",
+      "regex": "^/api/quota(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/quota(?:/)?$"
+    },
+    {
+      "page": "/api/stripe-webhook",
+      "regex": "^/api/stripe\\-webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stripe\\-webhook(?:/)?$"
+    },
+    {
+      "page": "/api/thumb",
+      "regex": "^/api/thumb(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/thumb(?:/)?$"
+    },
+    {
+      "page": "/api/tts",
+      "regex": "^/api/tts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tts(?:/)?$"
+    },
+    {
+      "page": "/api/unlock",
+      "regex": "^/api/unlock(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/unlock(?:/)?$"
+    },
+    {
+      "page": "/api/unlocked",
+      "regex": "^/api/unlocked(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/unlocked(?:/)?$"
+    },
+    {
+      "page": "/api/voicecheck",
+      "regex": "^/api/voicecheck(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/voicecheck(?:/)?$"
+    },
+    {
+      "page": "/koleda",
+      "regex": "^/koleda(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/koleda(?:/)?$"
+    },
+    {
+      "page": "/komiksi",
+      "regex": "^/komiksi(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/komiksi(?:/)?$"
+    },
+    {
+      "page": "/komiksi/manifest.webmanifest",
+      "regex": "^/komiksi/manifest\\.webmanifest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/komiksi/manifest\\.webmanifest(?:/)?$"
+    },
+    {
+      "page": "/manifest.webmanifest",
+      "regex": "^/manifest\\.webmanifest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/manifest\\.webmanifest(?:/)?$"
+    },
+    {
+      "page": "/prikazki",
+      "regex": "^/prikazki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/prikazki(?:/)?$"
+    },
+    {
+      "page": "/prikazki/manifest.webmanifest",
+      "regex": "^/prikazki/manifest\\.webmanifest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/prikazki/manifest\\.webmanifest(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

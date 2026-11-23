@@ -1,0 +1,31 @@
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import KoledaApp from "@/components/KoledaApp";
+import { hashIp, ipFromHeaders } from "@/lib/quota";
+import { pickVariant, type KoledaVariant } from "@/lib/abtest";
+
+const TITLE = "Коледна приказка с името на детето | AuraKids";
+const DESC = "Подари на детето си коледна приказка, в която то е героят: с името му, с картинки и с глас, готова за минута. Опитай безплатно.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESC,
+  alternates: { canonical: "/koleda" },
+  openGraph: {
+    title: TITLE, description: DESC, url: "/koleda", siteName: "AuraKids", locale: "bg_BG", type: "website",
+    images: [{ url: "/og-koleda.jpg", width: 1200, height: 630, alt: "Коледна приказка с името на детето" }],
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og-koleda.jpg"] },
+};
+
+export const dynamic = "force-dynamic";
+
+// The variant comes from the visitor's hashed IP. ?v=a|b|c shows one variant
+// on purpose (for us); such visits are not counted.
+export default async function Koleda({ searchParams }: { searchParams: Promise<{ v?: string }> }) {
+  const { v } = await searchParams;
+  const forced = (v || "").toUpperCase();
+  const preview = forced === "A" || forced === "B" || forced === "C";
+  const variant: KoledaVariant = preview ? (forced as KoledaVariant) : pickVariant(hashIp(ipFromHeaders(await headers())));
+  return <KoledaApp variant={variant} preview={preview} />;
+}

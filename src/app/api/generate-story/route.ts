@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireSameOrigin } from "@/lib/originCheck";
+import { takeQuota, quotaDenied } from "@/lib/quota";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveCachedStory } from "@/lib/supabase";
+import { addStress, stripStress } from "@/lib/stress";
+import { verifiedStress, warmStress } from "@/lib/rechnik";
 
 export const maxDuration = 120;
 
@@ -58,12 +61,17 @@ function pick<T>(arr: T[]): T {
 export async function POST(req: NextRequest) {
   const denied = requireSameOrigin(req);
   if (denied) return denied;
+  let refund: (() => Promise<void>) | null = null;
   try {
     const { childName, theme, themeName, age, language } = await req.json();
 
     if (!childName || !theme || !age) {
       return NextResponse.json({ error: "Липсват данни" }, { status: 400 });
     }
+
+    const quota = await takeQuota(req, "story");
+    if (!quota.ok) return quotaDenied(quota);
+    refund = quota.refund;
 
     const archetype = pick(ARCHETYPES);
     const core = pick(EMOTIONAL_CORES);
@@ -110,46 +118,71 @@ export async function POST(req: NextRequest) {
 - Краят: топъл, завършен, с тиха връзка към скритото послание — идеален за заспиване
 - Заглавие: поетично и конкретно, съдържа ${childName}, НЕ шаблонно („X и вълшебното Y" е забранено)
 
-За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи.`;
+За stress (ударения за гласа, който чете приказката): списък с думите от приказката, в които гласът лесно бърка ударението, всяка написана точно както е в текста, със знак за ударение U+0301 върху ударената гласна (напр. „Мъ́рморко“, „па́ра“, „замъ́ка“). Задължително: всички имена (и главният герой ${childName}) и всички редки, диалектни или двусмислени думи. До 40 думи. Ако не си сигурен за ударението на дума, не я включвай.
 
-    const message = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 3000,
-      temperature: 1,
-      tools: [{
-        name: "save_story",
-        description: "Save the generated story",
-        input_schema: {
-          type: "object" as const,
-          properties: {
-            title: { type: "string" },
-            story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
-            imagePrompts: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
-          },
-          required: ["title", "story", "imagePrompts"],
-        },
-      }],
-      tool_choice: { type: "tool", name: "save_story" },
+За characters: на английски, 2–3 изречения: как изглежда ${childName} (възраст, коса, очи, дрехи, 1–2 запомнящи се белега) и как изглежда всеки спътник или същество, което се появява на картинките (точен вид животно, цвят, размер, отличителен белег). Пример: "Maya, a 5-year-old girl with curly chestnut hair, brown eyes, a red knitted scarf and a navy coat. Murmorko, a plump round grey pigeon with a white neck ring." Това описание се слага дословно на всяка картинка, затова бъди точен и последователен с текста.
+
+За image_prompts: три сцени на английски от РАЗЛИЧНИ моменти на историята (начало, кулминация, край), Disney watercolor style, soft brushstrokes, magical, ultra-detailed, no text. Опиши конкретната сцена с героя, не общи пейзажи. В сцените НЕ описвай външния вид на героите отново (той е в characters), наричай ги само по име или роля ("Maya", "the pigeon Murmorko").`;
+
+    // Claude Opus 5.5 at low effort: ~20 s instead of ~50 s with Opus 4.8 for
+    // the same story (23.11.2026). It answers with JSON that must match the
+    // schema (structured output; forced tool use is not accepted by 5.5).
+    const schema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        title: { type: "string" },
+        story: { type: "string", description: "Пълният текст, параграфите разделени с двоен нов ред" },
+        stress: { type: "array", items: { type: "string" }, description: "До 40 думи от текста със знак за ударение U+0301, напр. „Мъ́рморко“" },
+        characters: { type: "string", description: "English: exact look of the hero and every companion that appears in the pictures" },
+        imagePrompts: { type: "array", items: { type: "string" }, description: "Exactly 3 English scene prompts" },
+      },
+      required: ["title", "story", "stress", "characters", "imagePrompts"],
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      model: "claude-opus-5-5",
+      max_tokens: 6000,
+      output_config: { effort: "low", format: { type: "json_schema", schema } },
       messages: [{ role: "user", content: storyPrompt }],
-    });
-
-    const toolUse = message.content.find((b) => b.type === "tool_use");
-    if (!toolUse || toolUse.type !== "tool_use") throw new Error("Невалиден отговор от модела");
-
-    const parsed = toolUse.input as { title: string; story: string; imagePrompts: string[] };
+    };
+    const message = await client.messages.create(params);
+    if (message.stop_reason === "refusal") throw new Error("Моделът отказа");
+    const raw = message.content.filter((b) => b.type === "text").map((b) => (b as { text: string }).text).join("");
+    const parsed = JSON.parse(raw) as { title: string; story: string; stress?: string[]; characters?: string; imagePrompts: string[] };
+    if (!parsed.title || !parsed.story || !Array.isArray(parsed.imagePrompts)) throw new Error("Невалиден отговор от модела");
+    parsed.imagePrompts = parsed.imagePrompts.slice(0, 3);
+    // Every picture is drawn on its own, so the same character sheet goes into
+    // each prompt (else the pigeon became a parrot in the next picture).
+    const characters = (parsed.characters || "").trim().slice(0, 600);
+    const imagePrompts = (parsed.imagePrompts || []).map((p) =>
+      characters ? `Characters (draw them exactly like this in every picture): ${characters} Scene: ${p}` : p);
+    // The reader sees the plain text; the voice gets the same text with stress
+    // marks from the model's word list plus the shared ONIRA dictionary.
+    const plainStory = stripStress(parsed.story);
+    const plainTitle = stripStress(parsed.title);
+    // Only dictionary-confirmed stress (rechnik.chitanka.info); the model just
+    // points at the tricky words. Unknown words (most names) stay unmarked.
+    const { marks: extra, missing } = await verifiedStress(parsed.stress || []).catch(() => ({ marks: {}, missing: [] as string[] }));
+    // Words not checked in time are looked up after the answer is sent and
+    // cached, so the next stories (and this one's voice, if recorded later) gain.
+    if (missing.length) after(() => warmStress(missing, 50000));
+    const voiceText = `${addStress(plainTitle, extra, { wiki: false })}.\n\n${addStress(plainStory, extra, { wiki: false })}`;
 
     // Archive every story (unique key per generation) — history, not dedup.
     const cacheKey = makeCacheKey(childName, themeName || theme, age);
-    saveCachedStory(cacheKey, parsed.title, parsed.story, parsed.imagePrompts || []).catch(() => {});
+    saveCachedStory(cacheKey, parsed.title, plainStory, imagePrompts).catch(() => {});
 
     return NextResponse.json({
       title: parsed.title,
-      story: parsed.story,
-      imagePrompts: parsed.imagePrompts || [],
+      story: plainStory,
+      voiceText,
+      imagePrompts,
       fromCache: false,
     });
   } catch (error) {
     console.error("Story generation error:", error);
+    await refund?.().catch(() => {});
     return NextResponse.json({ error: "Грешка при генериране" }, { status: 500 });
   }
 }
