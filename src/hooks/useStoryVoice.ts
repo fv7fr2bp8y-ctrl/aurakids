@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const DEFAULT_VOICE = "Schedar";
 const PART_MAX = 1200;
+const FIRST_MAX = 320;
 
 export type VoiceStatus = "idle" | "preparing" | "playing" | "paused" | "buffering" | "ended" | "error";
 
@@ -30,6 +31,15 @@ export function splitForVoice(text: string, max = PART_MAX): string[] {
     if (para.length > max) push();
   }
   push();
+  // A short first part, so the voice starts within seconds; the rest records
+  // while it plays.
+  if (out[0] && out[0].length > FIRST_MAX) {
+    const sent = out[0].match(/[^.!?…]+[.!?…]*\s*/g) || [out[0]];
+    let head = "";
+    while (sent.length && (head.length + sent[0].length <= FIRST_MAX || !head)) head += sent.shift();
+    const rest = sent.join("").trim();
+    out.splice(0, 1, head.trim(), ...(rest ? [rest] : []));
+  }
   return out;
 }
 
@@ -121,7 +131,16 @@ export function useStoryVoice(text: string, voice: string, language: string) {
     setPlayed(0);
     setRecordedSec(0);
     setStatus("idle");
-    audio.current?.pause();
+    const stop = () => {
+      const a = audio.current;
+      if (!a) return;
+      a.onended = null;
+      a.ontimeupdate = null;
+      a.pause();
+    };
+    stop();
+    // Leaving the story (a new one, the library, home) stops the voice.
+    return stop;
   }, [text, voice, language]);
 
   const el = () => (audio.current ??= new Audio());

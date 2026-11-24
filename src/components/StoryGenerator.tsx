@@ -22,7 +22,7 @@ const WORLD_IMG: Record<string, string> = {
   mermaid: `${ASSETS}/world-ocean.png`,
   superhero: `${ASSETS}/world-superhero.png`,
   fairy: `${ASSETS}/world-fairy.png`,
-  xmas: "/koleda/world.jpg",
+  xmas: "/koleda/hero.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
   pixar: `${ASSETS}/style-pixar.png`,
@@ -44,13 +44,13 @@ interface StoryGeneratorProps {
 }
 
 const THEMES = [
+  { id: "xmas", glyph: "🎄", lk: "thXmas", dk: "thXmasD", description: "Коледа: сняг, украсена елха, Дядо Коледа, джуджета и подаръци, топла празнична нощ" },
   { id: "dragon", glyph: "🐉", lk: "thDragon", dk: "thDragonD", description: "Дракони, замъци и приключения" },
   { id: "space", glyph: "🚀", lk: "thSpace", dk: "thSpaceD", description: "Звезди, планети и извънземни" },
   { id: "forest", glyph: "🌿", lk: "thForest", dk: "thForestD", description: "Говорещи животни и тайни пътеки" },
   { id: "mermaid", glyph: "🧜", lk: "thMermaid", dk: "thMermaidD", description: "Русалки, рибки и съкровища" },
   { id: "superhero", glyph: "🦸", lk: "thSuper", dk: "thSuperD", description: "Спасяване на света с особени сили" },
   { id: "fairy", glyph: "🧚", lk: "thFairy", dk: "thFairyD", description: "Вълшебна пръчка и изпълнени желания" },
-  { id: "xmas", glyph: "🎄", lk: "thXmas", dk: "thXmasD", description: "Коледа: сняг, украсена елха, Дядо Коледа, джуджета и подаръци, топла празнична нощ" },
 ];
 
 
@@ -536,7 +536,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                 <>
                   <div className="theme-grid">
                     {THEMES.map((th) => (
-                      <button key={th.id} className={`tile tile-cover ${selectedTheme === th.id ? "sel-gold" : ""}`}
+                      <button key={th.id} className={`tile tile-cover ${th.id === "xmas" ? "tile-feature" : ""} ${selectedTheme === th.id ? "sel-gold" : ""}`}
                         onClick={() => setSelectedTheme(th.id)}>
                         <TileImage id={th.id} />
                         <span className="tlabel">{t(lang, th.lk)}</span>
