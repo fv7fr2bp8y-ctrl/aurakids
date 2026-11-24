@@ -483,14 +483,16 @@ svg { background: transparent; }
 .portal-lib:hover { color:#fff;background:rgba(255,255,255,0.1); }
 
 /* theme tile covers */
-.tile-cover { padding:0 0 12px; }
+.tile-cover { padding:0 0 14px;gap:4px; }
 /* Christmas: first and full width while the season lasts */
 .tile-feature { grid-column:1 / -1; }
-.tile-cover .tile-img img { object-position:50% 22%; }
-.tile-feature .tile-img { height:210px; }
+.tile-cover .tile-img { height:auto;aspect-ratio:4 / 3;margin-bottom:8px; }
+.tile-cover .tile-img img { object-position:50% 12%; }
+.tile-feature .tile-img { aspect-ratio:16 / 10; }
 .tile-feature .tile-img img { object-position:50% 18%; }
 .tile-cover .tlabel { padding:0 13px; }
-.tile-cover .tdesc { padding:0 13px; }
+.tile-cover .tdesc { padding:0 13px;line-height:1.35;min-height:2.7em; }
+.tile-feature .tdesc { min-height:0; }
 .tile-img { position:relative;width:100%;height:96px;margin-bottom:10px;overflow:hidden;
   border-radius:calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0 0;
   background:radial-gradient(120% 120% at 50% 30%,#7b3fd6,#3B1A6B 70%); }

@@ -546,7 +546,6 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
                     {/* Custom — slim full-width bar */}
                     <button className={`tile tile-wide ${selectedTheme === "custom" ? "sel-gold" : ""}`}
                       onClick={() => setSelectedTheme("custom")}>
-                      <Sparkle size={20} className="text-[color:var(--ak-gold)]" />
                       <span>
                         <span className="tlabel">{t(lang, "newWorld")}</span>
                         <span className="tdesc" style={{ display: "block" }}>{t(lang, "newWorldDesc")}</span>
@@ -592,7 +591,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
               ) : format === "comic" ? (
                 <><ComicIcon size={18} /> {t(lang, "ctaComic")} {childName || t(lang, "heroFallback")}</>
               ) : (
-                <><Sparkle size={18} /> {t(lang, "ctaStory")} {childName || t(lang, "heroFallback")}</>
+                <>{t(lang, "ctaStory")} {childName || t(lang, "heroFallback")}</>
               )}
             </button>
             {step === 1 && (
