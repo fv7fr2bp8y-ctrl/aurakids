@@ -487,7 +487,12 @@ svg { background: transparent; }
 /* Christmas: first and full width while the season lasts */
 .tile-feature { grid-column:1 / -1; }
 .tile-feature .tile-img { height:auto;aspect-ratio:16 / 10; }
-.tile-feature .tile-img img { object-position:50% 18%; }
+.tile-feature .tile-img img { object-position:50% 52%; }
+/* the child's head, hand and book pop out above the Christmas card (cutout aligned to the 52% crop) */
+.tile-feature { position:relative;margin-top:calc(16.5% - 10px); }
+.pop-tight .tile-feature { margin-top:calc(16.5% - 42px); }
+.xmas-pop { position:absolute;top:0;left:10.667%;width:57.667%;height:auto;margin-top:-19.5%;
+  z-index:2;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
 .tile-cover .tlabel { padding:0 13px; }
 .tile-cover .tdesc { padding:0 13px;line-height:1.35;min-height:2.7em; }
 .tile-feature .tdesc { min-height:0; }

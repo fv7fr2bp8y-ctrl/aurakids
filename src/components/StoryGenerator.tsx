@@ -534,11 +534,12 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
 
               {s3Tab === "world" ? (
                 <>
-                  <div className="theme-grid">
+                  <div className={`theme-grid ${format === "comic" ? "" : "pop-tight"}`}>
                     {THEMES.map((th) => (
                       <button key={th.id} className={`tile tile-cover ${th.id === "xmas" ? "tile-feature" : ""} ${selectedTheme === th.id ? "sel-gold" : ""}`}
                         onClick={() => setSelectedTheme(th.id)}>
                         <TileImage id={th.id} />
+                        {th.id === "xmas" && <img className="xmas-pop" src="/koleda/xmas-pop.webp" alt="" aria-hidden="true" />}
                         <span className="tlabel">{t(lang, th.lk)}</span>
                         <span className="tdesc">{t(lang, th.dk)}</span>
                       </button>
