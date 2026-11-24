@@ -16,12 +16,12 @@ import { playBillingAvailable, playPrices, buyPlay, restorePlay } from "@/lib/pl
 
 const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
 const WORLD_IMG: Record<string, string> = {
-  dragon: "/worlds/dragon.jpg",
-  space: "/worlds/space.jpg",
-  forest: "/worlds/forest.jpg",
-  mermaid: "/worlds/mermaid.jpg",
-  superhero: "/worlds/superhero.jpg",
-  fairy: "/worlds/fairy.jpg",
+  dragon: `${ASSETS}/world-dragon.png`,
+  space: `${ASSETS}/world-space.png`,
+  forest: `${ASSETS}/world-forest.png`,
+  mermaid: `${ASSETS}/world-ocean.png`,
+  superhero: `${ASSETS}/world-superhero.png`,
+  fairy: `${ASSETS}/world-fairy.png`,
   xmas: "/koleda/hero-2.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
