@@ -54,38 +54,63 @@ function NameField({ value, onChange, onEnter, light }: { value: string; onChang
   );
 }
 
-// "Чуй как звучи": a 34-second sample of the Аура voice. Plays only on tap.
+// "Чуй как звучи": three short excerpts, each in a different voice. Plays only on tap.
+const CLIPS = [
+  { id: "zvunche", title: "Звънчето", voice: "Аура", img: "/koleda/bell-2.jpg", src: "/koleda/zvunche.mp3", dur: 13 },
+  { id: "dzhudzheta", title: "Джуджетата", voice: "Чичото", img: "/koleda/elves-2.jpg", src: "/koleda/dzhudzheta.mp3", dur: 15 },
+  { id: "snezhko", title: "Снежкото", voice: "Бабата", img: "/koleda/snowman-2.jpg", src: "/koleda/snezhko.mp3", dur: 15 },
+] as const;
+
 function AudioSample({ variant, light }: { variant: KoledaVariant; light?: boolean }) {
   const au = useRef<HTMLAudioElement | null>(null);
+  const [cur, setCur] = useState(0);
   const [on, setOn] = useState(false);
   const [t, setT] = useState(0);
-  const [dur, setDur] = useState(34);
-  const sent = useRef(false);
-  const toggle = () => {
+  const [dur, setDur] = useState<number>(CLIPS[0].dur);
+  const sent = useRef<Set<string>>(new Set());
+  const clip = CLIPS[cur];
+  const start = (i: number) => {
     const a = au.current;
     if (!a) return;
-    if (a.paused) {
-      a.play().catch(() => {});
-      if (!sent.current) { sent.current = true; trackEvent("koleda_audio_play", { variant }); }
-    } else a.pause();
+    if (i !== cur) {
+      a.pause();
+      a.src = CLIPS[i].src;
+      setCur(i); setT(0); setDur(CLIPS[i].dur);
+    } else if (!a.paused) { a.pause(); return; }
+    a.play().catch(() => {});
+    const id = CLIPS[i].id;
+    if (!sent.current.has(id)) { sent.current.add(id); trackEvent("koleda_audio_play", { variant, clip: id }); }
   };
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
   return (
     <div className={`kl-audio ${light ? "light" : ""}`}>
-      <button type="button" className="kl-audio-pp" onClick={toggle} aria-label={on ? "Спри откъса" : "Пусни откъса"}>
-        {on
-          ? <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
-          : <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>}
-      </button>
-      <div className="kl-audio-txt">
-        <b>Чуй как звучи</b>
-        <div className="kl-audio-bar"><i style={{ width: `${dur ? (t / dur) * 100 : 0}%` }} /></div>
-        <div className="kl-audio-row"><span>{fmt(t)}</span><span>{fmt(dur)}</span></div>
+      <b className="kl-audio-h">Чуй как звучи</b>
+      <div className="kl-clips" role="radiogroup" aria-label="Откъси">
+        {CLIPS.map((c, i) => (
+          <button key={c.id} type="button" role="radio" aria-checked={i === cur}
+            className={`kl-clip ${i === cur ? "on" : ""}`} onClick={() => start(i)}>
+            <img src={c.img} alt="" loading="lazy" />
+            <span className="kl-clip-t">{c.title}</span>
+            <span className="kl-clip-v">{c.voice}</span>
+          </button>
+        ))}
       </div>
-      <audio ref={au} src="/koleda/otkas-aura.mp3" preload="none"
+      <div className="kl-audio-main">
+        <button type="button" className="kl-audio-pp" onClick={() => start(cur)} aria-label={on ? "Спри откъса" : "Пусни откъса"}>
+          {on
+            ? <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
+            : <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>}
+        </button>
+        <div className="kl-audio-txt">
+          <span className="kl-audio-now">{clip.title}, разказва {clip.voice}</span>
+          <div className="kl-audio-bar"><i style={{ width: `${dur ? (t / dur) * 100 : 0}%` }} /></div>
+          <div className="kl-audio-row"><span>{fmt(t)}</span><span>{fmt(dur)}</span></div>
+        </div>
+      </div>
+      <audio ref={au} src={CLIPS[0].src} preload="none"
         onPlay={() => setOn(true)} onPause={() => setOn(false)} onEnded={() => { setOn(false); setT(0); }}
         onTimeUpdate={(e) => setT(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDur(e.currentTarget.duration || 34)} />
+        onLoadedMetadata={(e) => setDur(e.currentTarget.duration || clip.dur)} />
     </div>
   );
 }
