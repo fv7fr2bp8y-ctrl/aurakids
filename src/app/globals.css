@@ -486,6 +486,7 @@ svg { background: transparent; }
 .tile-cover { padding:0 0 12px; }
 /* Christmas: first and full width while the season lasts */
 .tile-feature { grid-column:1 / -1; }
+.tile-cover .tile-img img { object-position:50% 22%; }
 .tile-feature .tile-img { height:210px; }
 .tile-feature .tile-img img { object-position:50% 18%; }
 .tile-cover .tlabel { padding:0 13px; }
