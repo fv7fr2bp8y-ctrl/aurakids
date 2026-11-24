@@ -105,7 +105,17 @@ function toState(pkg: string, token: string, s: PlaySubV2): PlaySub {
 export async function linkPlayPurchase(code: string, pkg: string, token: string): Promise<{ ok: boolean; reason?: string; sub?: PlaySub }> {
   const owner = await read<{ code: string }>(tokenPath(token));
   if (owner && owner.code !== code) return { ok: false, reason: "token-in-use" };
-  const s = toState(pkg, token, await fetchSub(pkg, token));
+  // Both apps run in the same Chrome, so the client can name the wrong one.
+  // Google says which: if the token belongs to the other app, use that.
+  let sub: PlaySubV2;
+  try { sub = await fetchSub(pkg, token); }
+  catch (e) {
+    const other = PLAY_PACKAGES.find((p) => p !== pkg);
+    if (!other || !String((e as Error)?.message).startsWith("play-verify 400")) throw e;
+    sub = await fetchSub(other, token);
+    pkg = other;
+  }
+  const s = toState(pkg, token, sub);
   if (!LIVE.has(s.state) || s.expiry * 1000 < Date.now()) return { ok: false, reason: "not-active" };
   await write(tokenPath(token), { code });
   await write(`playsubs/${code}.json`, s);

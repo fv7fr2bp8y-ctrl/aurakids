@@ -19,7 +19,9 @@ function detectStoreApp(): boolean {
   if (typeof document === "undefined") return false;
   try {
     const m = (document.referrer || "").match(/^android-app:\/\/(fun\.aurakids\.(?:stories|comics))/);
-    if (m) localStorage.setItem(STORE_PKG_KEY, m[1]);
+    // Per window (sessionStorage): Приказки and Комикси share Chrome's
+    // localStorage for aurakids.fun, so the last one opened would win there.
+    if (m) { sessionStorage.setItem(STORE_PKG_KEY, m[1]); localStorage.setItem(STORE_PKG_KEY, m[1]); }
     return !!m;
   } catch { return false; }
 }
@@ -29,7 +31,8 @@ const STORE_PKG_KEY = "ak-store-pkg";
 export function storePackage(): string {
   if (typeof window === "undefined") return "";
   try {
-    const p = localStorage.getItem(STORE_PKG_KEY);
+    detectStoreApp();
+    const p = sessionStorage.getItem(STORE_PKG_KEY) || localStorage.getItem(STORE_PKG_KEY);
     if (p) return p;
     return location.pathname.startsWith("/komiksi") ? "fun.aurakids.comics" : "fun.aurakids.stories";
   } catch { return "fun.aurakids.stories"; }
@@ -50,6 +53,7 @@ export function initUnlock() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem("ak-unlocked");
+    detectStoreApp();
     isStoreApp();
   } catch { /* ignore */ }
 }
