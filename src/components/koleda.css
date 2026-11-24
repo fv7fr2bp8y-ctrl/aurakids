@@ -38,19 +38,19 @@
 
 /* B */
 .kl-b { background: #fbf4e6; color: #3d2a1c; }
-.kl-b-top { background: #12193d; color: #fff; padding-bottom: 56px; }
+.kl-b-top { background: #12193d; color: #fff; padding-bottom: 60px; }
 .kl-env { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 3 / 2; margin-top: 6px; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
 .kl-env img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .kl-env-to { position: absolute; left: 20%; top: 45%; max-width: 38%; transform: rotate(-9deg); font: 700 28px/1.05 var(--font-hand), cursive; color: #ffe08a;
   text-shadow: 0 2px 6px rgba(80,0,0,.45); overflow-wrap: anywhere; }
-.kl-letter { margin-top: 0; background: #fffdf6; color: #3d2a1c; border-radius: 18px; padding: 20px 18px; position: relative;
+.kl-letter { margin-top: 0; background: #fffdf6; color: #3d2a1c; border-radius: 18px; padding: 20px; position: relative;
   box-shadow: 0 10px 24px rgba(90,30,10,.25); font-family: Georgia, "Times New Roman", serif; }
 .kl-stamp { position: absolute; right: 14px; top: -12px; width: 56px; height: 64px; background: #1a3f86; border: 3px dashed #fff; border-radius: 6px;
   color: #fff; font: 800 10px/1.2 system-ui, sans-serif; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(6deg); }
 .kl-to { font: 700 12px system-ui, sans-serif; letter-spacing: .08em; color: #9a7a5a; padding-right: 64px; }
-.kl-b-h1 { margin: 8px 0 10px; font-size: 24px; line-height: 1.25; }
+.kl-b-h1 { margin: 0 0 10px; font-size: 24px; line-height: 1.25; }
 .kl-letter-text { margin: 0; font-size: 15px; line-height: 1.6; font-style: italic; }
-.kl-b-body { margin-top: -44px; position: relative; }
+.kl-b-body { margin-top: -44px; position: relative; gap: 16px; }
 .kl-b-img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 16px; display: block; }
 .kl-steps { display: flex; gap: 8px; }
 .kl-steps div { flex: 1; background: #fff; border: 1px solid #efdcc0; border-radius: 14px; padding: 10px; font-size: 12.5px; line-height: 1.35; color: #5a3a22; }
