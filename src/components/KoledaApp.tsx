@@ -24,11 +24,11 @@ const LETTER: Theme = {
   description: "Коледна приказка, която започва като писмо от Дядо Коледа до детето по име: той разказва какво хубаво е видял през годината и кани детето в коледно приключение със сняг, елени и джуджета",
 };
 const PLOTS: (Theme & { img: string })[] = [
-  { id: "xmas-bell", label: "Изгубеното звънче", img: "/koleda/bell.jpg",
+  { id: "xmas-bell", label: "Изгубеното звънче", img: "/koleda/bell-2.jpg",
     description: "Коледа: в снежната гора детето намира златното звънче, което малък елен на Дядо Коледа е изгубил, и му помага да го върне навреме за коледната нощ" },
-  { id: "xmas-elves", label: "Работилницата на джуджетата", img: "/koleda/elves.jpg",
+  { id: "xmas-elves", label: "Работилницата на джуджетата", img: "/koleda/elves-2.jpg",
     description: "Коледа: детето попада в работилницата на джуджетата на Северния полюс и им помага да довършат последните подаръци преди Бъдни вечер" },
-  { id: "xmas-snowman", label: "Снежният човек, който мечтаеше за лято", img: "/koleda/snowman.jpg",
+  { id: "xmas-snowman", label: "Снежният човек, който мечтаеше за лято", img: "/koleda/snowman-2.jpg",
     description: "Коледа: снежен човек мечтае да види лятото, а детето измисля как да му подари парченце лято, без той да се разтопи" },
 ];
 
@@ -145,7 +145,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
         <section className="kl-a kl-snow">
           <div className="kl-col">
             <Link className="kl-brand" href="/">AuraKids</Link>
-            <div className="kl-a-art"><img src="/koleda/hero.jpg" alt="Дете чете вълшебна книга до коледната елха" /></div>
+            <div className="kl-a-art"><img src="/koleda/hero-2.jpg" alt="Дете чете вълшебна книга до коледната елха" /></div>
             <h1 className="kl-a-h1">Коледна приказка, в която <em>твоето дете</em> е героят</h1>
             <p className="kl-lead">Напиши името и за минута получаваш приказка с картинки, която някой ще ти прочете на глас.</p>
             <AudioSample variant={variant} />
@@ -163,7 +163,7 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
             <div className="kl-col">
               <Link className="kl-brand" href="/">AuraKids · Коледа</Link>
               <div className="kl-env">
-                <img src="/koleda/plik.jpg" alt="Червен коледен плик с марка от Северния полюс" />
+                <img src="/koleda/plik-2.jpg" alt="Червен коледен плик с марка от Северния полюс" />
                 <span className="kl-env-to">До: {name.trim() || "твоето дете"}</span>
               </div>
             </div>

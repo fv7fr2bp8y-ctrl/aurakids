@@ -22,7 +22,7 @@ const WORLD_IMG: Record<string, string> = {
   mermaid: "/worlds/mermaid.jpg",
   superhero: "/worlds/superhero.jpg",
   fairy: "/worlds/fairy.jpg",
-  xmas: "/koleda/hero.jpg",
+  xmas: "/koleda/hero-2.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
   pixar: `${ASSETS}/style-pixar.png`,
