@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Caveat } from "next/font/google";
 import { headers } from "next/headers";
 import KoledaApp from "@/components/KoledaApp";
 import { hashIp, ipFromHeaders } from "@/lib/quota";
@@ -20,6 +21,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+// Handwriting for the name on the envelope (variant B).
+const hand = Caveat({ subsets: ["latin", "cyrillic"], weight: "700", variable: "--font-hand" });
+
 // The variant comes from the visitor's hashed IP. ?v=a|b|c shows one variant
 // on purpose (for us); such visits are not counted.
 export default async function Koleda({ searchParams }: { searchParams: Promise<{ v?: string }> }) {
@@ -27,5 +31,5 @@ export default async function Koleda({ searchParams }: { searchParams: Promise<{
   const forced = (v || "").toUpperCase();
   const preview = forced === "A" || forced === "B" || forced === "C";
   const variant: KoledaVariant = preview ? (forced as KoledaVariant) : pickVariant(hashIp(ipFromHeaders(await headers())));
-  return <KoledaApp variant={variant} preview={preview} />;
+  return <div className={hand.variable}><KoledaApp variant={variant} preview={preview} /></div>;
 }

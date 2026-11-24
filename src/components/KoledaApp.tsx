@@ -162,16 +162,17 @@ export default function KoledaApp({ variant, preview }: { variant: KoledaVariant
           <div className="kl-b-top kl-snow">
             <div className="kl-col">
               <Link className="kl-brand" href="/">AuraKids · Коледа</Link>
-              <div className="kl-letter">
-                <div className="kl-stamp">СЕВЕРЕН<br />ПОЛЮС</div>
-                <div className="kl-to">ДО: {name.trim() ? name.trim().toUpperCase() : "ТВОЕТО ДЕТЕ"}</div>
-                <h1 className="kl-b-h1">Писмо от Дядо Коледа с името на детето ти</h1>
-                <p className="kl-letter-text">„Здравей, {name.trim() || "приятелю"}! Тази година джуджетата ми разказаха за теб нещо много специално...“</p>
+              <div className="kl-env">
+                <img src="/koleda/plik.jpg" alt="Червен коледен плик с марка от Северния полюс" />
+                <span className="kl-env-to">До: {name.trim() || "твоето дете"}</span>
               </div>
             </div>
           </div>
           <div className="kl-col kl-b-body">
-            <img className="kl-b-img" src="/koleda/letter.jpg" alt="Работилницата на Дядо Коледа с писма и джуджета" />
+            <div className="kl-letter">
+              <h1 className="kl-b-h1">Писмо от Дядо Коледа с името на детето ти</h1>
+              <p className="kl-letter-text">„Здравей, {name.trim() || "приятелю"}! Тази година джуджетата ми разказаха за теб нещо много специално...“</p>
+            </div>
             <div className="kl-steps">
               <div><b>1</b>Името на детето</div>
               <div><b>2</b>Възрастта</div>
