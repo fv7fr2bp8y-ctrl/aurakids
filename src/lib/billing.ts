@@ -86,11 +86,41 @@ const BUCKET = "libraries";
 
 export async function readSub(code: string): Promise<SubState | null> {
   const sb = getSupabase();
-  if (!sb) return null;
+  if (sb) {
+    try {
+      const { data, error } = await jsonBucket(sb).download(`subs/${code}.json`);
+      if (!error && data) return JSON.parse(await data.text());
+    } catch { /* fall back to Stripe */ }
+  }
+  return subFromStripe(code);
+}
+
+// When the stored record is missing (for example while the database refuses
+// writes), ask Stripe directly: every subscription carries the family code in
+// its metadata. Misses are remembered for 10 minutes so free visitors do not
+// cause a Stripe search on every request.
+const NO_SUB = new Map<string, number>();
+async function subFromStripe(code: string): Promise<SubState | null> {
+  if (!/^[A-Za-z0-9_-]{4,80}$/.test(code)) return null;
+  const miss = NO_SUB.get(code);
+  if (miss && miss > Date.now()) return null;
   try {
-    const { data, error } = await jsonBucket(sb).download(`subs/${code}.json`);
-    if (error || !data) return null;
-    return JSON.parse(await data.text());
+    const q = encodeURIComponent(`metadata['code']:'${code}'`);
+    const r = await stripe(`/subscriptions/search?query=${q}&limit=10`);
+    const subs = ((r?.data ?? []) as (Record<string, unknown> & { id: string; created: number })[])
+      .sort((a, b) => b.created - a.created);
+    const sub = subs.find((x) => LIVE.has(String(x.status))) ?? subs[0];
+    if (!sub) { NO_SUB.set(code, Date.now() + 10 * 60_000); return null; }
+    const state: SubState = {
+      subId: sub.id,
+      customer: String(sub.customer || ""),
+      status: String(sub.status || ""),
+      periodEnd: periodEndOf(sub as never),
+      trialEnd: (sub.trial_end as number) || null,
+      updated: new Date().toISOString(),
+    };
+    await writeSub(code, state).catch(() => {});
+    return state;
   } catch {
     return null;
   }
