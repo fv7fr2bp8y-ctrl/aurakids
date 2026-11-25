@@ -16,14 +16,15 @@ import { getEntitlement } from "@/lib/billing";
 export type QuotaKind = "story" | "comic" | "image" | "tts";
 
 // Per IP per day, not paid (web demo and the free Play apps).
-const FREE: Record<QuotaKind, number> = { story: 4, comic: 1, image: 15, tts: 5 };
+// 25.11.2026, until the first subscribers: 1 story per person (3 pictures + 1 spare).
+const FREE: Record<QuotaKind, number> = { story: 1, comic: 1, image: 4, tts: 5 };
 // Per paid family code per day.
 const PAID: Record<QuotaKind, number> = { story: 15, comic: 5, image: 60, tts: 20 };
 // Subscribers per calendar month, and during the 7-day trial in total.
 const MONTHLY: Partial<Record<QuotaKind, number>> = { story: 30, comic: 6 };
 const TRIAL: Partial<Record<QuotaKind, number>> = { story: 7, comic: 2 };
-// All free traffic together per day (worst case ≈ 19 € of AI per day).
-const GLOBAL_FREE: Record<QuotaKind, number> = { story: 40, comic: 6, image: 150, tts: 40 };
+// All free traffic together per day: 15 stories (worst case about 3 $ of AI per day).
+const GLOBAL_FREE: Record<QuotaKind, number> = { story: 15, comic: 6, image: 50, tts: 40 };
 
 const CODE = /^[A-Z0-9-]{8,40}$/;
 const BUCKET = "libraries";
