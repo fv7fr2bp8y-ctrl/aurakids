@@ -14,21 +14,21 @@ import { isNameClean } from "@/lib/nameFilter";
 import { trackEvent } from "@/lib/analytics";
 import { playBillingAvailable, playPrices, buyPlay, restorePlay } from "@/lib/playClient";
 
-const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
+const ASSETS = "/brand"; // site pictures ship with the site (were in Supabase storage)
 const WORLD_IMG: Record<string, string> = {
-  dragon: `${ASSETS}/world-dragon.png`,
-  space: `${ASSETS}/world-space.png`,
-  forest: `${ASSETS}/world-forest.png`,
-  mermaid: `${ASSETS}/world-ocean.png`,
-  superhero: `${ASSETS}/world-superhero.png`,
-  fairy: `${ASSETS}/world-fairy.png`,
+  dragon: `${ASSETS}/world-dragon.webp`,
+  space: `${ASSETS}/world-space.webp`,
+  forest: `${ASSETS}/world-forest.webp`,
+  mermaid: `${ASSETS}/world-ocean.webp`,
+  superhero: `${ASSETS}/world-superhero.webp`,
+  fairy: `${ASSETS}/world-fairy.webp`,
   xmas: "/koleda/hero-2.jpg",
 };
 const STYLE_IMG: Record<string, string> = {
-  pixar: `${ASSETS}/style-pixar.png`,
-  cartoon: `${ASSETS}/style-cartoon.png`,
-  manga: `${ASSETS}/style-manga.png`,
-  retro: `${ASSETS}/style-retro.png`,
+  pixar: `${ASSETS}/style-pixar.webp`,
+  cartoon: `${ASSETS}/style-cartoon.webp`,
+  manga: `${ASSETS}/style-manga.webp`,
+  retro: `${ASSETS}/style-retro.webp`,
 };
 
 interface StoryGeneratorProps {
@@ -457,7 +457,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <span className="progress-count">{step} / {LAST}</span>
           {onHome && (
             <button onClick={onHome} aria-label="Начало" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flex: "0 0 auto" }}>
-              <Image src={`${ASSETS}/logo-mark-v5.png`} alt="AuraKids" width={32} height={32} unoptimized
+              <Image src={`${ASSETS}/logo-mark-v5.webp`} alt="AuraKids" width={32} height={32} unoptimized
                 style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", display: "block" }} />
             </button>
           )}
@@ -625,7 +625,7 @@ export default function StoryGenerator({ format, lang, onLangChange, onBack, onH
           <div className="orb">
             <span className="ring" />
             <span className="orbit"><i /><i /><i /></span>
-            <Image className="orb-img orb-mascot" src={`${ASSETS}/orb-story.png`}
+            <Image className="orb-img orb-mascot" src={`${ASSETS}/orb-story.webp`}
               alt="" width={150} height={150} unoptimized />
           </div>
           <h3>{format === "comic" ? t(lang, "loadComic") : t(lang, "loadStoryFor").replace("{name}", childName.trim())}</h3>

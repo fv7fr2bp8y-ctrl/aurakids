@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, jsonBucket } from "@/lib/supabase";
 import { hashIp, ipFromHeaders } from "@/lib/quota";
 import { AB_EVENTS, KOLEDA_VARIANTS, isVariant, type AbEvent } from "@/lib/abtest";
 
@@ -24,14 +24,14 @@ export async function POST(req: NextRequest) {
   const day = new Date().toISOString().slice(0, 10);
   let data: Day = {};
   try {
-    const { data: f } = await sb.storage.from(BUCKET).download(dayPath(day));
+    const { data: f } = await jsonBucket(sb).download(dayPath(day));
     if (f) data = JSON.parse(await f.text());
   } catch { /* first event of the day */ }
   const list = ((data[v] ??= {})[e] ??= []);
   if (!list.includes(who)) {
     list.push(who);
     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    await sb.storage.from(BUCKET).upload(dayPath(day), blob, { contentType: "application/json", upsert: true });
+    await jsonBucket(sb).upload(dayPath(day), blob, { contentType: "application/json", upsert: true });
   }
   return NextResponse.json({ ok: true });
 }
@@ -41,12 +41,12 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   const sb = getSupabase();
   if (!sb) return NextResponse.json({ error: "no storage" }, { status: 500 });
-  const { data: files } = await sb.storage.from(BUCKET).list("ab/koleda", { limit: 400 });
+  const { data: files } = await jsonBucket(sb).list("ab/koleda", { limit: 400 });
   const total: Record<string, Record<AbEvent, number>> = {};
   for (const v of KOLEDA_VARIANTS) total[v] = { view: 0, click: 0, story: 0, paywall: 0 };
   const days: Record<string, Record<string, Record<string, number>>> = {};
   for (const f of files ?? []) {
-    const { data: blob } = await sb.storage.from(BUCKET).download(`ab/koleda/${f.name}`);
+    const { data: blob } = await jsonBucket(sb).download(`ab/koleda/${f.name}`);
     if (!blob) continue;
     const d: Day = JSON.parse(await blob.text());
     const day = f.name.replace(".json", "");

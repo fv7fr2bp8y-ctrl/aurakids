@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, jsonBucket } from "@/lib/supabase";
 import seed from "./stress-seed.json";
 
 // Stress marks are only ever taken from a dictionary, never guessed (the
@@ -73,7 +73,7 @@ async function cached(word: string): Promise<string[] | null | undefined> {
   const sb = getSupabase();
   if (!sb) return undefined;
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(`stress/${word}.json`);
+    const { data, error } = await jsonBucket(sb).download(`stress/${word}.json`);
     if (error || !data) return undefined;
     return JSON.parse(await data.text()).forms ?? null;
   } catch {
@@ -86,7 +86,7 @@ async function remember(word: string, forms: string[] | null) {
   const sb = getSupabase();
   if (!sb) return;
   const body = new Blob([JSON.stringify({ forms, at: new Date().toISOString() })], { type: "application/json" });
-  await sb.storage.from(BUCKET).upload(`stress/${word}.json`, body, { contentType: "application/json", upsert: true }).catch(() => {});
+  await jsonBucket(sb).upload(`stress/${word}.json`, body, { contentType: "application/json", upsert: true }).catch(() => {});
 }
 
 // Index (in the unmarked word) of the stressed vowel, or -1.

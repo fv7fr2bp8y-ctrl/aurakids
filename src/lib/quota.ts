@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, jsonBucket } from "@/lib/supabase";
 import { getEntitlement } from "@/lib/billing";
 
 // Server-side spending brake for the paid AI endpoints. The browser can no
@@ -57,7 +57,7 @@ type Sb = NonNullable<ReturnType<typeof getSupabase>>;
 
 async function readCount(sb: Sb, path: string): Promise<number> {
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(path);
+    const { data, error } = await jsonBucket(sb).download(path);
     if (error || !data) return 0;
     const n = Number(JSON.parse(await data.text())?.n);
     return Number.isFinite(n) && n > 0 ? n : 0;
@@ -69,7 +69,7 @@ async function readCount(sb: Sb, path: string): Promise<number> {
 async function writeCount(sb: Sb, path: string, n: number): Promise<void> {
   try {
     const body = new Blob([JSON.stringify({ n: Math.max(0, n) })], { type: "application/json" });
-    await sb.storage.from(BUCKET).upload(path, body, { contentType: "application/json", upsert: true });
+    await jsonBucket(sb).upload(path, body, { contentType: "application/json", upsert: true });
   } catch { /* best effort */ }
 }
 
@@ -148,7 +148,7 @@ export async function readGroup(group: string): Promise<{ el: boolean } | null> 
   const sb = getSupabase();
   if (!sb || !/^[a-f0-9]{16,40}$/.test(group)) return null;
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(`limits/groups/${group}.json`);
+    const { data, error } = await jsonBucket(sb).download(`limits/groups/${group}.json`);
     if (error || !data) return null;
     return JSON.parse(await data.text());
   } catch {
@@ -160,7 +160,7 @@ export async function writeGroup(group: string, info: { el: boolean }) {
   const sb = getSupabase();
   if (!sb || !/^[a-f0-9]{16,40}$/.test(group)) return;
   const body = new Blob([JSON.stringify(info)], { type: "application/json" });
-  await sb.storage.from(BUCKET).upload(`limits/groups/${group}.json`, body, { contentType: "application/json", upsert: true }).catch(() => {});
+  await jsonBucket(sb).upload(`limits/groups/${group}.json`, body, { contentType: "application/json", upsert: true }).catch(() => {});
 }
 
 // Standard "limit reached" answer the app understands.

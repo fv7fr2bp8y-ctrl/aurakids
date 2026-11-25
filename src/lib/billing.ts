@@ -1,5 +1,5 @@
 import { activePlaySub } from "@/lib/playBilling";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, jsonBucket } from "@/lib/supabase";
 
 // Subscription billing for the web (Stripe). One product, two prices:
 // 4,99 €/month and 39,99 €/year, both with a 7-day free trial (card required).
@@ -88,7 +88,7 @@ export async function readSub(code: string): Promise<SubState | null> {
   const sb = getSupabase();
   if (!sb) return null;
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(`subs/${code}.json`);
+    const { data, error } = await jsonBucket(sb).download(`subs/${code}.json`);
     if (error || !data) return null;
     return JSON.parse(await data.text());
   } catch {
@@ -100,7 +100,7 @@ async function writeSub(code: string, s: SubState) {
   const sb = getSupabase();
   if (!sb) return;
   const body = new Blob([JSON.stringify(s)], { type: "application/json" });
-  await sb.storage.from(BUCKET).upload(`subs/${code}.json`, body, { contentType: "application/json", upsert: true });
+  await jsonBucket(sb).upload(`subs/${code}.json`, body, { contentType: "application/json", upsert: true });
 }
 
 // Stripe API 2025+ moved current_period_end onto subscription items.
@@ -151,7 +151,7 @@ async function hasLifetime(code: string): Promise<boolean> {
   const sb = getSupabase();
   if (!sb) return false;
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(`unlocks/${code}.json`);
+    const { data, error } = await jsonBucket(sb).download(`unlocks/${code}.json`);
     return !error && !!data;
   } catch {
     return false;

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCachedImage } from "@/lib/supabase";
 
 export const maxDuration = 10;
 
 export async function GET() {
-  const logoUrl = await getCachedImage("logo-mark-v5.png");
+  const logoUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aurakids.fun"}/brand/logo-mark-v5.webp`;
 
   const logoImg = logoUrl
     ? `<image href="${logoUrl}" x="80" y="160" width="260" height="260" />`

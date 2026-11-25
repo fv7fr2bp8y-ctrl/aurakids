@@ -6,12 +6,13 @@ import sharp from "sharp";
 // maskable icons, padded on the brand background so the OS mask never clips
 // the artwork. `?app=story|comic|both` selects which brand icon.
 // Powers PWA icons, favicon and apple-touch-icon for each build.
-const BASE = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
+// Brand icons ship with the site under /brand (they were in Supabase storage).
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://aurakids.fun") + "/brand";
 const SOURCES: Record<string, string> = {
-  both: `${BASE}/app-icon-portal-v1.png`,
-  story: `${BASE}/story-logo-v1.png`,
-  comic: `${BASE}/logo-mark-v5.png`,
-  favicon: `${BASE}/favicon-star-v1.png`,
+  both: `${BASE}/app-icon-portal-v1.webp`,
+  story: `${BASE}/story-logo-v1.webp`,
+  comic: `${BASE}/logo-mark-v5.webp`,
+  favicon: `${BASE}/favicon-star-v1.webp`,
 };
 const BG = { r: 26, g: 5, b: 51, alpha: 1 }; // --ak-purple-night
 

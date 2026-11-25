@@ -1,5 +1,5 @@
 import { createHash, createSign } from "crypto";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, jsonBucket } from "@/lib/supabase";
 import type { SubState } from "@/lib/billing";
 
 // Google Play subscriptions for the Android apps (TWA + Digital Goods API).
@@ -78,7 +78,7 @@ async function read<T>(path: string): Promise<T | null> {
   const sb = getSupabase();
   if (!sb) return null;
   try {
-    const { data, error } = await sb.storage.from(BUCKET).download(path);
+    const { data, error } = await jsonBucket(sb).download(path);
     if (error || !data) return null;
     return JSON.parse(await data.text());
   } catch { return null; }
@@ -86,7 +86,7 @@ async function read<T>(path: string): Promise<T | null> {
 async function write(path: string, v: unknown) {
   const sb = getSupabase();
   if (!sb) return;
-  await sb.storage.from(BUCKET).upload(path, new Blob([JSON.stringify(v)], { type: "application/json" }), { contentType: "application/json", upsert: true });
+  await jsonBucket(sb).upload(path, new Blob([JSON.stringify(v)], { type: "application/json" }), { contentType: "application/json", upsert: true });
 }
 const tokenPath = (token: string) => `playtokens/${createHash("sha256").update(token).digest("hex").slice(0, 32)}.json`;
 

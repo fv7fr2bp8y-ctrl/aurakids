@@ -22,10 +22,10 @@ const DOOR_PROMPTS = {
   comic: "A thrilled child superhero mid-leap over city rooftops at sunset, cape flying, dynamic action pose, comic book energy with motion lines and bright bold colors, joyful adventurous expression, cinematic wide angle",
 };
 
-const ASSETS = "https://cdthqixswrcxkyodzdjp.supabase.co/storage/v1/object/public/story-images";
+const ASSETS = "/brand"; // site pictures ship with the site (were in Supabase storage)
 const DOOR_COVERS = {
-  story: `${ASSETS}/door-story-card.png`,
-  comic: `${ASSETS}/door-comic.png`, // 00-original-reference — hero over comic panels
+  story: `${ASSETS}/door-story-card.webp`,
+  comic: `${ASSETS}/door-comic.webp`, // 00-original-reference — hero over comic panels
 };
 
 function DoorImage({ kind }: { kind: "story" | "comic" }) {
@@ -111,7 +111,7 @@ export default function HeroSection({ lang, onLangChange, onStartStory, onStartC
         <div className="home-nav">
           <button className="brandrow" onClick={onHome} aria-label="Начало"
             style={{ background: "none", border: "none", cursor: onHome ? "pointer" : "default", padding: 0 }}>
-            <Image src={`${ASSETS}/logo-mark-v5.png`} alt="AuraKids" width={56} height={56} unoptimized
+            <Image src={`${ASSETS}/logo-mark-v5.webp`} alt="AuraKids" width={56} height={56} unoptimized
               style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)" }} />
             <span className="wm">Aura<span className="wm-kids">Kids</span>{soleFormat && (
               <span className="wm-sub">{t(lang, soleFormat === "comic" ? "appTagComic" : "appTagStory")}</span>
