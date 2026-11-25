@@ -10,6 +10,7 @@ interface Card {
   theme: string;
   excerpt: string;
   prompt: string;
+  img?: string;
   gradient: string;
   accentColor: string;
   icon: string;
@@ -20,6 +21,7 @@ const CARDS: Card[] = [
     title: "Александър и Огненият Дракон",
     child: "Александър", age: "6 год.",
     theme: "Дракони",
+    img: "/brand/world-dragon.webp",
     excerpt: "Тази нощ луната светеше по-ярко от всякога. И само Александър знаеше защо — огненият дракон беше събуден...",
     prompt: "Disney watercolor illustration, a brave young boy with big expressive brown eyes and a tiny golden crown, soaring through a magical twilight sky riding a friendly glowing purple dragon with iridescent scales, enchanted fantasy kingdom below with glowing towers, warm coral and gold watercolor washes, soft painterly brushstrokes, cinematic fairy-tale mood, ultra-detailed, no text, no watermarks",
     gradient: "linear-gradient(145deg, #1a0533 0%, #6B35B8 60%, #FF6B6B 100%)",
@@ -30,6 +32,7 @@ const CARDS: Card[] = [
     title: "Ева и Говорещата Гора",
     child: "Ева", age: "5 год.",
     theme: "Вълшебна гора",
+    img: "/brand/world-forest.webp",
     excerpt: "Гората зад дома на Ева пазеше тайна — такава, която само тя можеше да открие. И точно тя я откри...",
     prompt: "Disney watercolor illustration, an adorable young girl with big curly auburn hair and rosy cheeks, sitting on a mossy root in an enchanted ancient forest, a wise owl perched beside her and a gentle fox at her feet, giant glowing mushrooms, soft firefly light, magical mist, lush emerald and gold watercolor washes, painterly soft brushstrokes, fairy-tale wonder, ultra-detailed, no text, no watermarks",
     gradient: "linear-gradient(145deg, #052015 0%, #166534 60%, #4ADE80 100%)",
@@ -40,6 +43,7 @@ const CARDS: Card[] = [
     title: "Никола — Пазителят на Звездите",
     child: "Никола", age: "7 год.",
     theme: "Космос",
+    img: "/brand/world-space.webp",
     excerpt: "Когато всички звезди угаснаха, единственият, когото Вселената извика на помощ, беше Никола. Неустрашим...",
     prompt: "Disney watercolor illustration, a fearless young boy in a soft astronaut suit floating weightlessly in deep magical space, surrounded by friendly glowing planets with faces, swirling pink and violet nebulas, a trail of golden stardust, deep indigo and purple watercolor washes, painterly soft brushstrokes, sense of infinite wonder, ultra-detailed, no text, no watermarks",
     gradient: "linear-gradient(145deg, #020617 0%, #1e1b4b 60%, #7C3AED 100%)",
@@ -49,10 +53,12 @@ const CARDS: Card[] = [
 ];
 
 function StoryCard({ card, index }: { card: Card; index: number }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Fixed world pictures ship with the site; drawing is only a fallback.
+  const [imgUrl, setImgUrl] = useState<string | null>(card.img ?? null);
+  const [loading, setLoading] = useState(!card.img);
 
   useEffect(() => {
+    if (card.img) return;
     const t = setTimeout(() => {
       fetch("/api/generate-image", {
         method: "POST",
@@ -65,7 +71,7 @@ function StoryCard({ card, index }: { card: Card; index: number }) {
         .finally(() => setLoading(false));
     }, index * 800);
     return () => clearTimeout(t);
-  }, [card.prompt, index]);
+  }, [card.prompt, card.img, index]);
 
   return (
     <div className="group rounded-3xl overflow-hidden card-hover flex flex-col"
