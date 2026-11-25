@@ -24,12 +24,19 @@ export const dynamic = "force-dynamic";
 // Handwriting for the name on the envelope (variant B).
 const hand = Caveat({ subsets: ["latin", "cyrillic"], weight: "700", variable: "--font-hand" });
 
+type Params = { v?: string; gclid?: string; gbraid?: string; wbraid?: string; utm_source?: string };
+
 // The variant comes from the visitor's hashed IP. ?v=a|b|c shows one variant
 // on purpose (for us); such visits are not counted.
-export default async function Koleda({ searchParams }: { searchParams: Promise<{ v?: string }> }) {
-  const { v } = await searchParams;
+// Visitors from a Google ad always get A: the ad promises a Christmas story,
+// and A is the variant that says exactly that.
+export default async function Koleda({ searchParams }: { searchParams: Promise<Params> }) {
+  const { v, gclid, gbraid, wbraid, utm_source } = await searchParams;
   const forced = (v || "").toUpperCase();
   const preview = forced === "A" || forced === "B" || forced === "C";
-  const variant: KoledaVariant = preview ? (forced as KoledaVariant) : pickVariant(hashIp(ipFromHeaders(await headers())));
+  const fromGoogleAd = !!(gclid || gbraid || wbraid) || (utm_source || "").toLowerCase() === "google";
+  const variant: KoledaVariant = preview ? (forced as KoledaVariant)
+    : fromGoogleAd ? "A"
+    : pickVariant(hashIp(ipFromHeaders(await headers())));
   return <div className={hand.variable}><KoledaApp variant={variant} preview={preview} /></div>;
 }
