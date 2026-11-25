@@ -7,6 +7,8 @@ import { getCachedImage, saveImageToStorage } from "@/lib/supabase";
 
 export const maxDuration = 120;
 
+const DECOR = new Set(["dc517e69fde55fc611643f654ccde26002fbf148.png", "95261de66d5ab0f80932c393068f93a0ff018bc4.png", "691ab1ccb9253f0c7a92422b7cbb06248e79944a.png", "a31fb35f4bb878ef627741e373509130db989db5.png", "c9bd61042891322b2f76a498e058bb876f3cc086.png", "de78621360fb1fe546bfa5fa6fd25a7ef306fa16.png", "0469440d50356bb07e4a22fa6fa4af2d732c1aba.png"]);
+
 function promptToFileName(prompt: string) {
   return createHash("sha1").update(prompt).digest("hex") + ".png";
 }
@@ -89,6 +91,9 @@ export async function POST(req: NextRequest) {
 
   const cached = await getCachedImage(fileName);
   if (cached) return NextResponse.json({ url: cached, fromCache: true });
+  // Home page decorations ("Как работи", sample stories) must come from the
+  // cache; never pay to draw them again on every visit.
+  if (DECOR.has(fileName)) return NextResponse.json({ error: "no-cache" }, { status: 404 });
 
   const quota = await takeQuota(req, "image");
   if (!quota.ok) return quotaDenied(quota);

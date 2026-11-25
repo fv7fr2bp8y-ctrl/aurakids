@@ -153,10 +153,16 @@ export async function saveAudioToStorage(fileName: string, audio: ArrayBuffer): 
 // back to the old bucket, so records written before the move still count once
 // storage answers again.
 
+// While Supabase refuses writes, records (daily limits above all) are kept in
+// this server's memory, so the limits still hold within each running instance.
+const MEM = new Map<string, string>();
+
 export function jsonBucket(sb: Sb) {
   const old = sb.storage.from("libraries");
   return {
     async download(path: string): Promise<{ data: { text: () => Promise<string> } | null; error: unknown }> {
+      const m = MEM.get(path);
+      if (m !== undefined) return { data: { text: async () => m }, error: null };
       try {
         const { data, error } = await sb.from("kv").select("value").eq("key", path).maybeSingle();
         if (!error && data) {
@@ -171,6 +177,8 @@ export function jsonBucket(sb: Sb) {
     },
     async upload(path: string, body: Blob | string, _opts?: unknown): Promise<{ error: unknown }> {
       const text = typeof body === "string" ? body : await body.text();
+      MEM.set(path, text);
+      if (MEM.size > 20000) MEM.delete(MEM.keys().next().value as string);
       const { error } = await sb.from("kv").upsert({ key: path, value: JSON.parse(text), updated_at: new Date().toISOString() });
       if (error) console.error("kv write error:", error.message);
       return { error };
