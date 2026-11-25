@@ -19,7 +19,8 @@ export type QuotaKind = "story" | "comic" | "image" | "tts";
 // 25.11.2026, until the first subscribers: 1 story per person (3 pictures + 1 spare).
 const FREE: Record<QuotaKind, number> = { story: 1, comic: 1, image: 4, tts: 5 };
 // Per paid family code per day.
-const PAID: Record<QuotaKind, number> = { story: 15, comic: 5, image: 60, tts: 20 };
+// 25.11.2026: 3 stories a day (3 pictures each + spare); the month stays at 30.
+const PAID: Record<QuotaKind, number> = { story: 3, comic: 5, image: 12, tts: 20 };
 // Subscribers per calendar month, and during the 7-day trial in total.
 const MONTHLY: Partial<Record<QuotaKind, number>> = { story: 30, comic: 6 };
 const TRIAL: Partial<Record<QuotaKind, number>> = { story: 7, comic: 2 };
