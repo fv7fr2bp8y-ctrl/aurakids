@@ -6,6 +6,7 @@ import Image from "next/image";
 const STEPS = [
   {
     n: "1",
+    img: "/brand/steps/1.webp",
     title: "Назови героя",
     desc: "Въведи името на детето и на колко години е.",
     bg: "linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)",
@@ -13,6 +14,7 @@ const STEPS = [
   },
   {
     n: "2",
+    img: "/brand/steps/2.webp",
     title: "Избери свят",
     desc: "Дракони, космос, вълшебна гора — или измисли свой.",
     bg: "linear-gradient(135deg, #FFD93D 0%, #FF9A3C 100%)",
@@ -20,6 +22,7 @@ const STEPS = [
   },
   {
     n: "3",
+    img: "/brand/steps/3.webp",
     title: "Приказката се ражда",
     desc: "AI пише история само за вашето дете с уникални илюстрации.",
     bg: "linear-gradient(135deg, #A78BFA 0%, #6B35B8 100%)",
@@ -27,6 +30,7 @@ const STEPS = [
   },
   {
     n: "4",
+    img: "/brand/steps/4.webp",
     title: "Чуй я на глас",
     desc: "Топъл глас разказва приказката. После я намираш в библиотеката.",
     bg: "linear-gradient(135deg, #67E8F9 0%, #2563EB 100%)",
@@ -34,11 +38,13 @@ const STEPS = [
   },
 ];
 
-function StepImage({ prompt, bg, n }: { prompt: string; bg: string; n: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<"loading" | "done" | "error">("loading");
+function StepImage({ prompt, bg, n, img }: { prompt: string; bg: string; n: string; img?: string }) {
+  // Fixed pictures ship with the site; drawing is only a fallback.
+  const [url, setUrl] = useState<string | null>(img ?? null);
+  const [status, setStatus] = useState<"loading" | "done" | "error">(img ? "done" : "loading");
 
   useEffect(() => {
+    if (img) return;
     const delay = (parseInt(n) - 1) * 400;
     const t = setTimeout(() => {
       fetch("/api/generate-image", {
@@ -54,7 +60,7 @@ function StepImage({ prompt, bg, n }: { prompt: string; bg: string; n: string })
         .catch(() => setStatus("error"));
     }, delay);
     return () => clearTimeout(t);
-  }, [prompt, n]);
+  }, [prompt, n, img]);
 
   return (
     <div className="relative h-48 w-full overflow-hidden">
@@ -102,7 +108,7 @@ export default function HowItWorks() {
                 style={{ boxShadow: "0 8px 32px rgba(107,53,184,0.12), 0 0 0 1px rgba(0,0,0,0.04)" }}>
 
                 <div className="relative">
-                  <StepImage prompt={s.prompt} bg={s.bg} n={s.n} />
+                  <StepImage prompt={s.prompt} bg={s.bg} n={s.n} img={s.img} />
                   <div className="absolute top-3 left-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black z-10"
                     style={{ background: "rgba(0,0,0,0.28)", color: "white", backdropFilter: "blur(6px)" }}>
                     {s.n}
